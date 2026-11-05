@@ -29,6 +29,7 @@ One per command that saves its results.  Each is stamped with the date and time 
 | File | Written to | Produced by | What it holds |
 | :--- | :--- | :--- | :--- |
 | `MapTasker_Analysis_date_time.txt` | Output folder | 'Run (AI) Analysis' | The analysis the AI model returned for your configuration. |
+| `MapTasker_Battery_date_time.txt` | Current folder | -- | What keeps the phone busy, Project by Project -- see batteryaudit.py. |
 | `maptasker_check_in.txt` | Current folder | -- | _Not yet described -- see build_generated_files_doc.py._ |
 | `MapTasker_Compare.txt` | Output folder | 'Compare Files' | What differs between two configurations. |
 | `MapTasker_Find_date_time.txt` | Output folder | 'Find' > 'Save Results' | The saved results of a search. |
@@ -36,11 +37,14 @@ One per command that saves its results.  Each is stamped with the date and time 
 | `MapTasker_Flowchart_date_time.txt` | Output folder | 'Task Flow' | The flowchart drawn for a single Task. |
 | `MapTasker_HealthCheck_date_time.txt` | Output folder | 'Health Check' | What the check found wrong with the configuration. |
 | `MapTasker_Monitor.txt` | Output folder | 'Live Run Monitor' > Save Log | What the Live Run Monitor saw on the device: each Profile that became active or inactive and each Task that started or finished, with the time to the millisecond. |
+| `MapTasker_Outbound_date_time.txt` | Current folder | -- | The inventory of everything the configuration reaches outside itself with -- see outbound.py. |
 | `MapTasker_Refactor_date_time.txt` | Output folder | 'Refactor' | The preview a refactoring operation was applied from, or declined. |
 | `MapTasker_Replace_date_time.txt` | Output folder | 'Find' > 'Replace' | The preview of a replacement: what would change, before anything does. |
 | `MapTasker_Resources_date_time.txt` | Output folder | 'Missing Resources' > Save Report | The files, folders, images, sounds, Scenes and apps the configuration uses that the device did not have, with every place that uses each. |
 | `MapTasker_TaskerNet_date_time.txt` | Output folder | 'TaskerNet Updates' > 'Save Report' | What the author of a TaskerNet share changed since the version you have, and how your copy compares with the published one. |
 | `MapTasker_TaskFlow_date_time.txt` | Output folder | 'Task Flow' | Every Task's If/Else/For/Goto structure, linted. |
+| `MapTasker_TaskTests.json` | Current folder | -- | The Task test cases the user has saved -- see taskcases.py.  Kept in the current directory, beside the settings. |
+| `MapTasker_TaskTests.txt` | Current folder | -- | The saved report of a run of them. |
 | `MapTasker_Timeline_date_time.txt` | Output folder | 'Timeline' | What has changed in your own configuration since an earlier snapshot.  It is the comparison report under another name, so that 'what changed since Tuesday' does not land on top of a comparison of two separate files. |
 | `MapTasker_Trend_date_time.txt` | Current folder | -- | _Not yet described -- see build_generated_files_doc.py._ |
 | `MapTasker_VarXref_date_time.txt` | Output folder | 'Variables Xref' | Every variable, and everywhere it is set and read. |

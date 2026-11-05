@@ -6,7 +6,7 @@ Once the XML file is loaded, you can optionally edit your Projects, Profiles, Ta
 
 This page describes each of the **96** commands, options and tabs in MapTasker's Help screen, in the same order, with more detail on each and the caveats that go with it.
 
-_Generated from the MapTasker 15.1.1 source on 2026-11-03 by `build_command_wiki.py`._ _Do not edit this page by hand -- rerun that program instead._
+_Generated from the MapTasker 15.1.1 source on 2026-11-05 by `build_command_wiki.py`._ _Do not edit this page by hand -- rerun that program instead._
 
 ## How to use this page
 
@@ -512,9 +512,13 @@ Fetch the backup/exported XML file from Android device. You will be asked for th
 The following steps are required in order to fetch a Tasker XML file directly from your Android device.
 
 1. Both this device and the Android device must be on the same named network.
-2. The Tasker Project 'HTTP Server Example' or identical function must be installed and active on the Android device (the server must be running):
+2. The Tasker Projects 'HTTP Server Example' and 'Tasker HTTP API' must both be installed and active on the Android device (the server must be running):
 
-https://tinyurl.com/4p5cz8sv
+https://shorturl.at/bwCD4
+
+https://shorturl.at/hlTj0
+
+If 'HTTP Server Example' is missing but 'Tasker HTTP API' is there, the 'Install Http Server Example Project' button in the 'Get XML from Android Device' panel has Tasker open its TaskerNet page on the device for you.
 
 That is the only setup required.  The 'List XML Files' option used to need a second, separate profile ('MapTasker List') imported from TaskerNet and left enabled; it no longer does.  MapTasker now installs a small Task named 'MapTasker List Files v1' on the device to do the listing, the same way 'App not listed?' installs one to fetch your applications.
 
@@ -528,7 +532,7 @@ You will be asked for the IP address, the port number for your Android device, a
 
 Usage Notes:
 
-The IP address and port can be obtained by installing the 'HTTP Server Example' project from the above URL on your Android device. Then run the task named 'Update GD HTTP Info' to get the Android notification:
+The IP address and port can be obtained by installing the 'HTTP Server Example' project from the first URL above on your Android device. Then run the task named 'Update GD HTTP Info' to get the Android notification:
 
 HTTP Server Info
 
@@ -569,13 +573,13 @@ Clicking this button will result in the following actions:
 * The list of found XML files will be presented in a pulldown menu from which you can select the one you want to use.
 * Once you have selected the XML file, it will be fetched and verified as valid XML which is then used as input to the program once you subsequently click on the 'Run' or 'ReRun' button.
 
-The listing is done by a small Task named 'MapTasker List Files v1', which MapTasker installs on your Android device the first time you use this button and then leaves there.  Nothing has to be imported by hand.  It requires the 'HTTP Server Example' project running on the device and Tasker 6.2 or higher -- the same requirements 'Save to Android' has -- and Tasker will ask you to authorize the connection the first time.
+The listing is done by a small Task named 'MapTasker List Files v1', which MapTasker installs on your Android device the first time you use this button and then leaves there.  Nothing has to be imported by hand.  It requires the 'HTTP Server Example' and 'Tasker HTTP API' projects running on the device and Tasker 6.2 or higher -- the same requirements 'Save to Android' has -- and Tasker will ask you to authorize the connection the first time.
 
 Allow a few seconds: installing the Task (once), running it and reading back its answer is not instant.
 
 **Caveats:**
 
-* It requires the 'HTTP Server Example' project running on the device and Tasker 6.2 or higher -- the same requirements 'Save to Android' has -- and Tasker will ask you to authorize the connection the first time.
+* It requires the 'HTTP Server Example' and 'Tasker HTTP API' projects running on the device and Tasker 6.2 or higher -- the same requirements 'Save to Android' has -- and Tasker will ask you to authorize the connection the first time.
 * Allow a few seconds: installing the Task (once), running it and reading back its answer is not instant.
 
 <a id="cmd-cancel-entry"></a>
@@ -829,7 +833,7 @@ Write the object back to your Android device -- 'Save As File' puts it on the de
 **Caveats:**
 
 * A safety copy of anything a save is about to overwrite is kept in the 'MapTasker_Backups' folder.
-* The 'Http Server Example' Tasker Project (http://spoo.me/http_svr_example) must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).
+* The 'Http Server Example' (http://spoo.me/http_svr_example) and 'Tasker HTTP API' (https://shorturl.at/hlTj0) Tasker Projects must both be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).
 * The Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.
 * You must exit and restart Tasker to see an imported Task in the Tasker UI.
 
@@ -1229,7 +1233,7 @@ Do the files, folders, images, sounds, Scenes and apps your Tasks and Profiles u
 
 * A path built from a variable, a wildcard and a web or content address cannot be tested and are listed as not checked; a path an action writes to is not tested, as it is not meant to exist yet; a ringtone, a Tasker icon and the images inside a Scene are not looked at.
 * Something is called missing only when every device you have checked lacks it.
-* Tasker must be running with the HTTP Server Example project active, and the device asks you to authorize the connection.
+* Tasker must be running with the HTTP Server Example and Tasker HTTP API projects active, and the device asks you to authorize the connection.
 
 <a id="cmd-live-run-monitor"></a>
 ### Live Run Monitor
@@ -1243,7 +1247,7 @@ Watch which Profiles and Tasks fire on your Android device as they do.
 * Open Diagram builds the Diagram for the one Project everything seen so far belongs to, or for the whole configuration, whatever is selected in the main window.
 * Compare With What Fires When asks that feature which Profiles it says are active at the moment of the last look, and shows where the device disagrees.
 * It is sampling and not a feed, so a Task that runs for less than the gap between looks can be missed, and Tasker reports names, so two objects with one name light together.
-* Needs the interactive Diagram for the lights, and Tasker running with the HTTP Server Example project active.
+* Needs the interactive Diagram for the lights, and Tasker running with the HTTP Server Example and Tasker HTTP API projects active.
 * Closing it stops the monitoring.
 * Nothing on the device is changed but the helper Task.
 
