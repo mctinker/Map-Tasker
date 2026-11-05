@@ -316,9 +316,24 @@ class AndroidEventHandlers(HandlerGroup):
         if not await ping_android_device(self.gui, ip_address, ip_port):
             return
 
-        # Blocking -- a key fetch and a GET -- so it goes to a worker thread like every other
-        # Android call from the GUI.
-        listed = await run.io_bound(devicehelpers.stale_helper_tasks_on_device, ip_address, ip_port, state=self.state)
+        # The key fetch and the GET take a few seconds, so say so: a status line with no timeout, taken down
+        # when the answer is in.  See install_server_event's identical note.
+        pending = ui.notification(
+            translate_string("Getting the list from Tasker.  Please stand by..."),
+            type="ongoing",
+            timeout=None,
+            multi_line=True,
+        )
+        try:
+            # Blocking -- a key fetch and a GET -- so it goes to a worker thread like every other
+            # Android call from the GUI.
+            listed = await run.io_bound(
+                devicehelpers.stale_helper_tasks_on_device, ip_address, ip_port, state=self.state
+            )
+        finally:
+            if not getattr(pending, "is_deleted", False):
+                with suppress_logged("Dismissing the pending notice"):
+                    pending.dismiss()
         if listed is None:  # cancelled -- see the note at the top of this file
             return
         return_code, message, stale, current = listed

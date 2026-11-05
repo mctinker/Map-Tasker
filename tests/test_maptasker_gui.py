@@ -2931,11 +2931,26 @@ def _patch_helper_task_listing(monkeypatch, result) -> dict:
     """Point the handler at fakes and record the dialog it opens."""
     from maptasker.src.gui import userintr
 
-    calls: dict = {"io_bound": [], "notify": [], "dialog": []}
+    calls: dict = {"io_bound": [], "notify": [], "dialog": [], "pending": []}
 
     async def fake_io_bound(func, *args, **kwargs):
         calls["io_bound"].append((func, args, kwargs))
+        if isinstance(result, BaseException):
+            raise result
         return result
+
+    class _FakePending:
+        """The 'please stand by' notice: what it said, whether it was still up while the device was asked, and whether
+        it was taken down."""
+
+        def __init__(self, message, **kwargs) -> None:
+            self.message = message
+            self.kwargs = kwargs
+            self.dismissed = False
+            calls["pending"].append(self)
+
+        def dismiss(self) -> None:
+            self.dismissed = True
 
     async def fake_ping(_self, _ip, _port) -> bool:
         return True
@@ -2952,6 +2967,7 @@ def _patch_helper_task_listing(monkeypatch, result) -> dict:
         "notify",
         lambda message, **kwargs: calls["notify"].append((message, kwargs.get("type"))),
     )
+    monkeypatch.setattr(userintr_android.ui, "notification", _FakePending)
     return calls
 
 
@@ -2979,6 +2995,42 @@ async def test_the_helper_task_listing_reports_what_the_device_has(monkeypatch, 
     assert calls["dialog"] == [(["MapTasker Open Profile v1"], ["MapTasker Open Profile v4"], "192.168.0.210:1821")]
     # The connection is remembered, the way every other successful Android call remembers it.
     assert event_handler.gui.android_ipaddr == "192.168.0.210"
+
+
+@pytest.mark.asyncio
+async def test_the_helper_task_listing_says_to_stand_by_while_the_device_is_asked(monkeypatch, event_handler):
+    """The key fetch and the GET take a few seconds; the notice is up before the question and down after the answer."""
+    calls = _patch_helper_task_listing(monkeypatch, (0, "", [], []))
+    _android_panel(event_handler)
+    seen_while_asking: list[bool] = []
+    asked = calls["io_bound"]
+
+    class _Watching(list):
+        def append(self, item) -> None:
+            seen_while_asking.append(bool(calls["pending"]) and not calls["pending"][0].dismissed)
+            super().append(item)
+
+    calls["io_bound"] = _Watching(asked)
+    await event_handler.android.list_helper_tasks_event()
+
+    assert len(calls["pending"]) == 1
+    notice = calls["pending"][0]
+    assert "Getting the list from Tasker" in notice.message
+    assert "Please stand by" in notice.message
+    assert notice.kwargs["timeout"] is None, "it stays up until the answer is in"
+    assert seen_while_asking == [True]
+    assert notice.dismissed
+
+
+@pytest.mark.asyncio
+async def test_the_stand_by_notice_comes_down_when_the_device_call_fails(monkeypatch, event_handler):
+    calls = _patch_helper_task_listing(monkeypatch, RuntimeError("the worker died"))
+    _android_panel(event_handler)
+
+    with pytest.raises(RuntimeError, match="worker died"):
+        await event_handler.android.list_helper_tasks_event()
+
+    assert calls["pending"][0].dismissed
 
 
 @pytest.mark.asyncio

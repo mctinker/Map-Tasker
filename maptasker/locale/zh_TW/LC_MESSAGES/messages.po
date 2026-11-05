@@ -3418,3 +3418,5 @@ msgid "This will write the Scene as a standalone file onto your Android device, 
 msgstr "這將「場景」作為獨立檔案，儲存在您的 Android 裝置的 `/Tasker/scenes` 檔案夾中，並不會將其導入 Tasker 的即時設定。\n\n「HTTP 伺服器範例」和「Tasker HTTP API」的 Tasker 專案，必須都已安裝且在 Android 裝置上啟用，並且伺服器必須正在運作。\n\nAndroid 裝置必須連接到同一個網路，且 IP 位址和埠必須與 Tasker 伺服器的設定相符。\n\n在執行過程中，請監控 Android 裝置：Tasker 會要求您多次授權連接，若未點擊提示，則會導致失敗。"
 msgid "Lists the 'MapTasker ...' Tasks this program has installed on the Android device, and says which are left over from an earlier version.\n\nEach one is installed under a versioned name and never replaced -- Tasker's import will not replace a Task of the same name -- so old ones stay behind in your Task list.  They do no harm; they are clutter.\n\nDelete the ones it names from Tasker's own Tasks tab.  Nothing here can do it for you: Tasker's HTTP API has no way to delete a Task."
 msgstr "列出這款程式已安裝在 Android 裝置上的「MapTasker...」任務，並說明哪些是先前版本遺留下來的。\n\n每一個任務都以版本名稱安裝，不會被替換 — Tasker 的匯入功能不會替換同名的任務 — 因此舊任務會保留在您的任務清單中。 這些任務不會造成任何問題，只是造成雜亂。\n\n請從 Tasker 的「任務」標籤中刪除其中列出的任務。 這裡的任何功能都無法替您完成：Tasker 的 HTTP API 無法刪除任何任務。"
+msgid "Getting the list from Tasker.  Please stand by..."
+msgstr "從Tasker取得清單。請稍候..."
