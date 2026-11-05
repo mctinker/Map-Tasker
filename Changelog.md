@@ -2,41 +2,15 @@
 
 All notable changes to this project will be documented in this file!
 
-## [15.1.1] 05-Nov-2026
+## [15.2.0] ??-Nov-2026  # FIX
 
 ### Added
 
-- Added: __Draft with AI__ in the TaskerNet Description window asks your chosen AI model to write the description from the names of what a Project, Profile or Task contains, and shows exactly what it will send first. It never sends an action's settings, such as an address, message, number, key or variable value, and Undo Draft puts back what you had.
-- Added: __Battery Audit__ finds what keeps the phone busy -- a Time condition that repeats every few minutes, a Task that loops on a short Wait, Keep Device Awake, and a repeating Profile whose Task goes online -- and scores each Project, worst first. The score ranks what to look at first and is not a measurement of any battery.
-- Added: __Insert Requirements__ in the 'Add/Edit TaskerNet Description' window adds a list of what a Project, Profile or Task needs on another phone: its plugins, apps, special access such as root or ADB Wi-Fi, the variables Tasker will ask about, and the Tasker version. Press it again after changing the Project and it replaces the list instead of adding a second one.
-- Added: [Tasker HTTP API](https://shorturl.at/hlTj0) Tasker Project is an additional prerequisite for various, direct Tasker interactions. 
-- Added: __Install 'Http Server Example' Project__ in the 'Get XML From Android Device' panel has Tasker open that project's TaskerNet page on your phone, so you can import it without hunting for the link. It needs only the 'Tasker HTTP API' project to be installed already.
-
 ### Changed
-
-- Changed: The Diagram now builds about twice as fast on large configurations; one 13 MB backup went from about 15 seconds to about 7.
-- Changed: Checking the device for missing resources now shows which step it is on and how long it has been running, so a check that takes several minutes no longer looks frozen.
-- Changed: When your Android device answers an import with a 503 error, MapTasker now says that Tasker is reachable but not handling the request, and points you to the 'POST Import' Profile in the 'Tasker HTTP API' project and Tasker's Run Log. Before, you only saw the status code.
-- Changed: The Map now puts a blank line above every Task, so each one stands apart from the Task or Profile before it. A gap that was already there is left as it was.
 
 ### Removed
 
-- Removed: Nothing removed
-
 ### Fixed
-
-- Fixed: With __Display prettier output__ on, a plugin State or Event on a Profile line (AutoNotification, for one) now shows each of its parameters on a line of its own, aligned under the first, instead of running them together in one long line, and its name no longer runs into the word after it.
-- Fixed: A backup saved in another text encoding, such as Latin-1 or UTF-16, now opens instead of being refused, and opening a backup can no longer alter or delete the file.
-- Fixed: Saving a backup whose Projects have no id no longer writes every Project (or id-less Task) out again on each save, and a Task, Profile, Project or Scene name containing a control character is now refused instead of producing a backup that cannot be reopened.
-- Fixed: A damaged settings file, history snapshot, Scene layout, or an unexpected answer from the phone, TaskerNet or an AI model now produces a message instead of an error.
-- Fixed: Fetching a file from your Android device that is not a Tasker backup now tells you so instead of loading it as though it were one.
-- Fixed: When your Android device stops accepting the access key MapTasker is holding, checks that read from the device now ask for a fresh key and carry on, instead of reporting the device as failing.
-- Fixed: Upgrading to the latest version no longer prints a confusing "Ignoring NICEGUI_PORT" warning in the console when MapTasker restarts.
-- Fixed: Long lines in the Missing Resources report, such as a problem message from the device, now wrap inside the window instead of running off its right edge where they could not be read.
-- Fixed: Pressing Forget next to a device in the applications list now shows the message saying it was forgotten, or that it could not be saved. Before, the message was lost.
-- Fixed: When the device keeps failing during Live Run Monitor, the monitor now shows the error it stopped for. Before, it stopped without saying why.
-- Fixed: Tasks that a Profile runs, including unnamed ones, now appear in the Map for a backup that stores each Profile's Tasks after its name. Before, those Profiles showed with nothing under them.
-- Fixed: With the newest NiceGUI installed, the Bottom button, clicking a connector in the Diagram, and the Diagram's own toolbar buttons now work. Before, they did nothing.
 
 
 ### Known Issues
@@ -51,6 +25,30 @@ you have closed all pre-existing MapTasker browser tabs and you still get this e
 
 
 ## Older History Logs
+
+## [15.1.1] 05-Nov-2026
+
+- Added: __Draft with AI__ in the TaskerNet Description window asks your chosen AI model to write the description from the names of what a Project, Profile or Task contains, and shows exactly what it will send first. It never sends an action's settings, such as an address, message, number, key or variable value, and Undo Draft puts back what you had.
+- Added: __Battery Audit__ finds what keeps the phone busy -- a Time condition that repeats every few minutes, a Task that loops on a short Wait, Keep Device Awake, and a repeating Profile whose Task goes online -- and scores each Project, worst first. The score ranks what to look at first and is not a measurement of any battery.
+- Added: __Insert Requirements__ in the 'Add/Edit TaskerNet Description' window adds a list of what a Project, Profile or Task needs on another phone: its plugins, apps, special access such as root or ADB Wi-Fi, the variables Tasker will ask about, and the Tasker version. Press it again after changing the Project and it replaces the list instead of adding a second one.
+- Added: [Tasker HTTP API](https://shorturl.at/hlTj0) Tasker Project is an additional prerequisite for various, direct Tasker interactions. 
+- Added: __Install 'Http Server Example' Project__ in the 'Get XML From Android Device' panel has Tasker open that project's TaskerNet page on your phone, so you can import it without hunting for the link. It needs only the 'Tasker HTTP API' project to be installed already.
+- Changed: The Diagram now builds about twice as fast on large configurations; one 13 MB backup went from about 15 seconds to about 7.
+- Changed: Checking the device for missing resources now shows which step it is on and how long it has been running, so a check that takes several minutes no longer looks frozen.
+- Changed: When your Android device answers an import with a 503 error, MapTasker now says that Tasker is reachable but not handling the request, and points you to the 'POST Import' Profile in the 'Tasker HTTP API' project and Tasker's Run Log. Before, you only saw the status code.
+- Changed: The Map now puts a blank line above every Task, so each one stands apart from the Task or Profile before it. A gap that was already there is left as it was.
+- Fixed: With __Display prettier output__ on, a plugin State or Event on a Profile line (AutoNotification, for one) now shows each of its parameters on a line of its own, aligned under the first, instead of running them together in one long line, and its name no longer runs into the word after it.
+- Fixed: A backup saved in another text encoding, such as Latin-1 or UTF-16, now opens instead of being refused, and opening a backup can no longer alter or delete the file.
+- Fixed: Saving a backup whose Projects have no id no longer writes every Project (or id-less Task) out again on each save, and a Task, Profile, Project or Scene name containing a control character is now refused instead of producing a backup that cannot be reopened.
+- Fixed: A damaged settings file, history snapshot, Scene layout, or an unexpected answer from the phone, TaskerNet or an AI model now produces a message instead of an error.
+- Fixed: Fetching a file from your Android device that is not a Tasker backup now tells you so instead of loading it as though it were one.
+- Fixed: When your Android device stops accepting the access key MapTasker is holding, checks that read from the device now ask for a fresh key and carry on, instead of reporting the device as failing.
+- Fixed: Upgrading to the latest version no longer prints a confusing "Ignoring NICEGUI_PORT" warning in the console when MapTasker restarts.
+- Fixed: Long lines in the Missing Resources report, such as a problem message from the device, now wrap inside the window instead of running off its right edge where they could not be read.
+- Fixed: Pressing Forget next to a device in the applications list now shows the message saying it was forgotten, or that it could not be saved. Before, the message was lost.
+- Fixed: When the device keeps failing during Live Run Monitor, the monitor now shows the error it stopped for. Before, it stopped without saying why.
+- Fixed: Tasks that a Profile runs, including unnamed ones, now appear in the Map for a backup that stores each Profile's Tasks after its name. Before, those Profiles showed with nothing under them.
+- Fixed: With the newest NiceGUI installed, the Bottom button, clicking a connector in the Diagram, and the Diagram's own toolbar buttons now work. Before, they did nothing.
 
 ## [15.1.0] 30-Oct-2026
 
