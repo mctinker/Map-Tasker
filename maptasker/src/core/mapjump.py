@@ -684,6 +684,24 @@ def html_report(rows: list[Row]) -> str:
     )
 
 
+def dom_id(element: Any) -> str:
+    """The id a NiceGUI element has in the page, which is what getElementById has to be given.
+
+    NiceGUI names it, and has renamed it: "c42" up to version 3, "ng-42" from version 4.  So it
+    is asked for rather than built from the element's number -- built by hand, "c42" finds nothing
+    under version 4, and every script that goes looking for its view quietly does nothing: Bottom,
+    the connectors, Find, the in-page links, the Diagram's own buttons.
+
+    Args:
+        element: a NiceGUI element.
+
+    Returns:
+        str: the element's id in the page.  An object with no html_id (a test's stand-in) gets the
+            version 3 spelling.
+    """
+    return str(getattr(element, "html_id", None) or f"c{element.id}")
+
+
 def click_wiring_js(container_id: str) -> str:
     """JavaScript that makes the rendered rows of a report clickable.
 

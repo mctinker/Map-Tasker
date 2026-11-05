@@ -97,13 +97,13 @@ def search_jump_js(target_id: str) -> str:
 SEARCH_CRAWL_SCRIPT = "js/search_crawl.js"
 
 
-def search_crawl_js(scroll_area_id: int, query: str, content_token: int) -> str:
+def search_crawl_js(scroll_area_id: str, query: str, content_token: int) -> str:
     """The JavaScript that searches a view's rendered text, highlights the hits and reports them.
 
     The script is an upgraded one targeting Quasar content nodes and penetrating Shadow Roots.
 
     Args:
-        scroll_area_id: The id of the view's scroll area, whose content is searched.
+        scroll_area_id: The id, in the page, of the view's scroll area, whose content is searched (mapjump.dom_id).
         query: What to search for.  The search is not case-sensitive.
         content_token: Identifies the content in the view (see _mark_content_ready); 0 while
             it is still streaming in, in which case nothing may be cached about it.
@@ -115,7 +115,7 @@ def search_crawl_js(scroll_area_id: int, query: str, content_token: int) -> str:
     # placeholder is left alone.
     return assettext.render(
         SEARCH_CRAWL_SCRIPT,
-        SCROLL_AREA_ID=str(scroll_area_id),
+        SCROLL_AREA_ID=scroll_area_id,
         SEARCH_TERM=json.dumps(query.lower()),
         TERM_LENGTH=str(len(query)),
         CONTENT_TOKEN=str(content_token),
@@ -180,7 +180,7 @@ class TextViewSearch:
 
         # Worked out now, not when the task below gets to run: the content token has to be the
         # one the view has at the moment of the click.
-        js_code = search_crawl_js(self.scroll_area.id, query, self._content_token)
+        js_code = search_crawl_js(mapjump.dom_id(self.scroll_area), query, self._content_token)
         self._search = asyncio.create_task(self._run_search(query, client, js_code))
 
     async def _run_search(self, query: str, client: Client, js_code: str) -> None:

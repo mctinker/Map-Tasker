@@ -1,5 +1,5 @@
 
-                const outerContainer = document.getElementById("c__SCROLL_AREA_ID__");
+                const outerContainer = document.getElementById("__SCROLL_AREA_ID__");
                 if (!outerContainer || outerContainer.dataset.connectorClickWired) return;
                 outerContainer.dataset.connectorClickWired = "1";
                 const connectorTasks = __CONNECTOR_TASKS__;

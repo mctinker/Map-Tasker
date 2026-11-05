@@ -220,7 +220,7 @@ async def jump_diagram_view(master_gui: MyGui, target: mapjump.Target) -> bool:
                 "object",
                 await view.scroll_area.client.run_javascript(
                     mapjump.diagram_jump_js(
-                        f"c{view.scroll_area.id}",
+                        mapjump.dom_id(view.scroll_area),
                         patterns,
                         placement,
                         anchor,
@@ -357,4 +357,4 @@ def enable_finding_clicks(view: NiceGuiTextView) -> None:
     # restores both, the same way _enable_connector_highlighting does.
     with view.scroll_area:
         register_finding_clicks(view.master_gui)
-        ui.run_javascript(mapjump.click_wiring_js(f"c{view.scroll_area.id}"))
+        ui.run_javascript(mapjump.click_wiring_js(mapjump.dom_id(view.scroll_area)))

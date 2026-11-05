@@ -226,7 +226,7 @@ class NiceGuiTextView(TextViewSearch):
         await ui.run_javascript(
             assettext.render(
                 "js/in_page_links.js",
-                SCROLL_AREA_ID=str(self.scroll_area.id),
+                SCROLL_AREA_ID=mapjump.dom_id(self.scroll_area),
                 REVEAL_ANCESTORS_JS=mapjump.REVEAL_ANCESTORS_JS,
                 RESOLVE_TARGET_JS=mapjump.RESOLVE_TARGET_JS,
             ),
@@ -750,13 +750,13 @@ class NiceGuiTextView(TextViewSearch):
         """
         with self.scroll_area:
             register_finding_clicks(self.master_gui)
-            status_id = f"c{self.diagram_state_label.id}" if hasattr(self, "diagram_state_label") else ""
-            ui.run_javascript(diagintr.interaction_js(f"c{self.scroll_area.id}", status_id, diagram_model))
+            status_id = mapjump.dom_id(self.diagram_state_label) if hasattr(self, "diagram_state_label") else ""
+            ui.run_javascript(diagintr.interaction_js(mapjump.dom_id(self.scroll_area), status_id, diagram_model))
 
     def diagram_command(self, name: str, argument: float | None = None) -> None:
         """Carry one of the Diagram toolbar's buttons to the view it belongs to."""
         with self.scroll_area:
-            ui.run_javascript(diagintr.command_js(f"c{self.scroll_area.id}", name, argument))
+            ui.run_javascript(diagintr.command_js(mapjump.dom_id(self.scroll_area), name, argument))
 
     def _enable_connector_highlighting(self, connector_tasks: dict[str, list[str]] | None = None) -> None:
         """Wires up click-to-highlight for Diagram view connector spans.
@@ -786,7 +786,7 @@ class NiceGuiTextView(TextViewSearch):
             ui.run_javascript(
                 assettext.render(
                     "js/connector_highlighting.js",
-                    SCROLL_AREA_ID=str(self.scroll_area.id),
+                    SCROLL_AREA_ID=mapjump.dom_id(self.scroll_area),
                     CONNECTOR_TASKS=json.dumps(connector_tasks or {}),
                     REVEAL_ANCESTORS_JS=mapjump.REVEAL_ANCESTORS_JS,
                 )
@@ -885,7 +885,7 @@ class NiceGuiTextView(TextViewSearch):
         and doing that again over the next few frames picks up the correction as the chunks
         being scrolled into view get laid out for real and the scroll height grows.
         """
-        ui.run_javascript(assettext.render("js/scroll_to_bottom.js", SCROLL_AREA_ID=str(self.scroll_area.id)))
+        ui.run_javascript(assettext.render("js/scroll_to_bottom.js", SCROLL_AREA_ID=mapjump.dom_id(self.scroll_area)))
 
     def toggle_wrap(self) -> None:
         """Toggles word-wrap on/off for this view's content, replacing the exact prior classes."""

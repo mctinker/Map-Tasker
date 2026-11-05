@@ -1,5 +1,5 @@
 
-                const outerContainer = document.getElementById("c__SCROLL_AREA_ID__");
+                const outerContainer = document.getElementById("__SCROLL_AREA_ID__");
                 if (!outerContainer) return;
                 const container = outerContainer.querySelector('.q-scrollarea__content') || outerContainer;
 

@@ -13,6 +13,7 @@ import asyncio
 from typing import TYPE_CHECKING
 
 import pytest
+from maptasker.src.core import mapjump
 from maptasker.src.gui import guiwins_search
 from nicegui.client import Client
 
@@ -81,7 +82,7 @@ async def test_a_search_crawls_the_page_with_a_generous_timeout_and_lists_what_i
 
         ((code, timeout),) = built["scripts"]
         assert timeout == guiwins_search.SEARCH_JAVASCRIPT_TIMEOUT
-        assert code == guiwins_search.search_crawl_js(view.scroll_area.id, "HTTP", 0)
+        assert code == guiwins_search.search_crawl_js(mapjump.dom_id(view.scroll_area), "HTTP", 0)
 
         assert "Search Results for 'HTTP' (2 matches)" in labels(user)
         assert [link.text for link in links(user)] == ["Line #12", "Line #40"]

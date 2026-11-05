@@ -528,7 +528,7 @@ def test_clear_unhighlights_every_open_view(seen: SimpleNamespace, monkeypatch: 
 
     full.search_input.set_value.assert_called_once_with("")
     full.invalidate_search_cache.assert_called_once()
-    assert ran == ["js:5"]
+    assert ran == ["js:c5"]
     assert [m for m, _ in seen.notified] == ["Cleared the search highlights."] * 2
 
 

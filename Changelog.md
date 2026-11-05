@@ -36,6 +36,7 @@ All notable changes to this project will be documented in this file!
 - Fixed: Pressing Forget next to a device in the applications list now shows the message saying it was forgotten, or that it could not be saved. Before, the message was lost.
 - Fixed: When the device keeps failing during Live Run Monitor, the monitor now shows the error it stopped for. Before, it stopped without saying why.
 - Fixed: Tasks that a Profile runs, including unnamed ones, now appear in the Map for a backup that stores each Profile's Tasks after its name. Before, those Profiles showed with nothing under them.
+- Fixed: With the newest NiceGUI installed, the Bottom button, clicking a connector in the Diagram, and the Diagram's own toolbar buttons now work. Before, they did nothing.
 
 
 ### Known Issues

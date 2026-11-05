@@ -7,7 +7,7 @@
 // placeholders below with the id of the view's scroll area, the (lowercased, JSON-encoded) search term, the
 // term's length and the view's content token.
 
-const outerContainer = document.getElementById("c__SCROLL_AREA_ID__");
+const outerContainer = document.getElementById("__SCROLL_AREA_ID__");
 // Shape every return the same way: the Python side reads .get() off this, so
 // handing back a bare list here would swap the timeout for an AttributeError.
 if (!outerContainer) return { results: [], totalMatches: 0, truncated: false };

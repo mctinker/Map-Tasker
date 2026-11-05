@@ -21,7 +21,7 @@ def test_the_script_is_shipped_with_the_assets() -> None:
 
 def test_every_placeholder_is_filled_in_exactly_once() -> None:
     template = assettext.text(guiwins_search.SEARCH_CRAWL_SCRIPT)
-    script = guiwins_search.search_crawl_js(42, "Hello", 7)
+    script = guiwins_search.search_crawl_js("c42", "Hello", 7)
 
     for placeholder in _PLACEHOLDERS:
         assert template.count(placeholder) == 1
@@ -34,7 +34,7 @@ def test_every_placeholder_is_filled_in_exactly_once() -> None:
 
 def test_the_term_is_searched_lowercase_but_measured_as_typed() -> None:
     """The page lowercases the content it compares against, and slices by the term's own length."""
-    script = guiwins_search.search_crawl_js(1, "ÜBER", 0)
+    script = guiwins_search.search_crawl_js("c1", "ÜBER", 0)
 
     assert f"const searchTerm = {json.dumps('über')};" in script
     assert "const termLength = 4;" in script
@@ -42,7 +42,7 @@ def test_the_term_is_searched_lowercase_but_measured_as_typed() -> None:
 
 def test_a_term_cannot_break_out_of_its_string_or_pose_as_a_placeholder() -> None:
     hostile = 'a "quoted" \\ term </script> __TERM_LENGTH__ __CONTENT_TOKEN__'
-    script = guiwins_search.search_crawl_js(3, hostile, 9)
+    script = guiwins_search.search_crawl_js("c3", hostile, 9)
 
     assert f"const searchTerm = {json.dumps(hostile.lower())};" in script
     assert f"const termLength = {len(hostile)};" in script

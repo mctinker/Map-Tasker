@@ -254,3 +254,32 @@ def test_a_cancelled_rendering_says_nothing(monkeypatch: pytest.MonkeyPatch) -> 
 
     asyncio.run(run())
     assert logged == []
+
+
+# ##################################################################################
+# Finding a view's element in the page
+# ##################################################################################
+def test_a_view_is_looked_up_by_the_id_nicegui_gave_it_not_one_made_up_from_its_number() -> None:
+    """NiceGUI 3 names an element "c42" in the page and NiceGUI 4 names it "ng-42".  A script that
+    builds "c42" itself finds nothing under 4 and quietly does nothing -- which is how Bottom and
+    the Diagram's connectors stopped working for anyone installing the latest NiceGUI.
+    """
+    assert mapjump.dom_id(SimpleNamespace(id=42, html_id="ng-42")) == "ng-42"
+    assert mapjump.dom_id(SimpleNamespace(id=42, html_id="c42")) == "c42"
+    # A stand-in with no html_id still gets a usable name.
+    assert mapjump.dom_id(SimpleNamespace(id=42)) == "c42"
+
+
+def test_the_page_scripts_look_up_the_id_they_are_given_whole() -> None:
+    """The scripts must not put a letter in front of the id they are handed."""
+    from maptasker.src.core import assettext
+
+    for name in (
+        "scroll_to_bottom",
+        "clear_search_highlights",
+        "connector_highlighting",
+        "in_page_links",
+        "search_crawl",
+    ):
+        template = assettext.text(f"js/{name}.js")
+        assert 'getElementById("__SCROLL_AREA_ID__")' in template, name

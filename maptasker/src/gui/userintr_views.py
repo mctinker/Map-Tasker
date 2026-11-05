@@ -611,7 +611,7 @@ class ViewEventHandlers(HandlerGroup):
             ui.run_javascript(
                 assettext.render(
                     "js/clear_search_highlights.js",
-                    SCROLL_AREA_ID=str(textview.scroll_area.id),
+                    SCROLL_AREA_ID=mapjump.dom_id(textview.scroll_area),
                     HIGHLIGHT_CLASS=mapjump.HIGHLIGHT_CLASS,
                 )
             )

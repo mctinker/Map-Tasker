@@ -22,6 +22,7 @@ from maptasker.src.core.colrmode import set_color_mode
 from maptasker.src.core.config import DEFAULT_DISPLAY_DETAIL_LEVEL
 from maptasker.src.core.getputer import save_restore_args
 from maptasker.src.core.initparg import initialize_runtime_arguments
+from maptasker.src.core.mapjump import dom_id
 from maptasker.src.core.maputil2 import suppress_logged, translate_string
 from maptasker.src.core.maputils import clear_tasker_data
 from maptasker.src.core.outdir import normalize_output_directory, output_directory
@@ -862,7 +863,7 @@ class SettingsEventHandlers(HandlerGroup):
                     with scroll_area:
                         ui.run_javascript(
                             f"""
-                            const container = document.getElementById("c{scroll_area.id}");
+                            const container = document.getElementById("{dom_id(scroll_area)}");
                             if (container) {{
                                 let style = container.querySelector('style[data-live-color-override]');
                                 if (!style) {{

@@ -84,11 +84,11 @@ def wire_impact_clicks(self: MyGui, container: ui.element) -> None:
     initialize_screen; on the main window it has already happened and the call is a no-op.
     """
     register_finding_clicks(self)
-    element_id = json.dumps(f"c{container.id}")
+    element_id = json.dumps(mapjump.dom_id(container))
     # click_wiring_js is written as a function body -- it returns early when the container
     # is not there yet, and again when it has already been wired -- so calling it on every
     # attempt is safe, and its own guard is what the poll below tests for having finished.
-    wiring = mapjump.click_wiring_js(f"c{container.id}")
+    wiring = mapjump.click_wiring_js(mapjump.dom_id(container))
     ui.timer(
         0.1,
         lambda: ui.run_javascript(f"""

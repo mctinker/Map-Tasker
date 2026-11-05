@@ -1,6 +1,6 @@
 
             (() => {
-                const container = document.getElementById("c__SCROLL_AREA_ID__");
+                const container = document.getElementById("__SCROLL_AREA_ID__");
                 if (!container || container.dataset.mtLinksWired) return;
                 container.dataset.mtLinksWired = "1";
 __REVEAL_ANCESTORS_JS__
