@@ -22,7 +22,7 @@ import xml.etree.ElementTree as ET
 from unittest import mock
 
 import pytest
-from maptasker.src.analysis import healthck, plugchk, proflint, resrefs, taskflow
+from maptasker.src.analysis import errcheck, healthck, plugchk, proflint, resrefs, taskflow
 from maptasker.src.analysis.healthck import (
     CATEGORIES,
     ERROR,
@@ -793,7 +793,9 @@ def test_every_tag_the_folded_in_passes_raise_is_offered(report: str) -> None:
     literals in its index.add calls and are covered by the fixture-driven tests above.
     """
     offered = {category.tag for category in CATEGORIES}
-    declared = taskflow.TAGS | proflint.TAGS | piiscan.TAGS | codelint.TAGS | plugchk.TAGS | resrefs.TAGS
+    declared = (
+        taskflow.TAGS | proflint.TAGS | piiscan.TAGS | codelint.TAGS | plugchk.TAGS | resrefs.TAGS | errcheck.TAGS
+    )
     assert declared - offered == set()
 
 

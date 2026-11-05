@@ -20,7 +20,7 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
-from maptasker.src.analysis import plugchk, proflint, resrefs, taskflow
+from maptasker.src.analysis import errcheck, plugchk, proflint, resrefs, taskflow
 from maptasker.src.core import clock, piiscan
 from maptasker.src.core.actionc import action_codes
 from maptasker.src.core.mapjump import (
@@ -178,6 +178,11 @@ CATEGORIES: tuple[Category, ...] = (
     Category("POLLING-LOOP", GROUP_BEHAVIOUR, "A Task looping around a short Wait."),
     Category("MISSING-COLLISION", GROUP_BEHAVIOUR, "A long-running Task left on the default collision handling."),
     Category("NO-TIMEOUT", GROUP_BEHAVIOUR, "An action that can block for ever."),
+    Category(
+        errcheck.IGNORED_ERROR,
+        GROUP_BEHAVIOUR,
+        "A web request, shell command, Perform Task or file write that carries on after a failure, with nothing reading %err.",
+    ),
     Category(plugchk.NOT_INSTALLED, GROUP_BEHAVIOUR, "A plugin missing from the app list fetched from the device."),
     Category(
         resrefs.MISSING,
@@ -203,6 +208,7 @@ _PASS_TAGS = {
     "code": codelint.TAGS,
     "variables": frozenset(f"VAR-{tag}" for tag in (varxref.NEAR_DUPLICATE, varxref.NEVER_SET, varxref.NEVER_READ)),
     "behaviour": proflint.TAGS,
+    "errors": errcheck.TAGS,
     "plugins": plugchk.TAGS,
     "resources": resrefs.TAGS,
     "secrets": piiscan.TAGS,
@@ -951,6 +957,20 @@ def _check_behaviour(index: ReferenceIndex, state: RunState) -> None:
         index.add(problem.severity, problem.tag, problem.where, problem.detail)
 
 
+def _check_errors(index: ReferenceIndex, state: RunState) -> None:
+    """Fold the check for failures that are thrown away into this report.
+
+    Folded in for _check_behaviour's reason: a question about how the configuration will BEHAVE, answered from
+    the file alone.  A request that is allowed to carry on after an error and is followed by nothing that reads
+    %err is a failure nobody will hear about, and both halves of that -- the box on the action and the reads of
+    %err -- are in the backup.
+
+    The severity and the tag both come from errcheck unchanged, as proflint's are.
+    """
+    for problem in errcheck.lint_problems(state=state):
+        index.add(problem.severity, problem.tag, problem.where, problem.detail, related=problem.related)
+
+
 def _check_plugins(index: ReferenceIndex, state: RunState) -> None:
     """Fold the check for plugins that are not installed into this report.
 
@@ -1179,6 +1199,24 @@ def _device_check_notes(index: ReferenceIndex) -> list[str]:
     return notes
 
 
+def _ignored_errors_note(index: ReferenceIndex) -> list[str]:
+    """The closing note on what ERROR-IGNORED cannot know, when there is a finding of that kind to read it against."""
+    if not any(item.tag in errcheck.TAGS for item in index.findings):
+        return []
+    return [
+        "",
+        "NOTE ON IGNORED ERRORS",
+        "-" * _REPORT_WIDTH,
+        "A finding tagged ERROR-IGNORED says an action is set to 'Continue Task After",
+        "Error' and that nothing after it in the same Task mentions %err or %errmsg.",
+        "It does not know what you meant: a courtesy ping, or a command whose result",
+        "nobody needs, is fine to lose.  And it counts any later mention of %err as",
+        "looking, wherever it sits, so a Task that checks %err once after several",
+        "requests is read as having checked them all.  Plugin actions are not read.",
+        "",
+    ]
+
+
 def _limitations(index: ReferenceIndex) -> list[str]:
     """The closing note on what this check cannot see.
 
@@ -1222,6 +1260,7 @@ def _limitations(index: ReferenceIndex) -> list[str]:
             "",
         ]
 
+    notes += _ignored_errors_note(index)
     notes += _device_check_notes(index)
 
     if any(item.tag in piiscan.TAGS for item in index.findings):
@@ -1363,6 +1402,8 @@ def collect_findings(skip: Collection[str] = (), *, state: RunState) -> Referenc
         _check_variables(index, state=state)
     if not _PASS_TAGS["behaviour"] <= skip:
         _check_behaviour(index, state=state)
+    if not _PASS_TAGS["errors"] <= skip:
+        _check_errors(index, state=state)
     if not _PASS_TAGS["plugins"] <= skip:
         _check_plugins(index, state=state)
     if not _PASS_TAGS["resources"] <= skip:

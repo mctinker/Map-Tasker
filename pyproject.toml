@@ -550,6 +550,7 @@ strict = [
     "maptasker/src/__init__.py",
     "maptasker/src/analysis/__init__.py",
     "maptasker/src/analysis/diffload.py",
+    "maptasker/src/analysis/errcheck.py",
     "maptasker/src/analysis/folderwatch.py",
     "maptasker/src/analysis/impact.py",
     "maptasker/src/analysis/batteryaudit.py",
