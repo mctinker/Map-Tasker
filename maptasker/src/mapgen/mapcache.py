@@ -51,7 +51,7 @@
 #
 import hashlib
 import os
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from maptasker.src.core import caches
 from maptasker.src.core.primitem import RunState
@@ -73,7 +73,7 @@ SEPARATOR_TEXT = "\x00"
 
 # What the Map now on disk was built from: (configuration digest, settings digest, file
 # path, the file's size and modification time, how many output lines went into it).
-_remembered: caches.Slot[tuple | None] = caches.Slot("mapcache.remembered", None)
+_remembered: caches.Slot[tuple[Any, ...] | None] = caches.Slot("mapcache.remembered", None)
 
 
 def _absorb(digest: hashlib.blake2b, element: "Element | None") -> None:
@@ -87,7 +87,7 @@ def _absorb(digest: hashlib.blake2b, element: "Element | None") -> None:
     """
     if element is None:
         return
-    parts = []
+    parts: list[str] = []
     append = parts.append
     for node in element.iter():
         append(node.tag)
@@ -107,14 +107,15 @@ def configuration_digest(state: RunState) -> str:
     still has it, and the digest has to follow the drawing.
     """
     digest = hashlib.blake2b(digest_size=16)
-    tables = state.tasker_root_elements or {}
+    tables: dict[str, Any] = state.tasker_root_elements or {}
     for table_name in OBJECT_TABLES:
         digest.update(table_name.encode())
         digest.update(SEPARATOR)
         # In the table's own order, which is the order the Map draws them in: two
         # configurations holding the same objects in a different order are two different
         # Maps.
-        for key, record in (tables.get(table_name) or {}).items():
+        table: dict[str, dict[str, Any]] = tables.get(table_name) or {}
+        for key, record in table.items():
             digest.update(str(key).encode())
             digest.update(SEPARATOR)
             digest.update(str(record.get("name", "")).encode())
@@ -123,7 +124,7 @@ def configuration_digest(state: RunState) -> str:
 
     # Everything in the file that is not one of those objects: the global variables the
     # Map lists and Tasker's own preferences, both of which it can be asked to display.
-    for child in state.xml_root if state.xml_root is not None else ():
+    for child in state.xml_root if state.backup_loaded else ():
         if child.tag not in OBJECT_TAGS:
             _absorb(digest, child)
 
@@ -137,7 +138,7 @@ def settings_digest(state: RunState) -> str:
         digest.update(f"{name}={value!r}".encode())
         digest.update(SEPARATOR)
     colors = state.colors_to_use
-    for name, value in sorted((colors or {}).items()) if isinstance(colors, dict) else ():
+    for name, value in sorted(colors.items()):
         digest.update(f"{name}={value!r}".encode())
         digest.update(SEPARATOR)
     return digest.hexdigest()
@@ -169,7 +170,7 @@ def _same_path(path: str) -> str:
     return os.path.normcase(os.path.normpath(path))
 
 
-def _file_identity(path: str) -> tuple | None:
+def _file_identity(path: str) -> tuple[Any, ...] | None:
     """The file's size and modification time, or None if it is not there."""
     try:
         status = os.stat(path)

@@ -38,7 +38,7 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import date, datetime, time, timedelta
 from itertools import combinations
-from typing import TYPE_CHECKING, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from maptasker.src.analysis import effects, proflint
 from maptasker.src.core.mapjump import PROFILE, TASK, Target
@@ -170,12 +170,12 @@ class Simulation:
     """Everything one scenario produces."""
 
     scenario: Scenario
-    active: list[ProfileResult] = field(default_factory=list)
-    possible: list[ProfileResult] = field(default_factory=list)
-    inactive: list[ProfileResult] = field(default_factory=list)
+    active: list[ProfileResult] = field(default_factory=list[ProfileResult])
+    possible: list[ProfileResult] = field(default_factory=list[ProfileResult])
+    inactive: list[ProfileResult] = field(default_factory=list[ProfileResult])
     disabled: int = 0
-    queue: list[Run] = field(default_factory=list)
-    collisions: list[Collision] = field(default_factory=list)
+    queue: list[Run] = field(default_factory=list[Run])
+    collisions: list[Collision] = field(default_factory=list[Collision])
 
 
 # ##################################################################################
@@ -477,7 +477,7 @@ def profile_priority(profile_xml: Element) -> int:
 
 
 def evaluate_profile(
-    profile_id: str, profile: dict, scenario: Scenario, owners: dict[str, str], state: RunState
+    profile_id: str, profile: dict[str, Any], scenario: Scenario, owners: dict[str, str], state: RunState
 ) -> ProfileResult:
     """One Profile against the scenario: every condition judged, and the three-way answer.
 

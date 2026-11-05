@@ -26,7 +26,7 @@ from maptasker.src.mapgen import varxref
 # Profile and Scene in the file: cheap once, but this table is emitted once per Project
 # plus once for the unreferenced list, and doing that walk eighty times over would be the
 # slowest thing in the Map.
-_cross_reference: caches.Slot[dict | None] = caches.Slot("globalvr.cross_reference", None)
+_cross_reference: caches.Slot[dict[str, varxref.Variable] | None] = caches.Slot("globalvr.cross_reference", None)
 # Which configuration the counts above were worked out from (see get_variables).
 _cross_reference_key: caches.Slot[str] = caches.Slot("globalvr.cross_reference_key", "")
 
@@ -83,7 +83,7 @@ def get_variables(configuration: str = "", *, state: RunState) -> None:
         }
 
 
-def _get_cross_reference(state: RunState) -> dict:
+def _get_cross_reference(state: RunState) -> dict[str, varxref.Variable]:
     """{variable name: its varxref record}, for the names this table can show.
 
     Locals are left out: they are scoped to one Task, Profile or Scene, and this table is
@@ -93,12 +93,12 @@ def _get_cross_reference(state: RunState) -> dict:
     if _cross_reference.value is None:
         index = varxref.build_index(state=state)
         _cross_reference.value = {
-            variable.name: variable for (name, owner), variable in index.variables.items() if owner == ""
+            variable.name: variable for (_name, owner), variable in index.variables.items() if owner == ""
         }
     return _cross_reference.value
 
 
-def _usage_cell(references: list, table_definition: str, config: RunConfig, state: RunState) -> str:
+def _usage_cell(references: list[varxref.Reference], table_definition: str, config: RunConfig, state: RunState) -> str:
     """One Set or Read cell: how many, linked to the Tasks it happens in.
 
     The count is the useful thing at a glance -- a zero in the Set column beside a
@@ -154,7 +154,9 @@ def _variable_anchor(name: str, wanted: bool) -> str:
     return f' id="{Target(VARIABLE, name).anchor}"' if wanted else ""
 
 
-def print_the_variables(color_to_use: str, project: Element | str, config: RunConfig, state: RunState) -> list[str]:
+def print_the_variables(
+    color_to_use: str, project: Element | str | None, config: RunConfig, state: RunState
+) -> list[str]:
     """Parameters:
         - color_to_use (str): The color to use for the table definition.
         - project (Element): The project to use, if applicable.
@@ -170,7 +172,7 @@ def print_the_variables(color_to_use: str, project: Element | str, config: RunCo
         - If the variable is a verified "tasker variable" and not a Project global variable, append the key and value to the variable output lines.
         - Return the variable output lines."""
     table_definition = f'<td style="height:16px; color:{color_to_use}; text-align:left">'
-    variable_output_lines = []
+    variable_output_lines: list[str] = []
 
     # Go through all of the Tasker global variables.
     for key, value in sorted(state.variables.items()):
@@ -210,7 +212,7 @@ def print_the_variables(color_to_use: str, project: Element | str, config: RunCo
 
 
 # Print variables by adding them to the output.
-def output_variables(heading: str, project: Element | str, config: RunConfig, state: RunState) -> None:
+def output_variables(heading: str, project: Element | str | None, config: RunConfig, state: RunState) -> None:
     """
     Print variables by adding them to the output.
         Args:

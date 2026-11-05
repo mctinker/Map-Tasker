@@ -9,7 +9,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from maptasker.src.core.dirout import add_directory_item
 from maptasker.src.core.elemvals import get_ids, get_kid_app, get_priority
@@ -102,8 +102,8 @@ def _output_single_unnamed_task(config: RunConfig, state: RunState) -> None:
 def _output_only_tasks(config: RunConfig, state: RunState) -> None:
     """A backup with Tasks and nothing else to hang them from: output them all, and count them."""
     # Build a "list" of Tasks consisting of the Tasks off our troot Task list,
-    task_list = []
-    task_output_lines = []
+    task_list: list[dict[str, Any]] = []
+    task_output_lines: list[str] = []
     for task in state.tasker_root_elements["all_tasks"]:
         task_list.append(
             {
@@ -119,11 +119,11 @@ def _output_only_tasks(config: RunConfig, state: RunState) -> None:
     output_task_list(task_list, "Unknown", "", task_output_lines, [], True, config, state=state)
 
 
-def _output_only_scenes(config: RunConfig, state: RunState) -> list:
+def _output_only_scenes(config: RunConfig, state: RunState) -> list[Any]:
     """A backup with Scenes and nothing else: output them all (or just the one asked for), count them, and
     return the Tasks found in them -- these replace the ones found so far, as they always have."""
-    scene_list = []
-    found_tasks: list = []
+    scene_list: list[str] = []
+    found_tasks: list[Any] = []
     single_scene_name = config.single_scene_name
     for scene in state.tasker_root_elements["all_scenes"]:
         scene_name = state.tasker_root_elements["all_scenes"][scene]["name"]
@@ -140,11 +140,11 @@ def _output_only_scenes(config: RunConfig, state: RunState) -> list:
 
 
 def process_projects_and_their_profiles(
-    found_tasks: list,
-    projects_without_profiles: list,
+    found_tasks: list[str],
+    projects_without_profiles: list[str],
     config: RunConfig,
     state: RunState,
-) -> list:
+) -> list[str]:
     """Parameters:
         - found_tasks (list): A list of tasks that have been found.
         - projects_without_profiles (list): A list of projects that do not have profiles.
@@ -163,9 +163,9 @@ def process_projects_and_their_profiles(
     # Processing Tasker Objects: Single Unnamed Tasks, Projects, Profiles, Tasks or Scenes
 
     # Process unnamed Task
-    if (
-        config.single_task_name is not None and UNNAMED_ITEM in config.single_task_name and config.list_unnamed_items
-    ) and state.tasker_root_elements["all_tasks_by_name"]:
+    if (UNNAMED_ITEM in config.single_task_name and config.list_unnamed_items) and state.tasker_root_elements[
+        "all_tasks_by_name"
+    ]:
         _output_single_unnamed_task(config, state=state)
 
     # Process Projects only if there are Projects
@@ -273,9 +273,9 @@ def task_not_in_profile_heading(project_name: str, config: RunConfig, state: Run
 
 # Process all of the Tasks in this Project
 def do_tasks_in_project(
-    task_ids: list,
+    task_ids: list[Any],
     project_name: str,
-    found_tasks: list,
+    found_tasks: list[str],
     output_the_heading: bool,
     have_tasks_not_in_profile: bool,
     config: RunConfig,
@@ -342,8 +342,8 @@ def do_tasks_in_project(
 
 # Process all Tasks in Project that are not referenced by a Profile
 def tasks_not_in_profiles(
-    task_ids: list,
-    found_tasks: list,
+    task_ids: list[Any],
+    found_tasks: list[str],
     project_name: str,
     config: RunConfig,
     state: RunState,
@@ -586,7 +586,7 @@ def summary_counts(project_name: str, profile_count: int, state: RunState) -> No
 def finish_up(
     project: Element,
     project_name: str,
-    found_tasks: list,
+    found_tasks: list[str],
     profile_count: int,
     config: RunConfig,
     state: RunState,
@@ -658,8 +658,8 @@ def is_single_task_or_profile_found(state: RunState) -> bool:
 def get_profile_ids(
     project: Element,
     project_name: str,
-    projects_without_profiles: list,
-) -> list:
+    projects_without_profiles: list[str],
+) -> list[Any]:
     """
     Retrieves profile IDs for a given project and project name, excluding projects without profiles.
 
@@ -769,8 +769,8 @@ def get_profile_details_and_output(
 def process_project_profiles(
     project: Element,
     project_name: str,
-    projects_without_profiles: list,
-    found_tasks: list,
+    projects_without_profiles: list[str],
+    found_tasks: list[str],
     profile_count: int,
     config: RunConfig,
     state: RunState,
@@ -809,11 +809,11 @@ def process_project_profiles(
 
 # Go through all the Projects, get their detail and output it
 def process_projects(
-    projects_without_profiles: list,
-    found_tasks: list,
+    projects_without_profiles: list[str],
+    found_tasks: list[str],
     config: RunConfig,
     state: RunState,
-) -> list:
+) -> list[Any]:
     """
     Go through all the Projects, get their detail and output it
 

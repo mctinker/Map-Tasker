@@ -3,7 +3,7 @@
 import asyncio
 import contextlib
 import os
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, cast
 
 from nicegui import run, ui
 
@@ -477,11 +477,11 @@ def get_xml(debug: bool, appearance_mode: str, state: RunState) -> int:
 
 # Build a list of Profiles that are under the given project, and all of their (Tasks) children.
 def build_profiles(
-    root: dict,
-    profile_ids: list,
+    root: dict[str, Any],
+    profile_ids: list[str],
     project: str,
     state: RunState,
-) -> list:
+) -> list[dict[str, Any]]:
     """Parameters:
         - root (dict): Dictionary containing all profiles and their tasks.
         - profile_ids (list): List of profile IDs to be processed.
@@ -501,8 +501,8 @@ def build_profiles(
         - Combine the profile name and task list into a dictionary and add it to the profile list.
         - Return the profile list."""
     profiles = root["all_profiles"]
-    profile_list = []
-    found_tasks = []
+    profile_list: list[dict[str, Any]] = []
+    found_tasks: list[str] = []
     profile_head = translate_string("Profile: ")
     task_head = translate_string("Task: ")
     unnamed_task_head = translate_string("Unnamed Task")

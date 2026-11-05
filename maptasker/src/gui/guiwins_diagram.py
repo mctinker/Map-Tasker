@@ -5,7 +5,7 @@ step through the connectors live here with them."""
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from nicegui import ui
 
@@ -38,7 +38,7 @@ def _escape_diagram_text(text: str) -> str:
     two thirds -- so everything after an icon on the line would drift out of line with the
     connectors above and below.  An element of the width the layout assumed puts it right.
     """
-    pieces = []
+    pieces: list[str] = []
     cursor = 0
     for start, end in icon_spans(text):
         pieces.append(_escape_html_text(text[cursor:start]))
@@ -61,7 +61,7 @@ def _diagram_spans(
     line_num: int,
     line: str,
     connectors_by_line: dict[int, list[tuple[int, int, int]]],
-    nodes_by_line: dict[int, list[dict]],
+    nodes_by_line: dict[int, list[dict[str, Any]]],
 ) -> list[tuple[int, int, str]]:
     """Every span to wrap on this line, in column order and never overlapping.
 
@@ -73,7 +73,7 @@ def _diagram_spans(
     a click target that the rest of the same connector still offers, while losing one off a
     name costs the name its click target outright.
     """
-    claimed = []
+    claimed: list[tuple[int, int, str]] = []
     for node in nodes_by_line.get(line_num, []):
         start, end = node["col"], node["col"] + node["len"]
         if start >= len(line) or end <= start:
@@ -205,7 +205,7 @@ def wrap_diagram_line(
     line_num: int,
     line: str,
     connectors_by_line: dict[int, list[tuple[int, int, int]]],
-    nodes_by_line: dict[int, list[dict]],
+    nodes_by_line: dict[int, list[dict[str, Any]]],
     folds_by_line: dict[int, str],
 ) -> str:
     """One Diagram line as its own element, with its connectors and its names inside it.
@@ -224,7 +224,7 @@ def wrap_diagram_line(
     block has no height, and the blank lines in a diagram are the ones the connectors are
     drawn down.
     """
-    pieces = []
+    pieces: list[str] = []
     cursor = 0
     for start, end, opening in _diagram_spans(line_num, line, connectors_by_line, nodes_by_line):
         begin = max(start, cursor)

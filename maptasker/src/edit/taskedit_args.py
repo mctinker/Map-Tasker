@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import re
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from maptasker.src.core import appinv, plugset
 from maptasker.src.core.actionc import action_codes
@@ -118,7 +118,7 @@ def reclassify_action_args(action: EditableAction, state: RunState) -> None:
 
 def build_editable_args(
     action_element: Element,
-    effective_args: list,
+    effective_args: list[ArgumentCode],
     state: RunState,
 ) -> list[EditableArg]:
     """Classify each of an action's defined arguments into a widget kind, bound to
@@ -130,7 +130,7 @@ def build_editable_args(
     condition_state/condition_event), so profedit.py reuses this directly rather
     than duplicating it.
     """
-    editable_args = []
+    editable_args: list[EditableArg] = []
     for arg in effective_args:
         the_arg = f"arg{arg.arg_id}"
         category = state.tasker_arg_specs.get(arg.arg_type, "")
@@ -313,9 +313,10 @@ def _is_checkbox_arg_eval(arg_eval: object) -> bool:
     """
     if not isinstance(arg_eval, list):
         return False
-    if len(arg_eval) > 2 and arg_eval[1] == "e":
+    markers = cast("list[str]", arg_eval)
+    if len(markers) > 2 and markers[1] == "e":
         return True
-    return len(arg_eval) > 1 and arg_eval[0] == "e"
+    return len(markers) > 1 and markers[0] == "e"
 
 
 def display_arg_name(arg: ArgumentCode) -> str:

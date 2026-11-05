@@ -8,7 +8,7 @@
 from __future__ import annotations
 
 import re
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from maptasker.src.core import objprops
 from maptasker.src.core.dirout import add_directory_item
@@ -39,11 +39,11 @@ if TYPE_CHECKING:
 # Get a specific Profile's Tasks (maximum of two:entry and exit)
 def get_profile_tasks(
     the_profile: Element,
-    found_tasks_list: list,
-    task_output_line: list,
+    found_tasks_list: list[str],
+    task_output_line: list[str],
     config: RunConfig,
     state: RunState,
-) -> list:
+) -> list[dict[str, Any]]:
     """
     Get a specific Profile's Tasks (maximum of two: entry and exit).
 
@@ -53,7 +53,7 @@ def get_profile_tasks(
     :param config: the run's settings.  (single_profile_name is written here, so it is not read from it.)
     :return: List of tasks with their XML elements and names.
     """
-    list_of_tasks = []
+    list_of_tasks: list[dict[str, Any]] = []
     single_task_name = config.single_task_name
 
     # Where <mid0>/<mid1> sit among the Profile's other elements is up to whoever wrote the backup: Tasker puts them
@@ -125,7 +125,7 @@ def get_profile_name(
 
     # Add a tooltip to the "Profile:" label showing the owning Project and this Profile's Tasks,
     # one Task per line.
-    tooltip_lines = []
+    tooltip_lines: list[str] = []
     if project_name:
         tooltip_lines.append(f"Project: {project_name}")
     if task_names:
@@ -176,10 +176,6 @@ def remove_substring_and_next(
         if start_index != -1:
             end_index = start_index + len(substring) + chars_to_remove_after
             return main_string[:start_index] + main_string[end_index:]
-    except IndexError:
-        # Handle the case where the substring is at or near the end
-        end_index = start_index + len(substring)
-        return main_string[:start_index]
     except TypeError:
         return main_string
     return main_string
@@ -197,7 +193,7 @@ def delete_non_blank_before_equals(text: str) -> str:
         str: The modified string with non-blank characters before '=' removed.
     """
     modified_text = list(text)  # Convert to a list for easier modification
-    indices_to_delete = set()
+    indices_to_delete: set[int] = set()
 
     for i, char in enumerate(text):
         if char == "=":
@@ -549,7 +545,7 @@ def do_profile(
     item: Element,
     project_name: str,
     profile: Element,
-    list_of_found_tasks: list,
+    list_of_found_tasks: list[Any],
     config: RunConfig,
     state: RunState,
 ) -> bool:
@@ -577,7 +573,7 @@ def do_profile(
     if state.program_arguments.single_profile_name and not _select_single_profile(item, project_name, state):
         return False  # Not our Profile...go to next Profile ID
     # Get Task xml element and name
-    task_output_lines = []  # Profile's Tasks will be filled in here
+    task_output_lines: list[str] = []  # Profile's Tasks will be filled in here
     list_of_tasks = get_profile_tasks(profile, list_of_found_tasks, task_output_lines, config, state=state)
 
     # Examine Profile attributes and output Profile line
@@ -743,8 +739,8 @@ def align_html_text(html_string: str) -> str:
 # Go through all Projects Profiles...and output them
 def process_profiles(
     project_name: str,
-    profile_ids: list,
-    list_of_found_tasks: list,
+    profile_ids: list[Any],
+    list_of_found_tasks: list[Any],
     config: RunConfig,
     state: RunState,
 ) -> None:

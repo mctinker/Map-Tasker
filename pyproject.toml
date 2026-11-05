@@ -527,41 +527,50 @@ typeCheckingMode = "basic"
 # elsewhere.  Counts are strict-mode errors in the modules still on the exempt list:
 #   core       0 modules     0   done.
 #   device     0 modules     0   done.
-#   mapgen    16 modules   973   the Map builder, and the next to do: the cheapest are bildhtml, tasks, taskuniq,
-#                                globalvr, mapcache, mappdf and profiles (24-37 each).  The errors are bare
-#                                dict/list annotations and json.load results (type them, or cast at the one
-#                                place the data comes in).  The Diagram's helpers diagutil, diagclean and
-#                                diagarrows are done -- diagcnst holds the call table's types (CallSite,
-#                                CallConnector, CallTable) -- and diagintr, diagprint and diagram are left.
-#   edit      12 modules   781   the editors; same.  taskedit and taskedit_apply (19-20) are the cheapest.
-#   analysis   7 modules   352   read-only questions of a configuration; xmldiff is half of it (181).
-#   mapops    14 modules   850   bulk operations.
+#   mapgen     6 modules   605   the Map builder.  What is left is the Diagram (diagintr, diagprint, diagram: the
+#                                call table's types are in diagcnst), outline, mapexport and varxref; the errors are
+#                                bare dict/list annotations and json.load results (type them, or cast at the one
+#                                place the data comes in), and unannotated `x = []` (annotate it).
+#   edit       8 modules   666   the editors: taskedit_addable, scenemodel and the Scene editors (sceneedit_legacy,
+#                                sceneedit_v2*), which are mostly the parsed layout's dicts.
+#   analysis   2 modules   224   taskstep and xmldiff (xmldiff is 181 of it).
+#   mapops     6 modules   492   bulk operations: mapswap_action and mapswap_condition, maprefac_extract, tnupdate,
+#                                maprestore and mapdraft.
 #   entry      0 modules     0   done.
-#   gui       20 modules  2304   last, and the largest: NiceGUI hands handlers untyped events and takes
+#   gui       13 modules  1915   last, and the largest: NiceGUI hands handlers untyped events and takes
 #                                untyped lambdas, so the errors are mostly at its boundary.  The patterns that
 #                                cleared the small ones: a handler's event is ValueChangeEventArguments[Any],
 #                                a dialog's field_refs is dict[str, Any], a registrar nicegui declares with
 #                                bare callbacks (app.on_*, a select's set_options) is called through
 #                                cast("Any", ...), and a helper two modules share is public, not _private.
 #                                A field(default_factory=list) needs list[X] -- and X importable at run time.
+#                                guiwins_designer_v2 and guiwins_designer_legacy are 635 of it.
+# Two things that are not errors in the module and clear whole families: `state.xml_root is None` is written
+# `not state.backup_loaded` (xml_root is typed as the Element it is once a backup is loaded), and a bare
+# `x: list` / `dict` in an annotation is `list[str]` / `dict[str, Any]`.
 # A module comes off the exempt list in the same change that makes it clean, never before: the ratchet
 # counts strict errors in the listed files as it counts basic ones, so a half-done module fails.
 strict = [
     "maptasker/src/__init__.py",
     "maptasker/src/analysis/__init__.py",
+    "maptasker/src/analysis/batteryaudit.py",
     "maptasker/src/analysis/diffload.py",
     "maptasker/src/analysis/effects.py",
     "maptasker/src/analysis/errcheck.py",
+    "maptasker/src/analysis/firesim.py",
     "maptasker/src/analysis/folderwatch.py",
+    "maptasker/src/analysis/healthck.py",
     "maptasker/src/analysis/impact.py",
-    "maptasker/src/analysis/batteryaudit.py",
     "maptasker/src/analysis/livemon.py",
     "maptasker/src/analysis/mapask.py",
+    "maptasker/src/analysis/mapfind.py",
     "maptasker/src/analysis/outbound.py",
     "maptasker/src/analysis/plugchk.py",
     "maptasker/src/analysis/profconflict.py",
+    "maptasker/src/analysis/proflint.py",
     "maptasker/src/analysis/resrefs.py",
     "maptasker/src/analysis/taskcases.py",
+    "maptasker/src/analysis/taskflow.py",
     "maptasker/src/analysis/timecomp.py",
     "maptasker/src/clireports.py",
     "maptasker/src/core/__init__.py",
@@ -632,16 +641,20 @@ strict = [
     "maptasker/src/device/deviceinv.py",
     "maptasker/src/device/devicemonitor.py",
     "maptasker/src/device/deviceoffer.py",
-    "maptasker/src/device/deviceserver.py",
     "maptasker/src/device/deviceresource.py",
+    "maptasker/src/device/deviceserver.py",
     "maptasker/src/device/devicetask.py",
     "maptasker/src/device/deviceverify.py",
     "maptasker/src/edit/__init__.py",
+    "maptasker/src/edit/projedit.py",
     "maptasker/src/edit/roundtrip.py",
     "maptasker/src/edit/sceneedit.py",
     "maptasker/src/edit/sceneedit_v2.py",
     "maptasker/src/edit/sceneedit_v2state.py",
     "maptasker/src/edit/sessundo.py",
+    "maptasker/src/edit/taskedit.py",
+    "maptasker/src/edit/taskedit_apply.py",
+    "maptasker/src/edit/taskedit_args.py",
     "maptasker/src/edit/taskedit_model.py",
     "maptasker/src/edit/taskedit_save.py",
     "maptasker/src/gui/__init__.py",
@@ -656,10 +669,13 @@ strict = [
     "maptasker/src/gui/guiwins_carry.py",
     "maptasker/src/gui/guiwins_describe.py",
     "maptasker/src/gui/guiwins_designers.py",
+    "maptasker/src/gui/guiwins_diagram.py",
     "maptasker/src/gui/guiwins_dialogs.py",
     "maptasker/src/gui/guiwins_draft.py",
     "maptasker/src/gui/guiwins_drawers.py",
     "maptasker/src/gui/guiwins_editor.py",
+    "maptasker/src/gui/guiwins_firesim.py",
+    "maptasker/src/gui/guiwins_fix.py",
     "maptasker/src/gui/guiwins_impact.py",
     "maptasker/src/gui/guiwins_legacyarg.py",
     "maptasker/src/gui/guiwins_mapstream.py",
@@ -669,6 +685,7 @@ strict = [
     "maptasker/src/gui/guiwins_props.py",
     "maptasker/src/gui/guiwins_readiness.py",
     "maptasker/src/gui/guiwins_resources.py",
+    "maptasker/src/gui/guiwins_restore.py",
     "maptasker/src/gui/guiwins_scene.py",
     "maptasker/src/gui/guiwins_tabs.py",
     "maptasker/src/gui/guiwins_taskcases.py",
@@ -676,13 +693,16 @@ strict = [
     "maptasker/src/gui/guiwins_taskstep.py",
     "maptasker/src/gui/guiwins_tndesc.py",
     "maptasker/src/gui/guiwins_tnfind.py",
+    "maptasker/src/gui/guiwins_tnupdate.py",
     "maptasker/src/gui/guiwins_trend.py",
+    "maptasker/src/gui/guiwins_views.py",
     "maptasker/src/gui/livevars.py",
     "maptasker/src/gui/mapai.py",
     "maptasker/src/gui/sceneview.py",
     "maptasker/src/gui/sceneview_legacy.py",
     "maptasker/src/gui/sceneview_v2base.py",
     "maptasker/src/gui/userhelp.py",
+    "maptasker/src/gui/userintr.py",
     "maptasker/src/gui/userintr_ai.py",
     "maptasker/src/gui/userintr_android.py",
     "maptasker/src/gui/userintr_android_support.py",
@@ -710,6 +730,7 @@ strict = [
     "maptasker/src/mapgen/actione.py",
     "maptasker/src/mapgen/actionr.py",
     "maptasker/src/mapgen/addcss.py",
+    "maptasker/src/mapgen/bildhtml.py",
     "maptasker/src/mapgen/caveats.py",
     "maptasker/src/mapgen/codelint.py",
     "maptasker/src/mapgen/colors.py",
@@ -721,22 +742,39 @@ strict = [
     "maptasker/src/mapgen/diagutil.py",
     "maptasker/src/mapgen/frontmtr.py",
     "maptasker/src/mapgen/getbakup.py",
+    "maptasker/src/mapgen/globalvr.py",
     "maptasker/src/mapgen/lineout.py",
+    "maptasker/src/mapgen/mapcache.py",
+    "maptasker/src/mapgen/mappdf.py",
+    "maptasker/src/mapgen/proclist.py",
+    "maptasker/src/mapgen/profiles.py",
     "maptasker/src/mapgen/proginit.py",
+    "maptasker/src/mapgen/projects.py",
+    "maptasker/src/mapgen/scenes.py",
     "maptasker/src/mapgen/taskactn.py",
     "maptasker/src/mapgen/taskerd.py",
     "maptasker/src/mapgen/taskertables.py",
+    "maptasker/src/mapgen/tasks.py",
+    "maptasker/src/mapgen/taskuniq.py",
     "maptasker/src/mapgen/twisty.py",
     "maptasker/src/mapit.py",
     "maptasker/src/mapops/__init__.py",
     "maptasker/src/mapops/mapcards.py",
     "maptasker/src/mapops/mapcarry.py",
     "maptasker/src/mapops/mapdescribe.py",
+    "maptasker/src/mapops/mapfix.py",
     "maptasker/src/mapops/maprefac.py",
     "maptasker/src/mapops/maprefac_duplicate.py",
+    "maptasker/src/mapops/maprefac_model.py",
     "maptasker/src/mapops/maprefac_move.py",
     "maptasker/src/mapops/maprefac_variable.py",
     "maptasker/src/mapops/mapswap.py",
+    "maptasker/src/mapops/mapswap_argument.py",
+    "maptasker/src/mapops/mapswap_model.py",
+    "maptasker/src/mapops/mapswap_rename.py",
+    "maptasker/src/mapops/mapswap_sites.py",
+    "maptasker/src/mapops/readiness.py",
+    "maptasker/src/mapops/tnfind.py",
     "maptasker/src/mapops/trend.py",
     "maptasker/src/progargs.py",
     "maptasker/src/runcli.py",

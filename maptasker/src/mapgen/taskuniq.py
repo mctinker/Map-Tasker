@@ -18,8 +18,8 @@ from maptasker.src.mapgen.twisty import add_twisty, remove_twisty
 
 # Output Projects Without Tasks and Projects Without Profiles
 def process_missing_tasks_and_profiles(
-    projects_with_no_tasks: list,
-    projects_without_profiles: list,
+    projects_with_no_tasks: list[str],
+    projects_without_profiles: list[str],
     state: RunState,
 ) -> None:
     """
@@ -109,14 +109,14 @@ def add_heading(save_twisty: bool, state: RunState) -> bool:
 # This function is called recursively
 def process_solo_task_with_no_profile(
     task_id: str,
-    found_tasks: list,
+    found_tasks: list[str],
     task_count: int,
     have_heading: bool,
-    projects_with_no_tasks: list,
+    projects_with_no_tasks: list[str],
     save_twisty: bool,
     config: RunConfig,
     state: RunState,
-) -> tuple:
+) -> tuple[bool, bool, int]:
     """
     Process a single Task that does not belong to any Profile
 
@@ -164,8 +164,8 @@ def process_solo_task_with_no_profile(
 
 # process_tasks: go through all tasks and output them
 def process_tasks_not_called_by_profile(
-    projects_with_no_tasks: list,
-    found_tasks_list: list,
+    projects_with_no_tasks: list[str],
+    found_tasks_list: list[str],
     config: RunConfig,
     state: RunState,
 ) -> None:
@@ -178,7 +178,6 @@ def process_tasks_not_called_by_profile(
         :return: nothing
     """
     task_count = 0
-    task_name = ""
     have_heading = False
     # We only need twisty for top level, starting with the heading, so it is off for the
     # duration of this walk and back to whatever it was on the way out.
@@ -225,13 +224,6 @@ def process_tasks_not_called_by_profile(
                 "",
                 FormatLine.dont_format_line,
             )  # blank line
-        state.output_lines.add_line_to_output(
-            3,
-            "",
-            FormatLine.dont_format_line,
-        )  # Close Task list
-
-    if task_name is True:
         state.output_lines.add_line_to_output(
             3,
             "",

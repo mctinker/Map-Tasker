@@ -52,7 +52,7 @@ import os
 import re
 from dataclasses import dataclass, field
 from functools import cache
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import defusedxml.ElementTree as DefusedET
 
@@ -92,7 +92,7 @@ _DIGITS = re.compile(r"\d+")
 # The data.
 # ##################################################################################
 @cache
-def _table() -> dict:
+def _table() -> dict[str, Any]:
     """readiness.json, read the first time it is wanted."""
     with open(READINESS_FILE, encoding="utf-8") as file:
         return json.load(file)
@@ -197,10 +197,10 @@ class Readiness:
 
     scope: str = ""
     written_by: str = ""
-    plugins: list[PluginNeed] = field(default_factory=list)
-    apps: list[AppNeed] = field(default_factory=list)
-    access: list[AccessNeed] = field(default_factory=list)
-    prompts: list[PromptNeed] = field(default_factory=list)
+    plugins: list[PluginNeed] = field(default_factory=list[PluginNeed])
+    apps: list[AppNeed] = field(default_factory=list[AppNeed])
+    access: list[AccessNeed] = field(default_factory=list[AccessNeed])
+    prompts: list[PromptNeed] = field(default_factory=list[PromptNeed])
     minimum: VersionNeed | None = None
 
     @property
@@ -232,7 +232,7 @@ class Readiness:
 
     def _version_section(self) -> Section:
         """The Tasker version heading: the minimum, when one is known, and what wrote the file."""
-        lines = []
+        lines: list[Line] = []
         if self.minimum is not None:
             lines.append(
                 Line(f"Tasker {self.minimum.version} or newer", f"Needed for: {', '.join(self.minimum.because)}"),
@@ -447,7 +447,7 @@ def _argument_ids(key: str) -> dict[str, str]:
     return {argument.arg_name.lower(): f"arg{argument.arg_id}" for argument in entry.args if argument.arg_name}
 
 
-def _applies(row: dict, element: Element) -> bool:
+def _applies(row: dict[str, Any], element: Element) -> bool:
     """Whether a table row's 'when' holds -- every argument it names has one of the values listed."""
     return all(_int_argument(element, argument) in values for argument, values in row.get("when", {}).items())
 
@@ -583,7 +583,7 @@ def _document_for(element: Element, state: RunState) -> Element:
     Tasks it runs, which is why an export bundles them, so they are bundled here (see
     profedit.render_standalone_profile_xml).
     """
-    version = state.xml_root.attrib.get("tv", "") if state.xml_root is not None else ""
+    version = state.xml_root.attrib.get("tv", "") if state.backup_loaded else ""
     root = type(element)("TaskerData", {"tv": version})
     root.append(copy.deepcopy(element))
     if element.tag == "Profile":

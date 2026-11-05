@@ -304,7 +304,7 @@ class V2Model:
         layout.update(original)
         return changed
 
-    def anchor_parts(self, layout: dict) -> dict[int, dict[str, str]]:
+    def anchor_parts(self, layout: dict[str, Any]) -> dict[int, dict[str, str]]:
         """{id(component): {property: the Map anchor part}} for every property worth anchoring.
 
         Only the properties that hold a variable, which is exactly the set text_sites yields --
@@ -325,7 +325,7 @@ class V2Model:
                 parts[id(row.node)] = wanted
         return parts
 
-    def property_value(self, scene_element: Element, path: tuple) -> object:
+    def property_value(self, scene_element: Element, path: tuple[Any, ...]) -> object:
         """The current value of the component property `path` points at, or "" if it cannot be reached.
 
         `path` is (component path, property key) -- the same shape a TextSite carries.  Decoded
@@ -338,7 +338,9 @@ class V2Model:
         node = sceneedit_v2tree.v2_node_at(layout, node_path)
         return node.get(key) if node is not None else ""
 
-    def rewrite_property(self, scene_element: Element, path: tuple, transform: Callable[[object], object]) -> bool:
+    def rewrite_property(
+        self, scene_element: Element, path: tuple[Any, ...], transform: Callable[[object], object]
+    ) -> bool:
         """Replace one component property with transform(its current value), and re-encode the layout.
 
         False -- and nothing written -- for a layout that will not decode or a path that no longer

@@ -365,9 +365,9 @@ class MyGui:
     guiview: bool
     open_view_in_new_window: bool
     prebuild_map: bool
-    scene_editor_session: dict | None
+    scene_editor_session: dict[str, Any] | None
     textview: Any
-    textviews: list
+    textviews: list[Any]
     view_limit: int
     # Set to None until the layout, the settings restore or a dialog gives them a value, and then
     # set to a widget, a string or a flag; typed loosely for that reason rather than as the Optional that
@@ -676,10 +676,8 @@ class MyGui:
         if self.state.program_arguments.reset:
             return
 
-        saved_duration = self.state.program_arguments.notify_timeout
-        if saved_duration is not None:
-            # The pulldown does not exist yet; notify_timeout_event skips it when it is absent.
-            self.event_handlers.settings.notify_timeout_event(saved_duration)
+        # The pulldown does not exist yet; notify_timeout_event skips it when it is absent.
+        self.event_handlers.settings.notify_timeout_event(self.state.program_arguments.notify_timeout)
 
     # Utility functions
     def display_message_box(self: "MyGui", message: str, color: str) -> None:
@@ -841,6 +839,7 @@ class MyGui:
         scene_head = translate_string("Scene:")
         no_profiles = translate_string("No Profiles Found")
         if projects:
+            profile_list: list[Any]
             for project in projects:
                 project_name = projects[project]["name"]
 
@@ -1026,24 +1025,23 @@ class MyGui:
         if "ai_prompt" in temp_args and not temp_args["ai_prompt"]:
             temp_args["ai_prompt"] = AI_PROMPT
         for key, value in temp_args.items():
-            if key is not None:
-                previous = getattr(self, key, None)
-                setattr(self, key, value)
-                # Start log if debug
-                if key == "debug" and value:
-                    log_startup_values(state=self.state)
-                # Make the modification based on the specfic setting
-                # A saved value is whatever type the setting is (str, int, bool); its handler reads it as one.
-                try:
-                    _ = self.restore_display(key, cast("Any", value))
-                except (TypeError, ValueError) as error:
-                    # A hand-edited or damaged file ("indent = 'wide'"): the setting stays as it was, and the
-                    # rest of the file is still restored.
-                    logger.warning(f"Ignoring the saved setting {key} = {value!r}: {error}")
-                    setattr(self, key, previous)
-                # # Now display the setting and act on it if necessary.
-                # if new_message := self.restore_display(key, value):
-                #     self.display_message_box(f"{new_message}\n", "Green")
+            previous = getattr(self, key, None)
+            setattr(self, key, value)
+            # Start log if debug
+            if key == "debug" and value:
+                log_startup_values(state=self.state)
+            # Make the modification based on the specfic setting
+            # A saved value is whatever type the setting is (str, int, bool); its handler reads it as one.
+            try:
+                _ = self.restore_display(key, cast("Any", value))
+            except (TypeError, ValueError) as error:
+                # A hand-edited or damaged file ("indent = 'wide'"): the setting stays as it was, and the
+                # rest of the file is still restored.
+                logger.warning(f"Ignoring the saved setting {key} = {value!r}: {error}")
+                setattr(self, key, previous)
+            # # Now display the setting and act on it if necessary.
+            # if new_message := self.restore_display(key, value):
+            #     self.display_message_box(f"{new_message}\n", "Green")
 
         # Set the tab to use to the default.
         if self.tab_to_use is None:

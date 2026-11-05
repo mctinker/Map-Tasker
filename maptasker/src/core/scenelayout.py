@@ -28,7 +28,7 @@ import gzip
 import io
 import json
 import zlib
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from maptasker.src.core.editcommon import set_child_text
 
@@ -56,7 +56,7 @@ _GZIP_LEVEL = 6
 V2_NAME_KEY = "name"
 
 
-def decompress_gzip_json(b64_string: str) -> dict[str, Any] | str:
+def decompress_gzip_json(b64_string: str) -> object:
     """Decodes a Base64 string, decompresses it using Gzip, and parses the JSON.
 
     This function reverses a common data pipeline where a JSON object is
@@ -117,7 +117,7 @@ def decode_v2_layout(scene_element: Element) -> dict[str, Any] | None:
     decoded = decompress_gzip_json(layout_element.text)
     # decompress_gzip_json reports failure by returning its error message as a
     # string rather than raising, so anything that isn't a dict is a failure.
-    return decoded if isinstance(decoded, dict) else None
+    return cast("dict[str, Any]", decoded) if isinstance(decoded, dict) else None
 
 
 def encode_v2_layout(scene_element: Element, layout: dict[str, Any]) -> None:

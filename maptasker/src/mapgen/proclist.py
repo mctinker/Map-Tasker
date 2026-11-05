@@ -9,6 +9,7 @@ MIT License   Refer to https://opensource.org/license/mit
 # proclist: process list - process a list of line items for Tasks and Scenes           #
 #                                                                                      #
 # MIT License   Refer to https://opensource.org/license/mit                            #
+from typing import Any
 from xml.etree.ElementTree import Element
 
 import maptasker.src.core.elemvals as task_flags
@@ -74,7 +75,7 @@ def get_scene_element_names(scene: Element) -> list[str]:
             "Type" if the element has no name. "PropertiesElement" and "lj" (compressed
             Scene V2 JSON) are skipped since they don't represent a single named element.
     """
-    element_names = []
+    element_names: list[str] = []
     for child in scene:
         if (
             child.tag in SCENE_TAGS_TO_IGNORE
@@ -132,7 +133,7 @@ def format_task_or_scene(
     # Add a tooltip to the "Task:" label showing the owning Profile/Project, if known.
     label = list_type
     if list_type == "Task:":
-        tooltip_lines = []
+        tooltip_lines: list[str] = []
         if profile_name:
             tooltip_lines.append(f"Profile: {profile_name}")
         if project_name:
@@ -140,7 +141,7 @@ def format_task_or_scene(
         label = build_tooltip_span(list_type, tooltip_lines)
     elif list_type == "Scene:":
         # Get owning project for this Scene, if known, and add to the tooltip.
-        tooltip_lines = []
+        tooltip_lines: list[str] = []
         if owning_project := find_owning_project_for_scene(the_item, state=state):
             tooltip_lines.append(f"Project: {owning_project}")
 
@@ -447,7 +448,7 @@ def item_anchor(list_type: str, the_item: str, the_task: Element | None, state: 
 def format_item(
     list_type: str,
     the_item: str,
-    the_list: list | str,
+    the_list: list[str] | str,
     the_task: Element | None,
     config: RunConfig,
     project_name: str = "",
@@ -523,8 +524,8 @@ def format_item(
 def process_item(
     the_item: str,
     list_type: str,
-    the_task: Element,
-    tasks_found: list,
+    the_task: Element | None,
+    tasks_found: list[str],
     config: RunConfig,
     project_name: str = "",
     profile_name: str = "",
@@ -586,9 +587,9 @@ def process_item(
 # Process Task/Scene text/line item: call recursively for Tasks within Scenes
 def process_list(
     list_type: str,
-    the_list: list,
-    the_task: Element,
-    tasks_found: list,
+    the_list: list[str],
+    the_task: Element | None,
+    tasks_found: list[str],
     config: RunConfig,
     project_name: str = "",
     profile_name: str = "",
@@ -624,9 +625,9 @@ def do_single_task(
     our_task_name: str,
     project_name: str,
     profile_name: str,
-    task_list: list,
+    task_list: list[Any],
     our_task_element: Element,
-    list_of_found_tasks: list,
+    list_of_found_tasks: list[Any],
     config: RunConfig,
     state: RunState,
 ) -> None:
@@ -732,7 +733,7 @@ def get_image(image: Element, title: str, key: str) -> str:
 
 
 # If Task has an icon, get and format it in the Task output line.
-def get_icon_info(the_task: Element) -> str:
+def get_icon_info(the_task: Element | None) -> str:
     """
     Gets icon information from the task XML.
     Args:
@@ -762,9 +763,9 @@ def get_icon_info(the_task: Element) -> str:
 # Optimized
 def get_extra_details(
     our_task_element: Element,
-    task_output_lines: list,
+    task_output_lines: list[Any],
     state: RunState,
-) -> tuple:
+) -> tuple[Any, ...]:
     """
     Get additional information for this Task.
 
@@ -801,11 +802,11 @@ def get_extra_details(
 # Given a list of tasks, output them.
 # Optimized
 def output_task_list(
-    list_of_tasks: list,
+    list_of_tasks: list[dict[str, Any]],
     project_name: str,
     profile_name: str,
-    task_output_lines: list,
-    list_of_found_tasks: list,
+    task_output_lines: list[str],
+    list_of_found_tasks: list[str],
     do_extra: bool,
     config: RunConfig,
     state: RunState,

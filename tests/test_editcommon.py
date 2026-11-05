@@ -20,13 +20,17 @@ opened -- a blank IP reports the blank IP rather than the deletion.
 from __future__ import annotations
 
 import os
-from typing import Any
+from typing import TYPE_CHECKING, Any, cast
 
 import pytest
 from maptasker.src.core import editcommon, presave
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.device import devicetask
 from maptasker.src.edit import profedit, projedit, sceneedit, taskedit, taskedit_save
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+    from types import ModuleType
 
 # Every editor, and the three things it is allowed to differ in.
 #   module, EXPORT kind, fallback word, extension, device folder, its own path helper
@@ -41,7 +45,7 @@ IDS = [e[1] for e in EDITORS]
 
 @pytest.mark.parametrize(("module", "fallback", "extension", "folder", "android", "default"), EDITORS, ids=IDS)
 def test_each_editor_declares_only_what_makes_it_different(
-    module: object,
+    module: ModuleType,
     fallback: str,
     extension: str,
     folder: str,
@@ -57,7 +61,7 @@ def test_each_editor_declares_only_what_makes_it_different(
 
 @pytest.mark.parametrize(("module", "fallback", "extension", "folder", "android", "default"), EDITORS, ids=IDS)
 def test_sanitize_is_the_same_substitution_in_all_four(
-    module: object,
+    module: ModuleType,
     fallback: str,
     extension: str,
     folder: str,
@@ -78,7 +82,7 @@ def test_sanitize_is_the_same_substitution_in_all_four(
 
 @pytest.mark.parametrize(("module", "fallback", "extension", "folder", "android", "default"), EDITORS, ids=IDS)
 def test_save_and_device_paths_differ_only_in_extension_and_folder(
-    module: object,
+    module: ModuleType,
     fallback: str,
     extension: str,
     folder: str,
@@ -95,7 +99,7 @@ def test_save_and_device_paths_differ_only_in_extension_and_folder(
 
 @pytest.mark.parametrize(("module", "fallback", "extension", "folder", "android", "default"), EDITORS, ids=IDS)
 def test_save_path_exists_agrees_everywhere(
-    module: object,
+    module: ModuleType,
     fallback: str,
     extension: str,
     folder: str,
@@ -166,13 +170,16 @@ def fake_device(monkeypatch: pytest.MonkeyPatch) -> dict:
     return state
 
 
-def _save_calls(ip: str, port: str) -> list[tuple[str, object]]:
+def _save_calls(ip: str, port: str) -> list[tuple[str, Callable[[], tuple[int, str]]]]:
     """The four editors' save-to-device entry points, called with this address."""
     return [
         ("project", lambda: projedit.save_project_to_android("Home/Work", ip, port, state=PrimeItems)),
-        ("profile", lambda: profedit.save_profile_to_android(None, ip, port, "Morning", state=PrimeItems)),
+        ("profile", lambda: profedit.save_profile_to_android(cast("Any", None), ip, port, "Morning", state=PrimeItems)),
         ("scene", lambda: sceneedit.save_scene_to_android("Dialog", ip, port, state=PrimeItems)),
-        ("task", lambda: taskedit_save.save_task_to_android_file(None, ip, port, "Opener", state=PrimeItems)),
+        (
+            "task",
+            lambda: taskedit_save.save_task_to_android_file(cast("Any", None), ip, port, "Opener", state=PrimeItems),
+        ),
     ]
 
 
@@ -223,7 +230,9 @@ def test_the_task_upload_hands_back_what_the_device_holds(fake_device: dict) -> 
     api/import, so what reaches Tasker is provably the file in the folder rather than a
     second render nothing has checked.
     """
-    assert taskedit_save._put_task_file_on_android(None, "1.2.3.4", "1821", "Opener", state=PrimeItems) == (
+    assert taskedit_save._put_task_file_on_android(
+        cast("Any", None), "1.2.3.4", "1821", "Opener", state=PrimeItems
+    ) == (
         0,
         "/Tasker/tasks/Opener.tsk.xml",
         b"<TaskerData/>",

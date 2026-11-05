@@ -177,7 +177,7 @@ def create_new_task(
     other Task built by this same call site and not registered yet; see there for what goes
     wrong without it.
     """
-    if state.xml_root is None:
+    if not state.backup_loaded:
         return "Load a Tasker backup file first (Add Task needs it to generate a unique Task ID)."
     if problem := name_problem(name, "Task"):
         return problem
@@ -292,7 +292,7 @@ def action_display_levels(actions: list[EditableAction]) -> list[int]:
     clamps at level 0 rather than going negative -- a Task's actions are free
     text as far as Tasker is concerned, so malformed nesting must still render.
     """
-    levels = []
+    levels: list[int] = []
     depth = 0
     for action in actions:
         if action.code in (ELSE_ACTION_CODE, END_IF_ACTION_CODE):
@@ -450,7 +450,7 @@ def set_action_continue_after_error(
 # Project, the same as tasks.get_project_for_solo_task attributes it to, so the two agree.
 
 
-def list_pickable_tasks(state: RunState) -> list[dict]:
+def list_pickable_tasks(state: RunState) -> list[dict[str, str]]:
     """Every Task that can be pointed at, with the Project that owns it.
 
     The Task-side counterpart of list_addable_actions, and shaped like it so one picker can
@@ -489,7 +489,7 @@ def list_pickable_tasks(state: RunState) -> list[dict]:
     return rows
 
 
-def search_pickable_tasks(query: str = "", project_name: str = "All", *, state: RunState) -> list[dict]:
+def search_pickable_tasks(query: str = "", project_name: str = "All", *, state: RunState) -> list[dict[str, str]]:
     """Filter the Task list by name substring and/or exact Project name -- the Task-side
     search_addable_actions, matching on the same terms so both pickers behave alike.
     """
@@ -520,7 +520,7 @@ def apply_task_rename(edited_task: EditableTask, new_name: str, state: RunState)
     new_name = new_name.strip()
     current_name = edited_task.task_element.findtext("nme", "")
 
-    errors = []
+    errors: list[str] = []
     if not new_name:
         errors.append("Task name cannot be empty.")
     elif problem := name_problem(new_name, "Task"):

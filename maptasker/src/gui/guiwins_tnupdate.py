@@ -38,7 +38,7 @@ import asyncio
 import contextlib
 from dataclasses import dataclass, field
 from functools import partial
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Any, Literal, cast
 
 from nicegui import context, run, ui
 
@@ -123,7 +123,9 @@ class _Held:
     review: tnupdate.Review | None = None
     plan: maprefac_model.Plan | None = None
     previewed: maprestore.Candidate | None = None
-    applied: dict[tuple[str, str, str], maprestore.Candidate] = field(default_factory=dict)
+    applied: dict[tuple[str, str, str], maprestore.Candidate] = field(
+        default_factory=dict[tuple[str, str, str], maprestore.Candidate]
+    )
     busy: bool = False
     # Whether the review on screen was the first this link had, so the wording that says what
     # that means survives the rescan after something is taken.
@@ -410,7 +412,9 @@ class _UpdatesDialog:
             self.link_note.set_text(str(error))
             return
         names = tnupdate.local_names(self.reference.kind, self.state)
-        self.local_pick.set_options(names, value=self.reference.name if self.reference.name in names else None)
+        cast("Any", self.local_pick).set_options(
+            names, value=self.reference.name if self.reference.name in names else None
+        )
         self.link_note.set_text(
             f"{translate_string('A')} {self.reference.kind} {translate_string('shared as')} '{self.reference.name}'.  "
             f"{translate_string('Pick the one of yours it is, then press Link.')}",
@@ -586,7 +590,7 @@ class _UpdatesDialog:
 
     def _note_lines(self, held: tnupdate.Review) -> list[str]:
         """What is not offered, and why, so a short list does not read as a short comparison."""
-        lines = []
+        lines: list[str] = []
         if held.everything:
             # xmldiff's lines read "older -> newer", and here the share is the older side.
             lines.append(translate_string("Each change reads: the author's version -> your copy."))
@@ -775,7 +779,7 @@ class _UpdatesDialog:
         held = self.held.review
         if held is None:
             return
-        sections = []
+        sections: list[str] = []
         if held.author is not None:
             sections += ["WHAT THE AUTHOR CHANGED", held.author.report, ""]
         sections += ["HOW YOUR COPY COMPARES WITH THE PUBLISHED VERSION", held.report]
@@ -797,7 +801,7 @@ class _UpdatesDialog:
 
 
 # Running checks, held so a task is not garbage-collected before it finishes.
-_background: set[asyncio.Task] = set()
+_background: set[asyncio.Task[None]] = set()
 
 
 def check_links_at_startup() -> None:
@@ -830,7 +834,7 @@ async def _notify_if_newer(client: Client, book: tnupdate.LinkBook) -> None:
         )
 
 
-def _report_failure(task: asyncio.Task) -> None:
+def _report_failure(task: asyncio.Task[None]) -> None:
     """Log whatever the check raised instead of losing it.  Cancellation is ordinary and says nothing."""
     if task.cancelled():
         return

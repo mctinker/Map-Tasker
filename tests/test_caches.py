@@ -9,6 +9,8 @@ registry; loading a configuration (maputils.clear_tasker_data) and a full reset
 
 from __future__ import annotations
 
+from typing import Any, cast
+
 import pytest
 from maptasker.src.core import appinv, caches
 from maptasker.src.core.maputils import clear_tasker_data
@@ -79,7 +81,7 @@ def test_every_cache_the_package_declares_is_registered() -> None:
 )
 def test_loading_another_configuration_empties_every_cache(reset: object) -> None:
     """Both ways the program starts over leave nothing of the last configuration behind."""
-    globalvr._cross_reference.value = {"%Stale": object()}
+    cast("Any", globalvr._cross_reference).value = {"%Stale": object()}
     globalvr._cross_reference_key.value = "old configuration"
     mapcache._remembered.value = ("config", "settings", "MapTasker.html", (1, 2), 3)
     bildhtml._map_just_written.value = "MapTasker.html"

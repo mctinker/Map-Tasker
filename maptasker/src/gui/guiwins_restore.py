@@ -82,7 +82,7 @@ class _State:
     planned against, which is what `plan` living beside `older` makes plain.
     """
 
-    snapshots: list[timeline.Snapshot] = field(default_factory=list)
+    snapshots: list[timeline.Snapshot] = field(default_factory=list[timeline.Snapshot])
     snapshot: timeline.Snapshot | None = None
     older: Configuration | None = None
     offer: maprestore.Offer | None = None
@@ -92,7 +92,9 @@ class _State:
     # Rows restored from this snapshot, by identity -- their buttons are drawn green.  Kept here
     # because a restored object is usually no longer a difference, and the rescan after Apply
     # would otherwise drop the very row that was just pressed.
-    applied: dict[tuple[str, str, str], maprestore.Candidate] = field(default_factory=dict)
+    applied: dict[tuple[str, str, str], maprestore.Candidate] = field(
+        default_factory=dict[tuple[str, str, str], maprestore.Candidate]
+    )
     busy: bool = False
 
     def mark_applied(self) -> None:

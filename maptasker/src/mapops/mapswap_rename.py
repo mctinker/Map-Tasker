@@ -4,12 +4,12 @@ from __future__ import annotations
 
 import re
 from collections import Counter
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from maptasker.src.core.mapjump import VARIABLE, Target, current_scope
 from maptasker.src.core.taskervars import tasker_global_variables
 from maptasker.src.mapgen import varxref
-from maptasker.src.mapgen.varxref import _LOW_CONFIDENCE_LENGTH, VARIABLE_PATTERN
+from maptasker.src.mapgen.varxref import LOW_CONFIDENCE_LENGTH, VARIABLE_PATTERN
 from maptasker.src.mapops.mapswap_model import BLOCKED_INDIRECT, Change, Plan, Site, Skip
 from maptasker.src.mapops.mapswap_sites import declaration_site, is_plugin_declaration, rewrite_site, site_kind
 
@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from maptasker.src.core.primitem import RunState
 
 
-def variable_choices(index: varxref.VariableIndex) -> list[tuple[str, str, str]]:
+def variable_choices(index: varxref.VariableIndex) -> list[tuple[str, str | None, str]]:
     """(name, owner, label) for every variable that could be renamed, commonest first.
 
     Locals carry their Task in the label because they ARE per-Task: two Tasks using
@@ -36,9 +36,9 @@ def variable_choices(index: varxref.VariableIndex) -> list[tuple[str, str, str]]
     and then rejected -- a built-in and a one-character name cannot become renameable by
     anything the user types in the other box.
     """
-    choices = []
-    instances: Counter = Counter()
-    totals: Counter = Counter()
+    choices: list[tuple[str, str | None, str, int, bool]] = []
+    instances: Counter[str] = Counter()
+    totals: Counter[str] = Counter()
     for (name, _owner), variable in index.variables.items():
         if rename_refusal(name, f"{name}_"):
             continue
@@ -141,7 +141,7 @@ def rename_pattern(old_name: str) -> re.Pattern[str]:
 #    BLOCKED_INDIRECT, listed with their Targets so the user can go and read them.
 
 
-def _rename_scope_phrase(index: varxref.VariableIndex, owner: str | None, entries: list) -> str:
+def _rename_scope_phrase(index: varxref.VariableIndex, owner: str | None, entries: list[Any]) -> str:
     """What the plan's title says about where the rename applies: " (3 instances)", " in Task X", or nothing."""
     scope_phrase = ""
     if owner is EVERY_INSTANCE and len(entries) > 1:
@@ -184,7 +184,7 @@ def plan_rename_sites(
 
     `entries` are the cross-reference entries being renamed (see entries_to_rename).
     """
-    seen: set[tuple[int, tuple]] = set()
+    seen: set[tuple[int, tuple[Any, ...]]] = set()
 
     # sets before reads, and both in scan order, so the preview reads down the file the
     # way the Map does.  Deduplicated on (element, path) because one field can be recorded
@@ -359,7 +359,7 @@ def rename_refusal(old_name: str, new_name: str) -> str:
     for name, side in ((old_name, "renamed"), (new_name, "renamed to")):
         if name in tasker_global_variables:
             return f"{name} is one of Tasker's own built-in variables and cannot be {side}."
-        if len(name) - 1 <= _LOW_CONFIDENCE_LENGTH:
+        if len(name) - 1 <= LOW_CONFIDENCE_LENGTH:
             # varxref holds these out of its own totals for the same reason.
             return (
                 f"{name} is too short to rename safely.  A name this short collides with things that are not "
@@ -381,7 +381,7 @@ def _rename_warnings(
     owner: str | None,
 ) -> list[str]:
     """What the user should read before pressing Replace.  Each of these proceeds."""
-    warnings = []
+    warnings: list[str] = []
 
     # Renaming every instance of a LOCAL is the case that needs saying out loud.  Each of
     # those instances is a separate variable -- Tasker scopes a lower-case name to the

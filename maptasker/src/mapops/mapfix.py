@@ -60,7 +60,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from maptasker.src.analysis import healthck, proflint
 from maptasker.src.core import clock, maputil2, objprops
@@ -176,6 +176,10 @@ CHOICE_OPTIONS = "options"  # one of a fixed list
 CHOICE_NUMBER = "number"  # a whole number the user types
 
 
+# What a repair points at, in a form that survives the plan being rebuilt: (tag, anchor, before).  See Fix.identity.
+Identity = tuple[str, str, str]
+
+
 @dataclass(frozen=True)
 class Choice:
     """A decision that belongs to the user, carried on the repair that needs it.
@@ -229,14 +233,14 @@ class Fix:
     describe: Callable[[str], str]  # what will happen, given the chosen value
     note: str = ""  # anything to read before ticking this one
     choice: Choice | None = None
-    elements: tuple = ()
+    elements: tuple[Any, ...] = ()
     # Repairs to one Task that must happen in a particular order, highest first.  Only the
     # block closers use it -- see plan_fixes.
     order: int = 0
     run: Callable[[str], None] | None = None
 
     @property
-    def identity(self) -> tuple:
+    def identity(self) -> Identity:
         """What this repair points at, in a form that survives the plan being rebuilt.
 
         mapswap_model.Change.identity's reason, unchanged: a preview is thrown away whenever the
@@ -271,12 +275,12 @@ class Plan:
     """
 
     what: str  # one line for the header, the report and the Undo label
-    fixes: list[Fix] = field(default_factory=list)
-    skips: list[Skip] = field(default_factory=list)
-    warnings: list[str] = field(default_factory=list)  # true of the plan as a whole
+    fixes: list[Fix] = field(default_factory=list[Fix])
+    skips: list[Skip] = field(default_factory=list[Skip])
+    warnings: list[str] = field(default_factory=list[str])  # true of the plan as a whole
     # Positions in `fixes` that are ticked, and what has been chosen for the ones that ask.
-    selected: set[int] = field(default_factory=set)
-    chosen: dict[int, str] = field(default_factory=dict)
+    selected: set[int] = field(default_factory=set[int])
+    chosen: dict[int, str] = field(default_factory=dict[int, str])
 
     @property
     def is_empty(self) -> bool:
@@ -315,11 +319,11 @@ class Plan:
         owners = "object" if len(objects) == 1 else "objects"
         return f"{len(ticked)} {findings} in {len(objects)} {owners}"
 
-    def ticked_identities(self) -> set:
+    def ticked_identities(self) -> set[Identity]:
         """The ticks as what they point at rather than as where they sit.  See Fix.identity."""
         return {fix.identity for position, fix in enumerate(self.fixes) if position in self.selected}
 
-    def restore(self, ticks: set, values: dict) -> None:
+    def restore(self, ticks: set[Identity], values: dict[Identity, str]) -> None:
         """Re-tick and re-choose a freshly built plan to match what the user had chosen.
 
         Both carried by identity rather than by position, for the reason Fix.identity
@@ -347,7 +351,7 @@ class Plan:
 # ##################################################################################
 
 
-def _table(name: str, state: RunState) -> dict:
+def _table(name: str, state: RunState) -> dict[str, Any]:
     """One object table -- all_tasks, all_tasks_by_name -- or {}."""
     return (state.tasker_root_elements or {}).get(name) or {}
 
@@ -711,7 +715,8 @@ def _plan_delete_task(where: Target, state: RunState) -> Fix | Skip:
     if task is None:
         return Skip(UNREFERENCED_TASK, where, "This Task is no longer in the configuration.")
 
-    name = (_table("all_tasks", state=state).get(where.key) or {}).get("name", "")
+    known: dict[str, Any] = _table("all_tasks", state=state).get(where.key) or {}
+    name: str = known.get("name", "")
     sharing = [key for key, entry in _table("all_tasks", state=state).items() if entry.get("name") == name]
     entry = _table("all_tasks_by_name", state=state).get(name) if name else None
     if not name or entry is None or len(sharing) > 1:
@@ -869,7 +874,8 @@ def _wrapped(text: str, indent: str) -> list[str]:
     a text file, where nothing is going to wrap it at all.  maprefac's, with the indent
     folded in because every caller here was adding one.
     """
-    lines, current = [], ""
+    lines: list[str] = []
+    current = ""
     for word in text.split():
         if current and len(indent) + len(current) + 1 + len(word) > _REPORT_WIDTH:
             lines.append(f"{indent}{current}")

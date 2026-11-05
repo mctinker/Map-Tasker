@@ -236,7 +236,7 @@ def _text(element: Element, tag: str) -> str:
     return (child.text or "").strip() if child is not None else ""
 
 
-def _is_enabled(profile: dict) -> bool:
+def _is_enabled(profile: dict[str, Any]) -> bool:
     """Whether Tasker will act on this Profile at all.
 
     <limit>true</limit> is how a disabled Profile is marked -- see objprops.py, which says
@@ -269,7 +269,7 @@ def _project_owners(kind: str, state: RunState) -> dict[str, str]:
     return owners
 
 
-def _profile_target(profile_id: str, profile: dict, owners: dict[str, str]) -> Target:
+def _profile_target(profile_id: str, profile: dict[str, Any], owners: dict[str, str]) -> Target:
     """Somewhere to go and look at one Profile."""
     return Target(PROFILE, profile_id, profile["name"], owners.get(profile_id, ""))
 
@@ -316,12 +316,12 @@ def _signature(element: Element, skip: frozenset[str], *, top: bool = False) -> 
     return "".join(parts) + (f"({','.join(children)})" if children else "")
 
 
-def _conditions(profile: dict) -> list[Element]:
+def _conditions(profile: dict[str, Any]) -> list[Element]:
     """A Profile's condition elements, in the order Tasker wrote them."""
     return [child for child in profile["xml"] if child.tag in _CONDITION_TAGS]
 
 
-def _trigger_signature(profile: dict) -> tuple[str, ...]:
+def _trigger_signature(profile: dict[str, Any]) -> tuple[str, ...]:
     """Everything this Profile watches, as a key two Profiles can be grouped by.
 
     Sorted, because Tasker ANDs a Profile's conditions together and an AND does not care
@@ -376,7 +376,7 @@ def switch_actions() -> dict[str, str]:
     "switch_set" lookup, so an action added to actionc.py in a later Tasker release is
     covered without this module being touched.
     """
-    codes = {}
+    codes: dict[str, str] = {}
     for key, action in action_codes.items():
         if not key.endswith("t"):  # 'e' and 's' keys are Profile events and states.
             continue
@@ -847,7 +847,7 @@ def timeout_arguments() -> dict[str, str]:
     The dialogs are dropped: a Popup or a Menu with no timeout waits until it is answered,
     which is what a dialog is for.
     """
-    codes = {}
+    codes: dict[str, str] = {}
     for key, action in action_codes.items():
         if not key.endswith("t") or key[:-1] in _DIALOG_CODES:
             continue
@@ -912,7 +912,7 @@ def _backward_gotos(steps: list[tuple[int, str, Element]]) -> dict[int, int]:
     in the wild are actually written.  Only "Goto Action Number" is read: a Goto by label
     lands wherever the label is, which taskflow resolves and this module does not need to.
     """
-    jumps = {}
+    jumps: dict[int, int] = {}
     for number, code, action in steps:
         if code != _GOTO or _argument(action, "0") != _GOTO_ACTION_NUMBER:
             continue

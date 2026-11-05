@@ -4,6 +4,7 @@ import contextlib
 import gc
 import os
 import webbrowser
+from typing import TYPE_CHECKING, cast
 
 import maptasker.src.mapgen.taskuniq as special_tasks
 from maptasker.src.core import caches, console, outdir
@@ -39,12 +40,17 @@ from maptasker.src.mapgen import mapcache, projects
 from maptasker.src.mapgen.caveats import display_caveats
 from maptasker.src.mapgen.globalvr import get_variables, output_variables
 
+if TYPE_CHECKING:
+    from xml.etree.ElementTree import Element, ElementTree
+
+    from maptasker.src.mapgen.lineout import LineOut
+
 # Where display_back_matter wrote the Map, for build_html to record once the run is done
 # with the settings.  "" when this run has not written one.
 _map_just_written: caches.Slot[str] = caches.Slot("bildhtml.map_just_written", "")
 
 
-def _map_on_disk_is_current(state: RunState, building_from: tuple, doing_ai_analysis: bool) -> bool:
+def _map_on_disk_is_current(state: RunState, building_from: tuple[str, str], doing_ai_analysis: bool) -> bool:
     """Whether the Map already on disk is this build's answer -- if so it has been counted, and nothing is built.
 
     Args:
@@ -123,7 +129,7 @@ def build_html(file_to_get: str, state: RunState) -> int:
         # An error is already recorded from an earlier load.  Say it again, and stop.
         raise MapTaskerError(state.error_msg, state.error_code, show_code=state.error_show_code)
 
-    if state.xml_root is None:
+    if not state.backup_loaded:
         # Code 6 is "nothing to read".  Raised rather than sys.exit()ed because this runs
         # inside a run.io_bound worker when the GUI is driving: view_event catches it and
         # says so in the window (see MapTaskerEventHandlers.view_event).
@@ -146,9 +152,9 @@ def build_html(file_to_get: str, state: RunState) -> int:
         get_variables(building_from[0], state=state)
 
     # Process all Projects and their Profiles
-    found_tasks = []
-    projects_without_profiles = []
-    projects_with_no_tasks = []
+    found_tasks: list[str] = []
+    projects_without_profiles: list[str] = []
+    projects_with_no_tasks: list[str] = []
     # The settings are read once here and handed down.  single_project_name and
     # single_profile_name are the exceptions, which projects.py reads live (see its header).
     found_tasks = projects.process_projects_and_their_profiles(
@@ -449,12 +455,8 @@ def display_back_matter(state: RunState) -> None:
         FormatLine.dont_format_line,
     )
 
-    # If not output directory, cleanup and exit.
+    # outdir.output_directory always answers (it falls back to the current directory), so there is no "no folder" to exit on.
     logger.debug(f"output directory:{my_output_dir}")
-    if my_output_dir is None:
-        clean_up_memory(state=state)
-        message = "MapTasker canceled.  An error occurred.  Program canceled."
-        raise MapTaskerError(message, 2)
 
     # Finally, write out all of the output that is queued up.
     my_file_name = f"{state.slash}MapTasker.html"
@@ -473,9 +475,9 @@ def display_back_matter(state: RunState) -> None:
 
 # If not doing a single named item, then output unique Project/Profile situations
 def process_unique_situations(
-    projects_with_no_tasks: list,
-    projects_without_profiles: list,
-    found_tasks: list,
+    projects_with_no_tasks: list[str],
+    projects_without_profiles: list[str],
+    found_tasks: list[str],
     config: RunConfig,
     state: RunState,
 ) -> None:
@@ -532,14 +534,14 @@ def clean_up_memory(state: RunState) -> None:
     Clean up our memory hogs
         :return:
     """
-    if state.xml_tree is not None:
+    if cast("ElementTree[Element] | None", state.xml_tree) is not None:
         for elem in state.xml_tree.iter():
             elem.clear()
     clear_tasker_data(state=state)
     # The directory and the rest of the run's small state go with the reset below.
-    if state.xml_root is not None:
+    if state.backup_loaded:
         state.xml_root.clear()
-    if state.output_lines is not None:
+    if cast("LineOut | None", state.output_lines) is not None:
         state.output_lines.output_lines.clear()
     # Reset all of our primasry items
     PrimeItemsReset(state=state)
@@ -582,9 +584,9 @@ def check_single_item(state: RunState) -> None:
 # Do the cleanup stuff: check for single name, do unique situations, and display
 # back matter.
 def final_processing(
-    found_tasks: list,
-    projects_without_profiles: list,
-    projects_with_no_tasks: list,
+    found_tasks: list[str],
+    projects_without_profiles: list[str],
+    projects_with_no_tasks: list[str],
     state: RunState,
 ) -> None:
     # Store single item details in local variables

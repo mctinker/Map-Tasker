@@ -25,7 +25,7 @@ import re
 import zlib
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -140,7 +140,7 @@ class _TrueType:
 
     def show(self, text: str) -> str:
         """`text` as the string a Tj operator draws, noting every glyph it uses."""
-        codes = []
+        codes: list[str] = []
         for char in text:
             if char in _INVISIBLE:
                 continue
@@ -220,7 +220,7 @@ def _literal(byte: int) -> str:
 def _to_unicode(used: dict[int, str]) -> bytes:
     """The ToUnicode CMap that turns each drawn glyph number back into its text."""
     entries = sorted(used.items())
-    blocks = []
+    blocks: list[str] = []
     # No more than 100 mappings to a bfchar block -- the CMap format's own limit.
     for start in range(0, len(entries), 100):
         chunk = entries[start : start + 100]
@@ -269,7 +269,7 @@ class _Objects:
     def serialize(self, root: int, info: int) -> bytes:
         """The whole file: every object, then the table of where each one starts."""
         out = bytearray(b"%PDF-1.7\n%\xe2\xe3\xcf\xd3\n")
-        offsets = []
+        offsets: list[int] = []
         for number, body in enumerate(self.bodies, start=1):
             offsets.append(len(out))
             out += f"{number} 0 obj\n".encode("ascii") + body + b"\nendobj\n"
@@ -328,7 +328,7 @@ def render(
     catalog = pdf.reserve()
     pages = pdf.reserve()
     font_number = pdf.reserve()
-    page_numbers = []
+    page_numbers: list[int] = []
     for start in range(0, max(len(rows), 1), per_page):
         content = pdf.add_stream(_page_content(rows[start : start + per_page], face, size, height))
         page_numbers.append(
@@ -387,10 +387,10 @@ def _write_outlines(pdf: _Objects, marks: list[tuple[Bookmark, int, float]]) -> 
     written closed, so a Map of forty Projects opens as a list of forty Projects.
     """
     root = pdf.reserve()
-    tree: list[dict] = []
-    open_nodes: list[dict] = []
+    tree: list[dict[str, Any]] = []
+    open_nodes: list[dict[str, Any]] = []
     for bookmark, page, top in marks:
-        node = {"bookmark": bookmark, "page": page, "top": top, "children": [], "number": pdf.reserve()}
+        node: dict[str, Any] = {"bookmark": bookmark, "page": page, "top": top, "children": [], "number": pdf.reserve()}
         while open_nodes and open_nodes[-1]["bookmark"].level >= bookmark.level:
             open_nodes.pop()
         (open_nodes[-1]["children"] if open_nodes else tree).append(node)
@@ -402,7 +402,7 @@ def _write_outlines(pdf: _Objects, marks: list[tuple[Bookmark, int, float]]) -> 
     return root
 
 
-def _write_outline_level(pdf: _Objects, siblings: list[dict], parent: int) -> None:
+def _write_outline_level(pdf: _Objects, siblings: list[dict[str, Any]], parent: int) -> None:
     """Write one level of the bookmark tree, and everything under it."""
     for index, node in enumerate(siblings):
         entries = [
@@ -453,7 +453,7 @@ def _wrap(text: str, face: _TrueType | _Courier, limit: float) -> list[str]:
         return [text]
     columns = int(limit / (face.char_width(" ") or 600.0))
     indent = " " * min(len(text) - len(text.lstrip(" ")) + 2, columns // 2)
-    pieces = []
+    pieces: list[str] = []
     rest, prefix = text, ""
     while rest:
         cut = _fit(rest, face, limit - _width(face, prefix))

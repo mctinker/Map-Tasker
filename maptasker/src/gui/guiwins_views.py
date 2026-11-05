@@ -18,7 +18,7 @@ below the views, and guiwins.py above them.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 
 from nicegui import ui
 
@@ -83,20 +83,21 @@ def view_theme_colors(master_gui: MyGui) -> tuple[str, str]:
     is_dark = bool(getattr(master_gui, "dark_mode", False))
     bg = "#1e293b" if is_dark else "#ffffff"
     fg = "#ffffff" if is_dark else "#000000"
-    return (getattr(master_gui, "color_lookup", None) or {}).get("background", bg), fg
+    lookup: dict[str, str] = getattr(master_gui, "color_lookup", None) or {}
+    return lookup.get("background", bg), fg
 
 
 class NiceGuiTreeView:
     """Replaces CTkTreeview. Renders a hierarchical tree representation in the main view column."""
 
-    def __init__(self, master_gui: MyGui, title: str, items: list) -> None:
+    def __init__(self, master_gui: MyGui, title: str, items: list[Any]) -> None:
         """Initialize the Tree view with a title and hierarchical items."""
         self.master_gui = master_gui
         self.title = title
         self.build_ui(items)
         register_view(master_gui, self)
 
-    def build_ui(self, items: list) -> None:
+    def build_ui(self, items: list[Any]) -> None:
         """Build the base UI layout for the Tree view inside the main content container slot."""
 
         # 1. Target and clear the dedicated full-width main view column slot
@@ -152,18 +153,19 @@ class NiceGuiTreeView:
         self.card.style(style)
         self.scroll_area.style(style)
 
-    def _format_data(self, items: list, parent_id: str = "node") -> list:
+    def _format_data(self, items: list[Any], parent_id: str = "node") -> list[Any]:
         """Converts MapTasker lists/dicts into NiceGUI's strict dict format,
 
         replacing HTML non-breaking spaces (&nbsp;) with standard spaces
         and cleaning raw arrow entities (&#11013;) into clear symbols.
         """
-        formatted_nodes = []
+        formatted_nodes: list[dict[str, Any]] = []
         for i, item in enumerate(items):
             current_id = f"{parent_id}_{i}"
             if isinstance(item, dict):
+                entry = cast("dict[str, Any]", item)
                 # Extract the name and clean out the raw HTML markup fragments
-                raw_name = item.get("name", "Unnamed")
+                raw_name: str = entry.get("name", "Unnamed")
                 clean_name = (
                     raw_name.replace("&nbsp;", " ")
                     .replace("&#9940;", "⛔")
@@ -172,9 +174,9 @@ class NiceGuiTreeView:
                     .ljust(50)
                 )
 
-                node = {"id": current_id, "label": clean_name}
-                if item.get("children"):
-                    node["children"] = self._format_data(item["children"], current_id)
+                node: dict[str, Any] = {"id": current_id, "label": clean_name}
+                if entry.get("children"):
+                    node["children"] = self._format_data(entry["children"], current_id)
                 formatted_nodes.append(node)
             else:
                 # Handle raw string line items (like nested Task Actions or standalone strings)

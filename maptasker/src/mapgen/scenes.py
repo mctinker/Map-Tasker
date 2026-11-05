@@ -8,7 +8,7 @@
 from __future__ import annotations
 
 import html
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from maptasker.src.core import caches, scenelayout
 from maptasker.src.core.actionc import action_codes
@@ -104,7 +104,7 @@ def _process_json_object(
                 ["", "scene_color", FormatLine.add_end_span],
             )
             # Recursive call: increment depth
-            process_recursive_json(value, indentation, current_depth + 1, anchors, state=state)
+            process_recursive_json(cast("dict[str, Any]", value), indentation, current_depth + 1, anchors, state=state)
         elif isinstance(value, list):
             # Print the key and indicate it's a list
             state.output_lines.add_line_to_output(
@@ -113,7 +113,7 @@ def _process_json_object(
                 ["", "scene_color", FormatLine.add_end_span],
             )
             # Recursive call for each item in the list: increment depth
-            for item in value:
+            for item in cast("list[object]", value):
                 process_recursive_json(item, indentation, current_depth + 1, anchors, state=state)
         else:
             # Base case: standard key-value pair
@@ -138,10 +138,10 @@ def process_recursive_json(
     pointing at the Scene as before.
     """
     if isinstance(data, dict):
-        _process_json_object(data, indentation, current_depth, anchors, state=state)
+        _process_json_object(cast("dict[str, Any]", data), indentation, current_depth, anchors, state=state)
     elif isinstance(data, list):
         # Optional: Handle lists if they appear in your Scene V2 JSON
-        for i, item in enumerate(data):
+        for i, item in enumerate(cast("list[object]", data)):
             process_recursive_json({f"[{i}]": item}, indentation, current_depth, anchors, state=state)
 
 
@@ -183,7 +183,7 @@ class SceneAnchors:
         # on the PATH rather than on the node (see mapjump.scene_component_part).
         self.component_parts: dict[int, dict[str, str]] = {}
 
-    def note_v2_layout(self, layout: dict) -> None:
+    def note_v2_layout(self, layout: dict[str, Any]) -> None:
         """Learn which lines of a decoded Version 2 layout are worth anchoring, and as what.
 
         Only the properties that hold a variable, which is exactly the set varxref's scan
@@ -208,7 +208,7 @@ class SceneAnchors:
         """
         self._write(self.parts.get(id(element), ""))
 
-    def mark_property(self, node: dict, key: str) -> None:
+    def mark_property(self, node: dict[str, Any], key: str) -> None:
         """Write one Version 2 component property's anchor, ahead of the line that shows it.
 
         Nothing at all for a property no finding can be about -- see note_v2_layout, which
@@ -264,10 +264,11 @@ def get_scene_elements(
         else:
             # Learn where each component sits before writing any of it out, so every line
             # can carry the anchor a report finding about it points at (see SceneAnchors).
+            layout = cast("dict[str, Any]", json_data)
             if anchors is not None:
-                anchors.note_v2_layout(json_data)
+                anchors.note_v2_layout(layout)
             # Start the recursive processing.  Scene V2 JSON is nested, so we need to recurse through it to get all the details.
-            process_recursive_json(json_data, indentation, anchors=anchors, state=state)
+            process_recursive_json(layout, indentation, anchors=anchors, state=state)
         return
 
     # First string is the name of the element
@@ -605,7 +606,7 @@ def process_arguments(
 
 
 # Go through Scene's XML looking for Tasks (e.g. ClickTask) and output if found
-def process_tasks(child: Element, tasks_found: list, config: RunConfig, state: RunState) -> None:
+def process_tasks(child: Element, tasks_found: list[Any], config: RunConfig, state: RunState) -> None:
     """Parameters:
         - child (Element): The element to be processed.
         - tasks_found (list): A list of tasks that have been found.
@@ -634,7 +635,7 @@ def process_tasks(child: Element, tasks_found: list, config: RunConfig, state: R
         if tag_in_type(sub_child.tag, False):  # e.g. clickTask?
             # Start Scene's Task list
             scene_task_id = sub_child.text
-            temp_task_list = [scene_task_id]
+            temp_task_list: list[str] = [scene_task_id or ""]
 
             # Only process Task if it is not a fake Task.
             if scene_task_id and scene_task_id[0] != "-":
@@ -743,7 +744,7 @@ def adjust_name_and_add_to_directory(
 # Pull out the screen width and height
 def get_details(
     scene: Element,
-    tasks_found: list,
+    tasks_found: list[Any],
     config: RunConfig,
     indentation: int = 0,
     anchors: SceneAnchors | None = None,
@@ -903,7 +904,7 @@ def process_scene(
 # Output a list of Scenes: each one's line, then its details
 def process_scene_list(
     scene_list: list[str],
-    tasks_found: list,
+    tasks_found: list[Any],
     config: RunConfig,
     state: RunState,
 ) -> None:
@@ -933,7 +934,7 @@ def process_scene_list(
 # Go through all Scenes for Project, get their detail and output it
 def process_project_scenes(
     project: Element,
-    found_tasks: list,
+    found_tasks: list[Any],
     config: RunConfig,
     state: RunState,
 ) -> bool:

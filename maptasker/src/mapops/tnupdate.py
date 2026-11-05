@@ -273,7 +273,7 @@ def _get_json(url: str, limit: int) -> dict:
     return answer
 
 
-def fetch_public_page(token: str = "") -> dict:
+def fetch_public_page(token: str = "") -> dict[str, Any]:
     """One page of TaskerNet's public listing: {'shares': [...12...], 'pageToken': ...}.  `token` is the last page's.
 
     The listing can only be paged through; it has no search.  See tnfind for what is done with it.

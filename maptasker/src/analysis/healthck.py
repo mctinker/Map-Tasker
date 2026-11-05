@@ -278,7 +278,7 @@ class Finding:
     # When the detail line names several things -- the copies of a duplicated name -- the
     # line broken into (text, target) pieces that join back into `detail`.  Empty for the
     # findings whose detail is prose, which is nearly all of them.
-    detail_pieces: list[tuple[str, Target | None]] = field(default_factory=list)
+    detail_pieces: list[tuple[str, Target | None]] = field(default_factory=list[tuple[str, Target | None]])
     # Where clicking this finding's location line goes in the Map view.  None for a
     # finding whose subject is a NAME rather than an object -- DUPLICATE-NAME's heading
     # names the name several Tasks share, and no one of them is the subject of it, so its
@@ -288,7 +288,7 @@ class Finding:
     # the second spelling of a near-duplicate variable.  Nothing renders these yet -- a Row
     # points at one thing, and the report's detail line already names them all in prose --
     # so they are here for the renderer that will offer each one separately.
-    related: list[Target] = field(default_factory=list)
+    related: list[Target] = field(default_factory=list[Target])
 
 
 @dataclass
@@ -307,9 +307,9 @@ class ReferenceIndex:
     """
 
     # Which Project lists this object.  Absent means no Project does -- an orphan.
-    project_of_profile: dict[str, str] = field(default_factory=dict)
-    project_of_task: dict[str, str] = field(default_factory=dict)
-    project_of_scene: dict[str, str] = field(default_factory=dict)
+    project_of_profile: dict[str, str] = field(default_factory=dict[str, str])
+    project_of_task: dict[str, str] = field(default_factory=dict[str, str])
+    project_of_scene: dict[str, str] = field(default_factory=dict[str, str])
     # Who refers to each Task/Scene.  A Task with no entry here is unreferenced; each
     # Referrer says where the reference is made from and what sort it is, which is what
     # lets impact.py answer a delete with the list of places that will dangle rather than
@@ -330,7 +330,7 @@ class ReferenceIndex:
     # How many distinct files, folders, images, sounds, Scenes and apps the configuration refers to, when no device
     # had been checked for them -- see _check_resources and the note _limitations prints for it.
     resources_unchecked: int = 0
-    findings: list[Finding] = field(default_factory=list)
+    findings: list[Finding] = field(default_factory=list[Finding])
 
     def add(
         self,
@@ -783,7 +783,7 @@ def _check_duplicate_names(index: ReferenceIndex, state: RunState) -> None:
                 related=_copies(TASK, sorted(task_ids), index.project_of_task, task_name),
             )
 
-    profiles_by_name = defaultdict(list)
+    profiles_by_name: defaultdict[str, list[str]] = defaultdict(list)
     for profile_id, profile in state.tasker_root_elements["all_profiles"].items():
         if profile["name"]:
             profiles_by_name[profile["name"]].append(profile_id)
@@ -1269,7 +1269,7 @@ def _limitations(index: ReferenceIndex) -> list[str]:
     invited someone to delete a Task they tap every morning, without saying so, would be
     worse than no report.
     """
-    notes = []
+    notes: list[str] = []
 
     if any(item.tag == "UNREFERENCED-TASK" for item in index.findings):
         notes += [

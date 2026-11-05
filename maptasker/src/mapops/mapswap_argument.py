@@ -79,7 +79,7 @@ def argument_choices(action_key: str, state: RunState) -> list[tuple[str, str, s
     its label rather than being dropped: an argument missing from the list teaches nothing,
     while "Icon -- cannot be typed" answers the question the user was about to ask.
     """
-    choices = []
+    choices: list[tuple[str, str, str]] = []
     for argument in effective_args(action_key):
         if is_hint_bundle(argument, state=state):
             continue  # Not an argument at all -- the plugin's note about what it outputs.
@@ -329,7 +329,7 @@ class _ArgumentReplace:
     substitute: bool
     adding: bool  # write the argument into actions that have none
     refusal: str  # why new_value cannot go in a numeric argument; "" if it can
-    pattern: re.Pattern | None
+    pattern: re.Pattern[str] | None
     detail: str
     state: RunState
     added: int = 0  # how many of the changes ADD an argument
@@ -407,7 +407,7 @@ class _ArgumentReplace:
             where=where,
             detail=self.detail,
             new_value=None if self.substitute else self.new_value,
-            rename=(self.pattern, self.new_value) if self.substitute else (),
+            rename=(self.pattern, self.new_value) if self.substitute and self.pattern is not None else (),
         )
         after = rewrite_site(site, self.pattern, self.new_value)[1]
         if after == before:

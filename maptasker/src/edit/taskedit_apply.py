@@ -83,7 +83,7 @@ def validate_arg_values(
     their pending values as cond{N}_arg{id} instead -- see
     profedit.condition_arg_key.
     """
-    errors = []
+    errors: list[str] = []
     for arg in args:
         if arg.widget_kind != "text" or arg.backing_tag != "Int" or arg.is_var:
             continue
@@ -175,7 +175,7 @@ def validate_condition_fields(target: str, operator_label: str, value: str) -> l
     target = target.strip()
     value = value.strip()
 
-    errors = []
+    errors: list[str] = []
     if not target:
         errors.append("The If condition's Target must be set.")
     else:
@@ -346,7 +346,7 @@ def apply_edits_to_task(
     All-or-nothing: on any validation error, nothing is mutated and the list of
     error messages is returned.
     """
-    errors = []
+    errors: list[str] = []
 
     name_value = name_value.strip()
     if not name_value:
@@ -376,9 +376,12 @@ def validate_action_edits(edited_task: EditableTask, arg_values: dict[str, str])
     """Every complaint the action half of a Task edit has -- argument values, and an If's
     own condition -- each tagged with the action it came from.  Mutates nothing.
     """
-    errors = []
+    errors: list[str] = []
     for action in edited_task.actions:
-        key_for_arg = lambda arg, act_number=action.act_number: arg_key(act_number, arg.arg_id)
+
+        def key_for_arg(arg: EditableArg, act_number: int = action.act_number) -> str:
+            return arg_key(act_number, arg.arg_id)
+
         action_errors = validate_arg_values(action.args, key_for_arg, arg_values)
         if action.code == IF_ACTION_CODE:
             action_errors.extend(validate_if_condition_values(action, key_for_arg, arg_values))

@@ -234,7 +234,12 @@ def _build_merged_plugin_arg(arg: ArgumentCode) -> EditableArg | None:
 
 
 def build_synthesized_args(
-    element_cls: type, container_element: Element, effective_args: list, action_key: str = "", *, state: RunState
+    element_cls: type,
+    container_element: Element,
+    effective_args: list[ArgumentCode],
+    action_key: str = "",
+    *,
+    state: RunState,
 ) -> list[EditableArg]:
     """Synthesizes default Int/Str XML elements for a set of ArgumentCode
     definitions, appends them to container_element, and returns their bound

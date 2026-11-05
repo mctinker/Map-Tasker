@@ -325,7 +325,10 @@ def _draw(
 
 
 def _draw_profiles(
-    title: str, profiles: list[firesim.ProfileResult], make_jump: Callable[..., Any], show: Callable[..., Any]
+    title: str,
+    profiles: list[firesim.ProfileResult],
+    make_jump: Callable[..., Any],
+    show: Callable[[firesim.ProfileResult], list[firesim.Verdict]],
 ) -> None:
     """One group of Profiles, each with the conditions worth reading about it."""
     _heading(f"{translate_string(title)} ({len(profiles)})", "text-blue-600")

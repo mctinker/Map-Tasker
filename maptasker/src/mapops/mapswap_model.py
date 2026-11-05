@@ -8,13 +8,14 @@ from __future__ import annotations
 
 from collections import Counter
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from maptasker.src.core.actionc import ArgumentCode, action_codes
 from maptasker.src.core.mapjump import Target, current_scope
 from maptasker.src.edit import taskedit_model
 
 if TYPE_CHECKING:
+    import re
     from xml.etree.ElementTree import Element
 
     from maptasker.src.core.primitem import RunState
@@ -62,18 +63,18 @@ class Site:
     element: Element
     where: Target  # what the preview prints and what a click on it jumps to
     detail: str = ""  # "Flash, Text=" -- varxref._argument_label's wording, reused
-    path: tuple = ()  # V2_SCENE only: the key path into the parsed layout
+    path: tuple[Any, ...] = ()  # V2_SCENE only: the key path into the parsed layout
     # ACTION_ELEMENT and PROFILE_CONDITION only: what this action, or this Profile context,
     # is becoming -- an actionc.py key for the one, a condition_key for the other.  Carried
     # on the Site rather than read off the Plan at apply time so that _apply_one needs
     # nothing but the Change -- which is what lets apply() sort the list before running it.
     new_key: str = ""
-    carry: dict[str, str] = field(default_factory=dict)
+    carry: dict[str, str] = field(default_factory=dict[str, str])
     # Variable rename only: (pattern, new name).  On the Site for the same reason as
     # new_key above -- so that performing one change needs nothing but the Change itself,
     # and a V2 property whose value is a nested structure can be rewritten in place rather
     # than reconstructed from the flat string the preview shows.
-    rename: tuple = ()
+    rename: tuple[re.Pattern[str], str] | tuple[()] = ()
     # Argument replace only: what this field is to hold, whole.  None means "not that kind
     # of change", which is what distinguishes it from a deliberate empty value -- clearing
     # an argument is a thing somebody may well want, and "" has to be able to mean it.
@@ -82,7 +83,7 @@ class Site:
     # action.  `element` is then the <Action> itself, since the argument's own element does
     # not exist yet -- planning must not touch the tree, so it is built at apply time from
     # these two facts.
-    create_arg: tuple = ()
+    create_arg: tuple[str, str] | tuple[()] = ()
 
 
 @dataclass(frozen=True)
@@ -101,7 +102,7 @@ class Change:
     note: str = ""  # anything the user should read before ticking this one
 
     @property
-    def identity(self) -> tuple:
+    def identity(self) -> tuple[Any, ...]:
         """What this change points at, in a form that survives the plan being rebuilt.
 
         A preview is thrown away whenever the dialog closes -- a Site holds a live element,
@@ -153,23 +154,23 @@ class Plan:
     """
 
     what: str  # one line of prose for the header and the report: "Replace Flash with Notify"
-    changes: list[Change] = field(default_factory=list)
-    skips: list[Skip] = field(default_factory=list)
-    warnings: list[str] = field(default_factory=list)  # things true of the plan as a whole
+    changes: list[Change] = field(default_factory=list[Change])
+    skips: list[Skip] = field(default_factory=list[Skip])
+    warnings: list[str] = field(default_factory=list[str])  # things true of the plan as a whole
     # Indices into `changes` that are ticked.  Everything except the RESET-fidelity action
     # swaps starts ticked -- see plan_action_swap on why those alone are opt-in.
-    selected: set[int] = field(default_factory=set)
+    selected: set[int] = field(default_factory=set[int])
 
     @property
     def is_empty(self) -> bool:
         """Nothing to offer.  Distinct from 'nothing found' only in that skips may exist."""
         return not self.changes
 
-    def ticked_identities(self) -> Counter:
+    def ticked_identities(self) -> Counter[tuple[Any, ...]]:
         """The ticks, as what they point at rather than as where they sit.  See Change.identity."""
         return Counter(change.identity for position, change in enumerate(self.changes) if position in self.selected)
 
-    def restore_ticks(self, remembered: Counter) -> None:
+    def restore_ticks(self, remembered: Counter[tuple[Any, ...]]) -> None:
         """Re-tick a freshly built plan to match what the user had chosen before.
 
         Overrides the defaults outright rather than merging with them -- including the
@@ -262,7 +263,7 @@ _PICKER_CATEGORIES = ("App", "Icon", "Scene")
 PICKER_TAGS = {"App": "App", "Icon": "Img"}
 
 
-def effective_args(action_key: str) -> list:
+def effective_args(action_key: str) -> list[ArgumentCode]:
     """The arguments an action really has, following actionc.py's redirect.
 
     Same two lines add_action_to_task and _build_editable_action each open with.  Here
@@ -291,7 +292,7 @@ def is_hint_bundle(arg: ArgumentCode, state: RunState) -> bool:
     return argument_category(arg, state=state) == "Bundle" and arg.arg_name == taskedit_model.OUTPUT_VARIABLES_ARG_NAME
 
 
-def wanted_args(action_key: str, state: RunState) -> list:
+def wanted_args(action_key: str, state: RunState) -> list[Any]:
     """The target's arguments that a swap actually has to produce a value for."""
     return [arg for arg in effective_args(action_key) if not is_hint_bundle(arg, state=state)]
 

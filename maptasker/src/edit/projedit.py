@@ -42,7 +42,7 @@ import time
 import uuid
 import xml.etree.ElementTree as ETW  # stdlib "ET Write" -- used only to build/serialize
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from xml.etree.ElementTree import Element
@@ -144,7 +144,7 @@ def create_new_project(name: str, state: RunState) -> EditableProject | str:
     Project has <cdate>+<mdate>, none has <edate>) -- see _touch_mdate, called
     by every function that mutates a Project afterward, for how it's kept current.
     """
-    if state.xml_root is None:
+    if not state.backup_loaded:
         return "Load a Tasker backup file first (Add Project needs it to generate a unique Project ID)."
     if problem := name_problem(name, "Project"):
         return problem
@@ -186,7 +186,7 @@ def apply_edits_to_project(edited_project: EditableProject, new_name: str, state
     A no-op rename (new_name == edited_project.project_name) is allowed
     through -- it's not a conflict with itself.
     """
-    errors = []
+    errors: list[str] = []
 
     new_name = new_name.strip()
     if not new_name:
@@ -489,11 +489,11 @@ def project_profile_names(project_name: str, state: RunState) -> list[str]:
     if live_element is None:
         return []
 
-    all_profiles = state.tasker_root_elements.get("all_profiles", {})
-    names = []
+    all_profiles: dict[str, Any] = state.tasker_root_elements.get("all_profiles", {})
+    names: list[str] = []
     for profile_id in _project_child_ids(live_element, "pids"):
-        entry = all_profiles.get(profile_id.strip())
-        if not isinstance(entry, dict) or entry.get("xml") is None:
+        entry: dict[str, Any] | None = all_profiles.get(profile_id.strip())
+        if entry is None or entry.get("xml") is None:
             continue
         name = (entry["xml"].findtext("nme") or "").strip()
         if name:
@@ -647,7 +647,7 @@ def _exportable_project_copy(project_element: Element) -> Element:
 def _export_task_ids(
     project_element: Element,
     profile_ids: list[str],
-    all_profiles: dict,
+    all_profiles: dict[str, Any],
     scene_elements: list[Element],
 ) -> list[str]:
     """The ids of every Task a standalone Project export carries, in the order they are written.
@@ -719,7 +719,7 @@ def render_standalone_project_xml(project_name: str, state: RunState, *, redact:
         raise ValueError(msg)
 
     project_element = project_entry["xml"]
-    tv = state.xml_root.attrib.get("tv", "") if state.xml_root is not None else ""
+    tv = state.xml_root.attrib.get("tv", "") if state.backup_loaded else ""
     project_copy = _exportable_project_copy(project_element)
 
     # Match the parsed tree's actual Element class (see profedit.render_standalone_profile_xml's
@@ -741,7 +741,7 @@ def render_standalone_project_xml(project_name: str, state: RunState, *, redact:
     # <dmetric> first, exactly where Tasker puts it (two sample Project exports
     # and backup.xml all lead with it), and only alongside Scenes -- see _DISPLAY_METRIC_TAG for
     # the measured correlation and for why the value is copied rather than invented.
-    source_metric = state.xml_root.find(_DISPLAY_METRIC_TAG) if state.xml_root is not None else None
+    source_metric = state.xml_root.find(_DISPLAY_METRIC_TAG) if state.backup_loaded else None
     if scene_elements and source_metric is not None:
         root.append(copy.deepcopy(source_metric))
 
@@ -749,7 +749,7 @@ def render_standalone_project_xml(project_name: str, state: RunState, *, redact:
     # (Tasker's actual single-Project export format): <dmetric>, then every Profile, then
     # the Project element itself, then every Scene, then every Task -- not Project-first,
     # which is what you'd expect from <pids>/<tids> being *inside* <Project>.
-    all_profiles = state.tasker_root_elements.get("all_profiles", {})
+    all_profiles: dict[str, Any] = state.tasker_root_elements.get("all_profiles", {})
     profile_ids = _project_child_ids(project_element, "pids")
     for profile_id in profile_ids:
         profile_entry = all_profiles.get(profile_id)
@@ -842,7 +842,7 @@ def delete_profiles_and_tasks_of_project(project_name: str, state: RunState) -> 
         if live_element is None:
             return
 
-        all_profiles = state.tasker_root_elements.get("all_profiles", {})
+        all_profiles: dict[str, Any] = state.tasker_root_elements.get("all_profiles", {})
         all_profiles_by_name = state.tasker_root_elements.get("all_profiles_by_name", {})
         for profile_id in _project_child_ids(live_element, "pids"):
             entry = all_profiles.pop(profile_id, None)

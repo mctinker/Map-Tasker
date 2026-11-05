@@ -239,8 +239,8 @@ class _Action:
 
     number: int  # 1-based, in the order the Map numbers them
     name: str  # "Perform Task", or "code 1234" for one Tasker has added since actionc.py
-    apps: list[str] = field(default_factory=list)
-    scenes: list[str] = field(default_factory=list)
+    apps: list[str] = field(default_factory=list[str])
+    scenes: list[str] = field(default_factory=list[str])
     text: str = ""  # label and argument text, lower cased, for the free-text facet
     code: str = ""  # the raw <code>, for a caller that needs to match on it exactly
     # The element this record was reduced from.  Nothing in this module reads it -- a
@@ -287,12 +287,12 @@ class _Object:
     name: str
     project: str
     text: str = ""  # name and everything inside it, lower cased
-    actions: list[_Action] = field(default_factory=list)
-    triggers: list[tuple[str, str]] = field(default_factory=list)  # (facet value, detail)
-    apps: list[str] = field(default_factory=list)  # named by the object itself
-    scenes: list[str] = field(default_factory=list)  # named by the object itself
-    task_ids: list[str] = field(default_factory=list)  # Profiles: the Tasks they run
-    conditions: list[_Condition] = field(default_factory=list)  # Profiles: their contexts
+    actions: list[_Action] = field(default_factory=list[_Action])
+    triggers: list[tuple[str, str]] = field(default_factory=list[tuple[str, str]])  # (facet value, detail)
+    apps: list[str] = field(default_factory=list[str])  # named by the object itself
+    scenes: list[str] = field(default_factory=list[str])  # named by the object itself
+    task_ids: list[str] = field(default_factory=list[str])  # Profiles: the Tasks they run
+    conditions: list[_Condition] = field(default_factory=list[_Condition])  # Profiles: their contexts
 
 
 # The two records, under names other modules may use: mapswap works on the conditions a scan found
@@ -311,11 +311,11 @@ class FindIndex:
     action in the file for every keystroke's worth of impatience.
     """
 
-    objects: list[_Object] = field(default_factory=list)
-    by_task_id: dict[str, _Object] = field(default_factory=dict)
+    objects: list[_Object] = field(default_factory=list[_Object])
+    by_task_id: dict[str, _Object] = field(default_factory=dict[str, _Object])
     # {facet: {value: how many places carry it}} -- the pulldowns, and nothing else.
     catalog: dict[str, Counter[str]] = field(default_factory=lambda: defaultdict(Counter[str]))
-    projects: list[str] = field(default_factory=list)
+    projects: list[str] = field(default_factory=list[str])
     # What the pass could not resolve, so the report can qualify its own answers rather
     # than let a zero read as "there are none".
     variable_apps: int = 0
@@ -362,7 +362,7 @@ def _project_membership(tag: str, state: RunState) -> dict[str, str]:
     that walks every Project per question, which on a file with 200 of them is the whole
     scan done over again for every Task in it.
     """
-    owners = {}
+    owners: dict[str, str] = {}
     for project_name, project in state.tasker_root_elements["all_projects"].items():
         for member in _split_ids(project["xml"], tag):
             owners[member] = project_name
@@ -401,7 +401,7 @@ def _app_labels(element: Element) -> list[str]:
     reference" is that this one is decided on the device.  _index_action counts those
     separately so the report can say so.
     """
-    labels = []
+    labels: list[str] = []
     for child in element:
         if child.tag.startswith("label"):
             text = (child.text or "").strip()
@@ -411,7 +411,7 @@ def _app_labels(element: Element) -> list[str]:
         return labels
     # No label at all: the package is at least an identity, and is what Tasker falls back
     # to showing for an app it can no longer resolve to an installed one.
-    packages = []
+    packages: list[str] = []
     for child in element:
         if child.tag.startswith(("pkg", "appPkg")):
             text = (child.text or "").strip()
@@ -448,7 +448,7 @@ def _string_arguments(action: Element) -> dict[str, str]:
     <Str sr="argN">, and an argument Tasker expects a number in holds
     <Int sr="argN"><var>%Volume</var></Int> when a variable has been bound to it.
     """
-    arguments = {}
+    arguments: dict[str, str] = {}
     for child in action.findall("Str"):
         sr = child.attrib.get("sr", "")
         if sr.startswith("arg") and child.text:
@@ -742,7 +742,7 @@ def _matches_through_tasks(record: _Object, query: Query, index: FindIndex) -> t
     facet is left alone deliberately, since "any Profile one of whose Tasks mentions
     'battery' anywhere" is the vague question this whole module exists to replace.
     """
-    details = []
+    details: list[str] = []
     for facet, value in ((ACTION, query.action), (APP, query.app), (SCENE_FACET, query.scene)):
         if not value:
             continue

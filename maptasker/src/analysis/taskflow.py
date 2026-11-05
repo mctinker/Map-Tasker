@@ -204,7 +204,7 @@ class Block:
     kind: str  # "If" or "For"
     open: int
     end: int | None = None
-    elses: list[int] = field(default_factory=list)
+    elses: list[int] = field(default_factory=list[int])
 
 
 @dataclass
@@ -271,7 +271,7 @@ def _project_of_task(state: RunState) -> dict[str, str]:
     element, and "".split(",") is [""], which would claim a Project owns a Task whose id is
     the empty string.
     """
-    owners = {}
+    owners: dict[str, str] = {}
     for project_name, project in state.tasker_root_elements["all_projects"].items():
         text = (project["xml"].findtext("tids") or "").strip()
         for member in (item.strip() for item in text.split(",") if item.strip()):
@@ -333,7 +333,7 @@ def _condition_text(action: Element) -> str:
     if condition_list is None:
         return ""
 
-    parts = []
+    parts: list[str] = []
     for condition in condition_list.findall("Condition"):
         left = (condition.findtext("lhs") or "").strip()
         operator = _OPERATORS.get((condition.findtext("op") or "").strip(), "?")
@@ -415,7 +415,7 @@ def _terminates(code: str, action: Element, task_name: str) -> bool:
 
 def _steps(task_element: Element, task_name: str = "") -> list[Step]:
     """A Task's actions, in the order the Map numbers them, read for their control flow."""
-    steps = []
+    steps: list[Step] = []
     for number, action in enumerate(actions_in_map_order(task_element), start=1):
         code = (action.findtext("code") or "").strip()
         goto = (_argument(action, "0"), _argument(action, "1"), _argument(action, "2")) if code == _GOTO else None
@@ -479,10 +479,10 @@ class _Structure:
     can be answered from the Goto alone.
     """
 
-    blocks: dict[int, Block] = field(default_factory=dict)
-    depth: list[int] = field(default_factory=list)
-    enclosing: list[tuple[Block, ...]] = field(default_factory=list)
-    problems: list[Problem] = field(default_factory=list)
+    blocks: dict[int, Block] = field(default_factory=dict[int, Block])
+    depth: list[int] = field(default_factory=list[int])
+    enclosing: list[tuple[Block, ...]] = field(default_factory=list[tuple[Block, ...]])
+    problems: list[Problem] = field(default_factory=list[Problem])
 
 
 def _match_blocks(steps: list[Step], where: Target) -> _Structure:
@@ -722,7 +722,7 @@ def _successors(steps: list[Step], blocks: dict[int, Block], jumps: dict[int, Ju
 
     for index, step in enumerate(steps):
         onward = _fall_through(len(steps), elses, index)
-        default = {onward} if onward is not None else set()
+        default: set[int] = {onward} if onward is not None else set()
         block = blocks.get(index)
 
         if step.disabled:
@@ -880,7 +880,7 @@ def control_flow_problems(state: RunState) -> list[Problem]:
     _project_of_task gives.
     """
     owners = _project_of_task(state=state)
-    found = []
+    found: list[Problem] = []
     for task_id in state.tasker_root_elements["all_tasks"]:
         flow = analyze_task_flow(task_id, owners.get(task_id, ""), state=state)
         if flow is not None:
@@ -908,7 +908,7 @@ def _counts(found: list[Problem]) -> dict[str, int]:
     return {severity: sum(1 for item in found if item.severity == severity) for severity in _SEVERITY_ORDER}
 
 
-def _finding_order(problem: Problem) -> tuple:
+def _finding_order(problem: Problem) -> tuple[str, str, str, str, int]:
     """Findings of one tag in the order a reader would look for them.
 
     On the object, and then on the action NUMBER -- not on the location line's text, in
@@ -925,7 +925,7 @@ def _finding_rows(found: list[Problem], indent: str = "") -> list[Row]:
     makes a long report skimmable -- and what makes two reports diff cleanly.  healthck's
     layout exactly, because in healthck's report these are printed alongside its own.
     """
-    rows = []
+    rows: list[Row] = []
     for severity in _SEVERITY_ORDER:
         of_this_severity = [item for item in found if item.severity == severity]
         if not of_this_severity:

@@ -56,11 +56,6 @@
     "reportArgumentType": 1,
     "reportAttributeAccessIssue": 2
   },
-  "tests/test_editcommon.py": {
-    "reportArgumentType": 3,
-    "reportAttributeAccessIssue": 11,
-    "reportCallIssue": 4
-  },
   "tests/test_elemvals.py": {
     "reportCallIssue": 1
   },
@@ -250,12 +245,6 @@
   },
   "tests/test_taskflow.py": {
     "reportArgumentType": 1
-  },
-  "tests/test_tasks.py": {
-    "reportArgumentType": 1
-  },
-  "tests/test_taskuniq.py": {
-    "reportAttributeAccessIssue": 10
   },
   "tests/test_timeline.py": {
     "reportArgumentType": 1,

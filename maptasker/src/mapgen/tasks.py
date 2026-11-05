@@ -9,7 +9,7 @@ from __future__ import annotations
 import re
 from typing import TYPE_CHECKING
 
-import defusedxml.ElementTree  # Need for type hints
+from defusedxml import DefusedXmlException
 
 import maptasker.src.mapgen.actione as action_evaluate
 from maptasker.src.core import console
@@ -72,7 +72,7 @@ def reformat_html(html_string: str) -> str:
         str: The reformatted HTML string.
     """
 
-    def replacer(match: re.Match) -> str:
+    def replacer(match: re.Match[str]) -> str:
         params = match.group(2).strip().replace(";", "\n")  # Split parameters onto new lines
         return f"{match.group(1)}\n{params}\n<"  # Reinsert the opening '<' tag
 
@@ -106,7 +106,7 @@ def get_actions(current_task: Element, config: RunConfig, state: RunState) -> li
 
     try:
         task_actions = current_task.findall("Action")
-    except defusedxml.DefusedXmlException:
+    except DefusedXmlException:
         console.debug(f"tasks.py current Task: {current_task}")
         console.say("Error: No action found!!!")
         return []
@@ -150,7 +150,7 @@ line_right_arrow = "&#11157;"
 
 
 def entry_or_exit_task(
-    task_output_lines: list,
+    task_output_lines: list[str],
     task_name: str,
     task_type: str,
     extra: str,
@@ -158,7 +158,7 @@ def entry_or_exit_task(
     the_task_id: str,
     config: RunConfig,
     state: RunState,
-) -> tuple[list, str]:
+) -> tuple[list[str], str]:
     """
     Determine if this is an "Entry" or "Exit" Task and add the appropriate text to the
     Task's output lines.
@@ -202,12 +202,12 @@ def entry_or_exit_task(
 # Optimized
 def get_task_name(
     the_task_id: str,
-    tasks_that_have_been_found: list,
-    task_output_lines: list,
+    tasks_that_have_been_found: list[str],
+    task_output_lines: list[str],
     task_type: str,
     config: RunConfig,
     state: RunState,
-) -> tuple:
+) -> tuple[Element | None, str]:
     """
     Get the name of the task given the Task ID.
     Add to the output line if this is an Entry or xit Task.
@@ -242,7 +242,7 @@ def get_task_name(
 # Find the Project belonging to the Task id passed in
 def get_project_for_solo_task(
     the_task_id: str,
-    projects_with_no_tasks: list,
+    projects_with_no_tasks: list[str],
     state: RunState,
 ) -> tuple[str, Element | None]:
     """

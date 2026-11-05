@@ -12,7 +12,7 @@ from typing import Any
 
 import pytest
 from maptasker.src.core.primitem import RunState
-from maptasker.src.core.runcfg import current_config
+from maptasker.src.core.runcfg import RunConfig, current_config
 from maptasker.src.core.sysconst import NO_PROJECT
 from maptasker.src.mapgen import taskuniq
 
@@ -29,8 +29,9 @@ class _Output:
         return "\n".join(text for _level, text in self.lines)
 
 
-def _state(tasks: dict | None = None) -> RunState:
-    state = RunState()
+def _state(tasks: dict[str, Any] | None = None) -> Any:
+    """A RunState whose output_lines is the recording stand-in above (typed Any: the stand-in is not a LineOut)."""
+    state: Any = RunState()
     state.output_lines = _Output()
     state.tasker_root_elements = {"all_tasks": tasks or {}, "all_projects": {}}
     state.found_named_items["single_task_found"] = False
@@ -224,9 +225,9 @@ def test_the_twisty_setting_is_off_during_the_walk_and_back_after(monkeypatch: p
         have_heading: bool,
         _no_tasks: list,
         save_twisty: bool,
-        config: object,
+        config: RunConfig,
         state: RunState,
-    ) -> tuple:
+    ) -> tuple[bool, bool, int]:
         during.append((config.twisty, save_twisty))
         return have_heading, False, count + 1
 

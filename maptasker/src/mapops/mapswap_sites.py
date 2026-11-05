@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from maptasker.src.core.mapjump import VARIABLE, Target, current_scope
 from maptasker.src.edit import scenemodel, taskedit_addable
@@ -81,7 +81,7 @@ def declaration_site(
     `everywhere` is for a caller that reads the whole file whatever is selected on screen (the Refactor
     dialog's variable mode), and so is entitled to the file-level entry as well.
     """
-    if not any(entry.declared for entry in entries) or state.xml_root is None:
+    if not any(entry.declared for entry in entries) or not state.backup_loaded:
         return None
 
     # Only when the whole configuration is in play.  A <Variable> is a file-level object,
@@ -153,6 +153,9 @@ def _create_argument(site: Site, value: str, state: RunState) -> None:
     reports that one change, which is the right outcome for an argument that turns out not
     to be synthesizable after the preview said it was.
     """
+    if not site.create_arg:
+        msg = "A Site that adds an argument needs the action and the argument to add."
+        raise ValueError(msg)
     action_key, arg_id = site.create_arg
     argument = next((entry for entry in effective_args(action_key) if entry.arg_id == arg_id), None)
     if argument is None:
@@ -212,7 +215,7 @@ def rewrite_site(site: Site, pattern: re.Pattern[str] | None = None, new_name: s
     return before, pattern.sub(new_name, before)
 
 
-def _substitute(value: object, pattern: re.Pattern, new_name: str) -> object:
+def _substitute(value: object, pattern: re.Pattern[str], new_name: str) -> object:
     """The value with every whole-name match rewritten, at whatever depth it sits.
 
     Recursive because a V2 property is not always a string: a component's value can be a
@@ -223,9 +226,9 @@ def _substitute(value: object, pattern: re.Pattern, new_name: str) -> object:
     if isinstance(value, str):
         return pattern.sub(new_name, value)
     if isinstance(value, dict):
-        return {key: _substitute(item, pattern, new_name) for key, item in value.items()}
+        return {key: _substitute(item, pattern, new_name) for key, item in cast("dict[str, object]", value).items()}
     if isinstance(value, list):
-        return [_substitute(item, pattern, new_name) for item in value]
+        return [_substitute(item, pattern, new_name) for item in cast("list[object]", value)]
     return value
 
 
@@ -248,6 +251,9 @@ def write_site(site: Site, state: RunState) -> None:
         _set_value(site, site.new_value, state=state)
         return
 
+    if not site.rename:
+        msg = "A Site needs either a new value or a rename to apply."
+        raise ValueError(msg)
     pattern, new_name = site.rename
 
     if site.kind == V2_SCENE:

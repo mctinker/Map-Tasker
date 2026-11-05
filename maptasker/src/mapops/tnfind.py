@@ -63,7 +63,7 @@ import time
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import TYPE_CHECKING, NamedTuple
+from typing import TYPE_CHECKING, Any, NamedTuple, cast
 
 import defusedxml.ElementTree as DefusedET
 
@@ -138,7 +138,7 @@ class Catalogue:
     did not simply reach the end.
     """
 
-    entries: list[CatalogueEntry] = field(default_factory=list)
+    entries: list[CatalogueEntry] = field(default_factory=list[CatalogueEntry])
     fetched: str = ""
     complete: bool = False
     problem: str = ""
@@ -225,11 +225,11 @@ class Progress:
     phase: str = LISTING
 
 
-def _entries_of(answer: dict) -> list[CatalogueEntry]:
+def _entries_of(answer: dict[str, Any]) -> list[CatalogueEntry]:
     """The shares in one page of the listing.  One that does not read as a share is skipped, not fatal."""
-    found = []
+    found: list[CatalogueEntry] = []
     shares = answer.get("shares")
-    for share in shares if isinstance(shares, list) else []:
+    for share in cast("list[Any]", shares) if isinstance(shares, list) else []:
         try:
             found.append(
                 CatalogueEntry(tnupdate.parse_link(str(share.get("url") or "")), int(share.get("downloads") or 0))
@@ -286,7 +286,7 @@ def candidates(state: RunState, book: tnupdate.LinkBook, catalogue: Catalogue) -
     nothing to match by and is not here.
     """
     listing = catalogue.by_name()
-    found = []
+    found: list[Candidate] = []
     for kind, table_name in _LOCAL_TABLES:
         for name in _own_names(kind, state.tasker_root_elements.get(table_name, {})):
             if (kind, name) in book.links:
@@ -297,15 +297,15 @@ def candidates(state: RunState, book: tnupdate.LinkBook, catalogue: Catalogue) -
     return found
 
 
-def _own_names(kind: str, table: dict) -> list[str]:
+def _own_names(kind: str, table: dict[str, Any]) -> list[str]:
     """The names objects of one kind were given -- not the ones Tasker makes up for those with none."""
     if kind in (tnupdate.PROJECT, tnupdate.SCENE):
         return sorted(table)
-    names = {
-        (entry["xml"].findtext("nme") or "").strip()
-        for entry in table.values()
-        if isinstance(entry, dict) and "xml" in entry
-    }
+    names: set[str] = set()
+    for entry in table.values():
+        if isinstance(entry, dict) and "xml" in entry:
+            record = cast("dict[str, Any]", entry)
+            names.add((record["xml"].findtext("nme") or "").strip())
     return sorted(name for name in names if name)
 
 
@@ -404,8 +404,8 @@ def score_share(kind: str, name: str, entry: CatalogueEntry, xml_text: str, stat
 class ScanResult:
     """What a scan found.  `linked` are already in the book; `possible` are for the user to choose from."""
 
-    linked: list[Match] = field(default_factory=list)
-    possible: list[Match] = field(default_factory=list)
+    linked: list[Match] = field(default_factory=list[Match])
+    possible: list[Match] = field(default_factory=list[Match])
     different: int = 0
     checked: int = 0
     catalogue_size: int = 0

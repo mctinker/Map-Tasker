@@ -100,9 +100,9 @@ class Plan:
 
     kind: str
     what: str  # one line of prose: the preview's heading, the report's title, the Undo label
-    steps: list[Step] = field(default_factory=list)
-    blocks: list[Block] = field(default_factory=list)
-    warnings: list[str] = field(default_factory=list)
+    steps: list[Step] = field(default_factory=list[Step])
+    blocks: list[Block] = field(default_factory=list[Block])
+    warnings: list[str] = field(default_factory=list[str])
     elements: tuple[Element, ...] = ()
     run: Callable[[], list[str]] | None = None
 
@@ -184,7 +184,7 @@ def display_project(tag: str, member: str, state: RunState) -> str:
 
 def task_target(task_id: str, state: RunState) -> Target:
     """The Target for a Task, with the Project a report would file it under."""
-    entry = object_table("all_tasks", state=state).get(task_id) or {}
+    entry: dict[str, Any] = object_table("all_tasks", state=state).get(task_id) or {}
     return Target(
         kind=TASK, key=task_id, name=entry.get("name", ""), project=display_project("tids", task_id, state=state)
     )
@@ -192,7 +192,7 @@ def task_target(task_id: str, state: RunState) -> Target:
 
 def profile_target(profile_id: str, state: RunState) -> Target:
     """The Target for a Profile, with the Project a report would file it under."""
-    entry = object_table("all_profiles", state=state).get(profile_id) or {}
+    entry: dict[str, Any] = object_table("all_profiles", state=state).get(profile_id) or {}
     return Target(
         kind=PROFILE,
         key=profile_id,
@@ -213,7 +213,7 @@ def actions_of(task_element: Element) -> list[Element]:
     return mapjump.actions_in_map_order(task_element)
 
 
-def renumber(actions: list) -> None:
+def renumber(actions: list[Any]) -> None:
     """Stamp sr="actN" over a list of action elements in the order they are to run.
 
     THE ONE PLACE IN THIS MODULE THAT COUNTS FROM ZERO, and it has to: sr="act0" is the
@@ -305,7 +305,7 @@ def variable_names(elements: list[Element]) -> set[str]:
     return found
 
 
-def local_names(elements: list) -> set[str]:
+def local_names(elements: list[Any]) -> set[str]:
     """The subset of those names that Tasker scopes to the running Task.
 
     Scope comes from varxref, which is where Tasker's own rule lives (at least one upper
@@ -325,7 +325,7 @@ def local_names(elements: list) -> set[str]:
 PARAMETERS = ("%par1", "%par2")
 
 
-def shared_locals_warning(inside: list, outside: list, moving_to: str) -> str:
+def shared_locals_warning(inside: list[Any], outside: list[Any], moving_to: str) -> str:
     """The warning for locals used on both sides of a split, or "" when there are none.
 
     Named rather than counted.  "3 local variables are shared" tells the user there is a
@@ -408,12 +408,12 @@ def control_flow_imbalance(numbered: list[tuple[int, Element]]) -> str:
     return ""
 
 
-def goto_numbers(actions: list) -> list[int]:
+def goto_numbers(actions: list[Any]) -> list[int]:
     """The positions of every Goto among these actions, counted from 1 as the Map prints them."""
     return [number for number, action in enumerate(actions, start=1) if action_code(action) == _GOTO]
 
 
-def control_flow_codes(actions: list) -> set[str]:
+def control_flow_codes(actions: list[Any]) -> set[str]:
     """Which of the flow-control codes appear among these actions."""
     return {action_code(action) for action in actions} & set(_CONTROL_FLOW)
 

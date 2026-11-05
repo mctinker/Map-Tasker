@@ -32,7 +32,7 @@ from __future__ import annotations
 import re
 from collections import defaultdict
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from maptasker.src.core import clock
 from maptasker.src.core.actionc import action_codes
@@ -132,7 +132,7 @@ _NAME_COLUMN = 48
 # a Parse/Format DateTime format, '%' wildcards in a SQL Query, printf escapes in a Run
 # Shell command.  Indexed like any other name, but held out of the counted totals so they
 # cannot pad the report -- see _is_low_confidence.
-_LOW_CONFIDENCE_LENGTH = 2
+LOW_CONFIDENCE_LENGTH = 2
 
 # ##################################################################################
 # Which arguments name a variable being SET.
@@ -309,7 +309,7 @@ class Reference:
     # Version 2 Scenes only, whose values live inside a gzipped JSON blob rather than in
     # an element: (component path, property key), which sceneedit_v2tree.v2_node_at resolves
     # against a freshly decoded layout.  `element` is the <Scene> itself for these.
-    path: tuple = ()
+    path: tuple[Any, ...] = ()
 
 
 @dataclass
@@ -423,7 +423,7 @@ def scope_of(name: str) -> str:
 
 def _is_low_confidence(name: str) -> bool:
     """Whether a name is too short to be told apart from text that merely holds a '%'."""
-    return len(name) - 1 <= _LOW_CONFIDENCE_LENGTH
+    return len(name) - 1 <= LOW_CONFIDENCE_LENGTH
 
 
 # ##################################################################################

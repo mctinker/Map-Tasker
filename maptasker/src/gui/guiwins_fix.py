@@ -102,7 +102,7 @@ class _Screen:
     jump: Callable[..., Any]  # (Target) -> click handler
     tick: Callable[..., Any]  # (plan, position) -> change handler
     choose: Callable[..., Any]  # (plan, position, checkbox) -> change handler
-    lines: dict[int, ui.label] = field(default_factory=dict)
+    lines: dict[int, ui.label] = field(default_factory=dict[int, ui.label])
 
 
 def build_fix_dialog(
@@ -164,7 +164,7 @@ class _FixDialog:
         # it cannot be remembered on the view between openings: it closes over live elements,
         # and holding one across a reopen is exactly the stale-handle case mapfix.apply's
         # attachment check exists to catch.
-        self.held: dict = {"plan": None}
+        self.held: dict[str, Any] = {"plan": None}
         # The kinds of finding the user has chosen to fix.  Everything to begin with: the
         # first step shows them all ticked, so pressing Continue is the same as the single
         # list this dialog used to open on.
@@ -377,7 +377,7 @@ class _FixDialog:
         already made, which is the work this dialog exists to collect.
         """
         previous = self.held["plan"] if restore else None
-        ticks = previous.ticked_identities() if previous is not None else set()
+        ticks: set[mapfix.Identity] = previous.ticked_identities() if previous is not None else set()
         values = (
             {previous.fixes[position].identity: value for position, value in previous.chosen.items()}
             if previous is not None
@@ -648,7 +648,7 @@ def _save_preview(plan: mapfix.Plan | None, state: RunState) -> None:
 # ##################################################################################
 # The button row.
 # ##################################################################################
-def _build_buttons(dialog: ui.dialog, handlers: dict) -> None:
+def _build_buttons(dialog: ui.dialog, handlers: dict[str, Any]) -> None:
     """The row along the bottom, with the tooltip each button needs.
 
     A tooltip here is not a restatement of the label.  Each says the thing the label cannot:
