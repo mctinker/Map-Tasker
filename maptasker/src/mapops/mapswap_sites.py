@@ -197,10 +197,12 @@ def rewrite_site(site: Site, pattern: re.Pattern[str] | None = None, new_name: s
     configuration has.
     """
     if site.kind == V2_SCENE:
+        value = scenemodel.V2.property_value(site.element, site.path)
+        if site.new_value is not None:  # A whole property replaced -- a translated label -- not matched inside.
+            return _flatten(value), site.new_value
         if pattern is None:
             msg = "A Version 2 Scene site needs a pattern to replace with."
             raise ValueError(msg)
-        value = scenemodel.V2.property_value(site.element, site.path)
         return _flatten(value), _flatten(_substitute(value, pattern, new_name))
 
     before = current_value(site)
@@ -248,6 +250,12 @@ def write_site(site: Site, state: RunState) -> None:
     stops a stale preview value being written over a field somebody edited meanwhile.
     """
     if site.new_value is not None:
+        if site.kind == V2_SCENE:
+            whole = site.new_value
+            if not scenemodel.V2.rewrite_property(site.element, site.path, lambda _value: whole):
+                unreachable = f"the Version 2 layout of {site.where.label} could not be read"
+                raise ValueError(unreachable)
+            return
         _set_value(site, site.new_value, state=state)
         return
 

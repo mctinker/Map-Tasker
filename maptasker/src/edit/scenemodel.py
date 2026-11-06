@@ -436,6 +436,31 @@ LEGACY = LegacyModel()
 V2 = V2Model()
 
 
+@dataclass(frozen=True)
+class V2Property:
+    """One string property of one Version 2 component: where it is, what it holds and what holds it."""
+
+    path: tuple[Any, ...]  # the component's path (sceneedit_v2tree.v2_flatten's), then `prop` addresses the property
+    prop: str
+    value: str
+    component_type: str
+    label: str  # how the designer's tree names the component
+
+
+def v2_string_properties(layout: dict[str, Any], wanted: dict[str, tuple[str, ...]]) -> Iterator[V2Property]:
+    """The string properties of a layout's components, for the component types and properties in `wanted`.
+
+    `wanted` maps a component type to the property names to read ({"Text": ("text",)}).  Here, and not in the
+    caller, because walking the component tree is sceneedit_v2tree's, which only this module and the designer may use.
+    """
+    for row in sceneedit_v2tree.v2_flatten(layout):
+        component_type = str(row.node.get("type", ""))
+        for prop in wanted.get(component_type, ()):
+            value = row.node.get(prop)
+            if isinstance(value, str):
+                yield V2Property(row.path, prop, value, component_type, row.label)
+
+
 def is_v2_scene(scene_element: Element) -> bool:
     """Whether this is a Version 2 (Screen Builder) Scene rather than a Legacy one.
 

@@ -10,8 +10,10 @@ perf_baseline.json beside this script:
 
 WHAT IS TIMED
 
-A command-line run's three steps, on one loaded configuration, in this order: LOAD (parse the backup
-into the tables), MAP (the Map's HTML) and DIAGRAM (the outline the Diagram view is drawn from).
+A command-line run's steps, on one loaded configuration, in this order: LOAD (parse the backup
+into the tables), MAP (the Map's HTML), DIAGRAM (the outline the Diagram view is drawn from) and TEXT
+(find every piece of text a person reads, plan putting a translation of each back, and apply it: the
+whole of maptext on the configuration).
 
 tests/data/synthetic_backup.xml is the input, but as it stands -- seven Tasks -- it builds in a few
 milliseconds, which is noise.  So it is copied --scale times, every Project, Profile, Task and Scene
@@ -66,6 +68,7 @@ from defusedxml import ElementTree as SafeET
 from maptasker.src import clireports
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.mapgen import mapexport
+from maptasker.src.mapops import mapswap, maptext
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -75,7 +78,7 @@ SYNTHETIC = ROOT / "tests" / "data" / "synthetic_backup.xml"
 BASELINE = Path(__file__).with_name("perf_baseline.json")
 LOCAL_BASELINE = Path(__file__).with_name("perf_baseline_local.json")
 
-PHASES = ("load", "map", "diagram")
+PHASES = ("load", "map", "diagram", "text")
 DEFAULT_SCALE = 200
 DEFAULT_REPEAT = 3
 DEFAULT_TOLERANCE = 0.25
@@ -281,9 +284,16 @@ def _measure(path: Path, outdir: Path) -> dict[str, float]:
     _timed(timings, "load", lambda: clireports._load_backup(str(path), state=PrimeItems))
     _timed(timings, "map", lambda: clireports._build_the_view(mapexport.MAP, state=PrimeItems))
     _timed(timings, "diagram", lambda: clireports._build_the_view(mapexport.DIAGRAM, state=PrimeItems))
+    _timed(timings, "text", _translate_everything)
     # Calibrated again after, so that a machine that slowed down or sped up part-way shows in the unit.
     timings["calibration"] = min(calibration, _calibration_seconds())
     return timings
+
+
+def _translate_everything() -> None:
+    """Every text the configuration holds, "translated" (each gets a space), planned and applied -- maptext's worst case."""
+    rows = [maptext.Row(item.key, item.owner, item.text, f"{item.text} ") for item in maptext.extract(PrimeItems)]
+    mapswap.apply(maptext.plan_apply(rows, PrimeItems), PrimeItems)
 
 
 def _worker(path: Path) -> int:
@@ -310,7 +320,7 @@ def measure(path: Path, repeat: int) -> dict[str, float]:
         runs.append(json.loads(done.stdout.strip().splitlines()[-1]))
     best = {name: min(run[name] for run in runs) for name in (*PHASES, "calibration")}
     unit = best["calibration"]
-    return {**{name: best[name] / unit for name in PHASES}, "seconds": best["load"] + best["map"] + best["diagram"]}
+    return {**{name: best[name] / unit for name in PHASES}, "seconds": sum(best[name] for name in PHASES)}
 
 
 # ##################################################################################

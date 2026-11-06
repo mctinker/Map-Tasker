@@ -27,7 +27,7 @@ _spec.loader.exec_module(pc)
 
 pytestmark = pytest.mark.usefixtures("_runtime")
 
-_BASELINE = {"load": 1.0, "map": 10.0, "diagram": 20.0}
+_BASELINE = {"load": 1.0, "map": 10.0, "diagram": 20.0, "text": 2.0}
 
 
 def _root(scale: int) -> ET.Element:
@@ -96,7 +96,7 @@ def test_the_backup_loads_in_full(tmp_path: Path) -> None:
 
 
 def test_within_the_tolerance_is_ok() -> None:
-    found = {"load": 1.1, "map": 12.0, "diagram": 20.0}
+    found = {"load": 1.1, "map": 12.0, "diagram": 20.0, "text": 2.0}
 
     status, lines = pc.compare("x", found, _BASELINE, 0.25)
 
@@ -105,7 +105,7 @@ def test_within_the_tolerance_is_ok() -> None:
 
 
 def test_a_phase_slower_than_the_tolerance_fails_and_the_others_do_not() -> None:
-    found = {"load": 1.0, "map": 10.0, "diagram": 26.0}
+    found = {"load": 1.0, "map": 10.0, "diagram": 26.0, "text": 2.0}
 
     status, lines = pc.compare("x", found, _BASELINE, 0.25)
 
@@ -115,7 +115,7 @@ def test_a_phase_slower_than_the_tolerance_fails_and_the_others_do_not() -> None
 
 
 def test_faster_is_noted_not_failed() -> None:
-    found = {"load": 0.5, "map": 10.0, "diagram": 20.0}
+    found = {"load": 0.5, "map": 10.0, "diagram": 20.0, "text": 2.0}
 
     status, lines = pc.compare("x", found, _BASELINE, 0.25)
 
@@ -124,7 +124,7 @@ def test_faster_is_noted_not_failed() -> None:
 
 
 def test_no_baseline_is_its_own_answer() -> None:
-    found = {"load": 1.0, "map": 10.0, "diagram": 20.0}
+    found = {"load": 1.0, "map": 10.0, "diagram": 20.0, "text": 2.0}
 
     assert pc.compare("x", found, None, 0.25)[0] == pc.EXIT_NO_BASELINE
     assert pc.compare("x", found, {"load": 1.0}, 0.25)[0] == pc.EXIT_NO_BASELINE
@@ -132,13 +132,13 @@ def test_no_baseline_is_its_own_answer() -> None:
 
 def test_recording_writes_only_this_input_and_keeps_the_others(tmp_path: Path) -> None:
     path = tmp_path / "baseline.json"
-    pc._record(path, "synthetic x200", {"load": 1.0, "map": 2.0, "diagram": 3.0})
-    pc._record(path, "other.xml", {"load": 4.0, "map": 5.0, "diagram": 6.0})
+    pc._record(path, "synthetic x200", {"load": 1.0, "map": 2.0, "diagram": 3.0, "text": 4.0})
+    pc._record(path, "other.xml", {"load": 4.0, "map": 5.0, "diagram": 6.0, "text": 7.0})
 
     inputs = pc._read(path)["inputs"]
 
-    assert inputs["synthetic x200"] == {"load": 1.0, "map": 2.0, "diagram": 3.0}
-    assert inputs["other.xml"] == {"load": 4.0, "map": 5.0, "diagram": 6.0}
+    assert inputs["synthetic x200"] == {"load": 1.0, "map": 2.0, "diagram": 3.0, "text": 4.0}
+    assert inputs["other.xml"] == {"load": 4.0, "map": 5.0, "diagram": 6.0, "text": 7.0}
 
 
 def test_the_committed_baseline_has_every_phase_for_the_input_that_is_checked() -> None:

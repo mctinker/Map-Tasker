@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import html
 from dataclasses import dataclass
+from typing import Any
 
 from maptasker.src.core.maputil2 import strip_html_tags, tasker_icon_name
 from maptasker.src.core.scenelayout import V2_ROOT_KEY
@@ -34,9 +35,9 @@ class V2TreeRow:
     floatingActionButton rather than one "children" list.
     """
 
-    path: tuple
+    path: tuple[Any, ...]
     depth: int
-    node: dict
+    node: dict[str, Any]
     slot: str
     label: str
 
@@ -152,7 +153,7 @@ def v2_node_label(node: dict) -> str:
     return f"{node_type} '{name}'" if name else node_type
 
 
-def v2_flatten(layout: dict) -> list[V2TreeRow]:
+def v2_flatten(layout: dict[str, Any]) -> list[V2TreeRow]:
     """The layout's component tree as a flat, depth-tagged list, in display order --
     what the designer's tree pane renders one row per entry.
 
@@ -163,7 +164,7 @@ def v2_flatten(layout: dict) -> list[V2TreeRow]:
     """
     rows: list[V2TreeRow] = []
 
-    def walk(node: dict, depth: int, path: tuple, slot: str) -> None:
+    def walk(node: dict[str, Any], depth: int, path: tuple[Any, ...], slot: str) -> None:
         rows.append(V2TreeRow(path=path, depth=depth, node=node, slot=slot, label=v2_node_label(node)))
         for slot_key, children in v2_child_slots(node):
             for index, child in enumerate(children):

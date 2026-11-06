@@ -73,8 +73,17 @@ def wheel_in(dist: Path) -> Path:
 
 
 def tracked_files() -> set[str]:
-    """Every file git tracks under maptasker/."""
-    listed = subprocess.run(["git", "ls-files", PACKAGE], cwd=ROOT, capture_output=True, text=True, check=True)
+    """Every file git tracks under maptasker/, and every one it would if asked: a new file not yet added is meant to ship.
+
+    What git ignores is neither, which is the point: a .claude settings file, ignored, is not meant to.
+    """
+    listed = subprocess.run(
+        ["git", "ls-files", "--cached", "--others", "--exclude-standard", PACKAGE],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
     return {line for line in listed.stdout.splitlines() if line}
 
 

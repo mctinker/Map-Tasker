@@ -80,7 +80,7 @@ from maptasker.src.mapgen.taskerd import get_the_xml_data
 from maptasker.src.mapops import trend
 
 if TYPE_CHECKING:
-    from collections.abc import Generator
+    from collections.abc import Callable, Generator
 
     from maptasker.src.analysis.xmldiff import Configuration
     from maptasker.src.core.primitem import RunState
@@ -100,7 +100,7 @@ EXIT_NO_HISTORY = 11  # Changes Since, or -trend, had nothing earlier to compare
 
 # The flags that make a run a command-line report, in the single-dash style the rest of the
 # command line uses.  Each is also accepted with two dashes.
-REPORT_FLAGS = ("healthcheck", "compare", "changes_since", "trend", "export", "watch")
+REPORT_FLAGS = ("healthcheck", "compare", "changes_since", "trend", "export", "text", "watch")
 
 # Health Check: which findings make the run "find something" (EXIT_FOUND).
 FAIL_ON_ERROR = "error"
@@ -109,6 +109,10 @@ FAIL_ON_NEVER = "never"
 
 # The Map is built without the view limit: that is a limit on what a window is asked to show.
 _UNLIMITED = 9_999_999
+
+# -text: the two things to do with the table of text.
+TEXT_EXPORT = "export"
+TEXT_APPLY = "apply"
 
 # What -trend -save writes its report to, stamped as the others are.
 TREND_FILE = "MapTasker_Trend.txt"
@@ -162,6 +166,23 @@ def wants_report(argv: list[str]) -> bool:
     return any(argument.split("=", 1)[0] in flags for argument in argv)
 
 
+def _add_text_options(add_option: Callable[..., object], add_command: Callable[..., object]) -> None:
+    """-text (one of the commands to choose between) and the options only it takes."""
+    add_command(
+        "-text",
+        choices=(TEXT_EXPORT, TEXT_APPLY),
+        help="export: write every piece of text a person reads (Flash, Notify, Say, dialogs, Scene labels) as a table "
+        "to translate or edit; apply: put the table's translations back (see -table, -text_format, -project)",
+    )
+    add_option("-table", help="-text apply: the table of translations to put back (.csv or .json)")
+    add_option(
+        "-text_format",
+        choices=("csv", "json"),
+        default="csv",
+        help="-text export: the table's format (default: csv, which opens in a spreadsheet)",
+    )
+
+
 def build_parser() -> argparse.ArgumentParser:
     """The command line for the reports.
 
@@ -207,6 +228,7 @@ def build_parser() -> argparse.ArgumentParser:
         choices=(mapexport.MAP, mapexport.DIAGRAM),
         help="write the Map or the Diagram as a file (see -format), and print its path",
     )
+    _add_text_options(parser.add_argument, chosen.add_argument)
     chosen.add_argument(
         "-watch",
         metavar="FOLDER",
@@ -218,7 +240,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="the Tasker backup to use: a file, or a folder to use the newest .xml in "
         "(-trend: only its name is used, to follow the backups of that file)",
     )
-    parser.add_argument("-project", help="-trend: look at this Project alone, not the whole configuration")
+    parser.add_argument(
+        "-project",
+        help="-trend, -text: look at this Project alone, not the whole configuration "
+        "(-text apply: write that Project as a .prj.xml, ready to share)",
+    )
     parser.add_argument("-outdir", help="the folder to write files into (see -save and -export)")
     parser.add_argument("-history_dir", help="the folder holding the history, if not MapTasker_Timeline here")
     parser.add_argument("-save", action="store_true", help="also save the report as a file, as the window does")
@@ -527,6 +553,43 @@ def _export(options: argparse.Namespace, state: RunState) -> int:
     return EXIT_OK
 
 
+def _text(options: argparse.Namespace, state: RunState) -> int:
+    """Write the table of text to translate, or put a translated one back.
+
+    Imported here, not at the top: the table is rarely asked for, and a command line that only wants a Health Check
+    should not pay for the Find index, the Scene models and the editors to start.
+    """
+    from maptasker.src.mapops import maptext  # noqa: PLC0415 -- see the docstring
+
+    _load_backup(options.file, state=state)
+    project = options.project or ""
+    if project and project not in state.tasker_root_elements["all_projects"]:
+        raise _ReportError(EXIT_BAD_OPTION, f"There is no Project named '{project}' in {options.file}.")
+
+    if options.text == TEXT_EXPORT:
+        try:
+            path, summary = maptext.export_table(state, project, options.text_format)
+        except OSError as error:
+            raise _ReportError(EXIT_OUTPUT_FAILED, f"The table could not be saved: {error}") from error
+        _note(f"{summary}.")
+        _report(str(path))
+        return EXIT_OK
+
+    if not options.table:
+        raise _ReportError(EXIT_BAD_OPTION, "-text apply needs the table to put back: -table <file.csv>.")
+    try:
+        done = maptext.apply_table(Path(options.table).expanduser(), state, project)
+    except maptext.TextTableError as error:
+        raise _ReportError(EXIT_NO_FILE, str(error)) from error
+    except OSError as error:
+        raise _ReportError(EXIT_OUTPUT_FAILED, f"The result could not be saved: {error}") from error
+    for note in done.notes:
+        _note(f"left alone: {note}")
+    _note(f"{done.changed} text(s) changed, {done.left_alone} left alone.")
+    _report(str(done.written))
+    return EXIT_FOUND if done.notes else EXIT_OK
+
+
 @contextlib.contextmanager
 def _stop_on_terminate() -> Generator[None]:
     """Make SIGTERM stop a watch the way Ctrl-C does.
@@ -583,6 +646,7 @@ _COMMANDS = (
     ("changes_since", _changes_since),
     ("trend", _trend),
     ("export", _export),
+    ("text", _text),
     ("watch", _watch),
 )
 

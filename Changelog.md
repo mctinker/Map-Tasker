@@ -14,6 +14,8 @@ All notable changes to this project will be documented in this file!
 
 - Added: Health Check now reports __ERROR-IGNORED__ findings for Tasks where a web request, shell command, Perform Task or file write is set to 'Continue Task After Error' and nothing after it reads %err, so a failure is thrown away without a word. It works from the loaded XML alone, needs no phone, and can be unticked under "Behaviour on the device" in the Health Check categories.
 
+- Added: `maptasker -text export` writes every piece of text a person reads on the phone (Flash, Notify, Say, dialogs, and Legacy and Version 2 Scene labels) to a spreadsheet to translate or edit, and `-text apply` puts the translations back into a copy of the backup or, with `-project`, a Project ready to share. A translation that changes a `%variable`, or text edited since the table was made, is left alone and reported.
+
 ### Changed
 
 - Changed: Loading a backup and building the Map is about 20% faster on large configurations; one 13 MB backup went from about 3 seconds to about 2.3. A backup that declares an XML entity is still refused with a message.
