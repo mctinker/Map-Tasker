@@ -10,7 +10,7 @@ All notable changes to this project will be documented in this file!
 
 - Added: Health Check now finds Profiles that can be active at the same time and leave a volume, the brightness, a switch such as Wi-Fi or a global variable set two ways, and says which of them the device is left with. It sees through Tasks that Perform other Tasks, and What Fires When now reports the same kinds of clash for the moment you pick.
 
-- Added: Health Check now has an __Error-handling Audit__: it finds Tasks where a web request, shell command, Perform Task or file write is set to 'Continue Task After Error' and nothing after it reads %err, so a failure is thrown away without a word. It reads the loaded XML only, so it needs no phone, and you can untick it in the Health Check categories.
+- Added: Health Check now reports __ERROR-IGNORED__ findings for Tasks where a web request, shell command, Perform Task or file write is set to 'Continue Task After Error' and nothing after it reads %err, so a failure is thrown away without a word. It works from the loaded XML alone, needs no phone, and can be unticked under "Behaviour on the device" in the Health Check categories.
 
 ### Changed
 
