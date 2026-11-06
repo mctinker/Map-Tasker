@@ -696,6 +696,30 @@ def _create_trend_button(self: MyGui) -> None:
         ).style("white-space: pre-wrap")
 
 
+def _create_variable_manager_button(self: MyGui) -> None:
+    """The Variable Manager button, under the two Variable Xref buttons it grew out of."""
+    # Full width, for the reasons the buttons around it are.
+    variable_manager_button = (
+        ui.button(
+            translate_string("Variable Manager"),
+            color="teal",
+            on_click=self.event_handlers.tools.variable_manager_event,
+            icon="table_view",
+        )
+        .classes("w-full justify-center")
+        .style("margin-top:-6px")
+    )
+    with variable_manager_button:
+        ui.tooltip(
+            translate_string(
+                "A table of every global variable: its value, its type, how often it is set and read, and "
+                "what the phone holds for it.  The ones set but never read, or read but never set, are marked."
+                "\n\nRename one everywhere it is used, change or delete the value in the Variables tab, "
+                "or push a value to the phone.  Each change is previewed first and is one press of Undo.",
+            ),
+        ).style("white-space: pre-wrap")
+
+
 def _create_analysis_buttons_section(self: MyGui) -> None:
     """The reports that read the configuration's behaviour: Variable Xref, Task Flow and What Fires When."""
     # Full width and coloured through "color" for the same two reasons the two buttons
@@ -740,6 +764,8 @@ def _create_analysis_buttons_section(self: MyGui) -> None:
                     "saved report.",
                 ),
             ).style("white-space: pre-wrap")
+
+    _create_variable_manager_button(self)
 
     # Full width and coloured through "color" for the same two reasons the three buttons
     # above are: the drawer is w-80, this label will not fit beside another, and Quasar's

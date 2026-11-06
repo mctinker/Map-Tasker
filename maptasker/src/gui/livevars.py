@@ -10,7 +10,9 @@
 # about HTTP, so the report stays testable without a phone -- and so a report built with #
 # no device (the usual case) is exactly the report it always was.                        #
 #                                                                                      #
-# READ-ONLY.  The API can also set a global (POST api/globals); nothing here uses it.    #
+# READ, AND ONE WRITE.  fetch_live_values only reads.  set_global is the single thing   #
+# here that changes the phone: it sets ONE global to ONE value, on the user's say-so,    #
+# from the Variable Manager, and reads it back before it says it worked.                 #
 #                                                                                      #
 # UNVERIFIED, like the other api/* endpoints MapTasker did not write (see               #
 # Tasker_API.md): that GET api/globals with no 'name' answers every user-defined global. #
@@ -26,10 +28,18 @@ from __future__ import annotations
 import base64
 import binascii
 import json
+import re
 from dataclasses import dataclass, field
 from typing import cast
+from urllib.parse import quote
 
-from maptasker.src.core.maputil2 import LIST_READ_TIMEOUT_SECONDS, auth_key_for, http_request
+from maptasker.src.core.maputil2 import (
+    LIST_READ_TIMEOUT_SECONDS,
+    auth_key_for,
+    http_post_request,
+    http_request,
+    request_with_auth_key,
+)
 
 GLOBALS_ENDPOINT = "api/globals"
 
@@ -127,3 +137,115 @@ def fetch_live_values(ip_address: str, ip_port: str) -> tuple[int, str, LiveValu
     if values is None:
         return 8, "The device's global variables were not readable as the list they should be.", None
     return 0, "", LiveValues(address=f"{ip_address}:{ip_port}", values=values)
+
+
+# What the 'POST Globals' Task in Tasker's HTTP API project accepts as a name (read from the Task itself, in the
+# sample backup): no spaces or '%', at least one capital letter -- which is what makes a name global -- and at least
+# three characters.  Anything else it answers with a 400 and sets nothing, so it is refused here, in words, first.
+_ACCEPTED_NAME = re.compile(r"^[^\s%]*[A-Z][^\s%]*$")
+_MIN_NAME_LENGTH = 3
+
+_JSON_TYPE = "application/json"
+
+
+def _name_problem(name: str) -> str:
+    """Why the device would refuse this name, or "" when it would take it."""
+    if not _ACCEPTED_NAME.match(name) or len(name) < _MIN_NAME_LENGTH:
+        return (
+            f"'%{name}' cannot be set through Tasker's HTTP API: a global's name needs a capital letter, at least "
+            "three characters, and no spaces."
+        )
+    return ""
+
+
+def read_global(ip_address: str, ip_port: str, name: str, auth_key: str) -> tuple[int, str, str | None]:
+    """What one global holds on the device.  (0, "", its value), (0, "", None) when it has none, or (code, message, None)."""
+    query = f"?name={quote(name.lstrip('%'))}"
+    return_code, response = http_request(
+        ip_address, ip_port, "", GLOBALS_ENDPOINT, query, auth_key, timeout=LIST_READ_TIMEOUT_SECONDS
+    )
+    if return_code != 0:
+        return return_code, str(response), None
+    values = parse_globals(response)
+    if values is None:
+        return 8, "The device's answer about that variable was not readable as the list it should be.", None
+    return 0, "", values.get(f"%{name.lstrip('%')}")
+
+
+def set_global(ip_address: str, ip_port: str, name: str, value: str) -> tuple[int, str]:
+    """Set one global on the device to this value, and read it back.  (0, a sentence) or (return_code, message).
+
+    The value goes as Base64, which is how the API passes one both ways (see _decode_value).  The write is not
+    believed on the strength of the 200: the device is asked for the variable again, and only an answer that
+    matches is reported as done -- the same rule every other write to the device here follows.
+
+    An empty value is refused.  The API reads an empty one as "clear this global", which is a different thing to
+    ask and not what a person pushing a value means.
+
+    Blocking, like every other call here; a caller on the GUI thread must use run.io_bound.
+    """
+    ip_address, ip_port = ip_address.strip(), ip_port.strip()
+    bare = name.strip().lstrip("%")
+    if not ip_address or not ip_port:
+        return 8, "An Android IP address and port are needed."
+    if problem := _name_problem(bare):
+        return 8, problem
+    if not value:
+        return 8, f"%{bare} was not sent: an empty value would clear it on the device, and nothing was changed."
+
+    body = json.dumps({"name": bare, "value": base64.b64encode(value.encode("utf-8")).decode("ascii")}).encode("utf-8")
+    return_code, response = request_with_auth_key(
+        ip_address,
+        ip_port,
+        lambda key: http_post_request(ip_address, ip_port, "", GLOBALS_ENDPOINT, body, key, _JSON_TYPE),
+    )
+    if return_code != 0:
+        return return_code, str(response)
+
+    return_code, auth_key = auth_key_for(ip_address, ip_port)
+    if return_code != 0:
+        return return_code, auth_key
+    return_code, message, held = read_global(ip_address, ip_port, bare, auth_key)
+    if return_code != 0:
+        return return_code, f"%{bare} was sent, but reading it back failed: {message}"
+    if held != value:
+        shown = "it has no value" if held is None else f"it holds '{held}'"
+        return 8, f"%{bare} was sent, but the device does not hold what was sent: {shown}."
+    return 0, f"%{bare} is now set on {ip_address}:{ip_port}."
+
+
+def delete_global(ip_address: str, ip_port: str, name: str) -> tuple[int, str]:
+    """Remove one global from the device, and read it back.  (0, a sentence) or (return_code, message).
+
+    The 'POST Globals' Task in Tasker's HTTP API project clears a global when it is sent no value, and says so by
+    answering with a null one.  So this posts the name with a JSON null, and -- as set_global does -- does not believe
+    the 200: the device is asked for the variable again, and only an answer that has no such variable is reported as
+    done.  A variable the device never had is therefore a success: it is not there, which is what was asked for.
+
+    Blocking, like every other call here; a caller on the GUI thread must use run.io_bound.
+    """
+    ip_address, ip_port = ip_address.strip(), ip_port.strip()
+    bare = name.strip().lstrip("%")
+    if not ip_address or not ip_port:
+        return 8, "An Android IP address and port are needed."
+    if problem := _name_problem(bare):
+        return 8, problem
+
+    body = json.dumps({"name": bare, "value": None}).encode("utf-8")
+    return_code, response = request_with_auth_key(
+        ip_address,
+        ip_port,
+        lambda key: http_post_request(ip_address, ip_port, "", GLOBALS_ENDPOINT, body, key, _JSON_TYPE),
+    )
+    if return_code != 0:
+        return return_code, str(response)
+
+    return_code, auth_key = auth_key_for(ip_address, ip_port)
+    if return_code != 0:
+        return return_code, auth_key
+    return_code, message, held = read_global(ip_address, ip_port, bare, auth_key)
+    if return_code != 0:
+        return return_code, f"%{bare} was sent, but reading it back failed: {message}"
+    if held is not None:
+        return 8, f"%{bare} was asked to be cleared, but the device still holds '{held}'."
+    return 0, f"%{bare} is no longer on {ip_address}:{ip_port}."

@@ -6,9 +6,11 @@ All notable changes to this project will be documented in this file!
 
 ### Added
 
+- Added: __Variable Manager__ in the Analyze section shows every global variable in a table with its value, type, how often it is set and read, and what the phone holds for it, and marks the ones set but never read. You can rename one everywhere, change its value, delete one or several at once from the file or from the phone, see every place it is used, and push a value to the phone, with a preview first and one Undo.
+
 - Added: Health Check now finds Profiles that can be active at the same time and leave a volume, the brightness, a switch such as Wi-Fi or a global variable set two ways, and says which of them the device is left with. It sees through Tasks that Perform other Tasks, and What Fires When now reports the same kinds of clash for the moment you pick.
 
-- Added: Health Check now has an __Error-handling Audit__: it finds Tasks where a web request, shell command, Perform Task or file write is set to 'Continue Task After Error' and nothing after it reads %err, so a failure is thrown away without a word. It reads the backup only, so it needs no phone, and you can untick it in the Health Check categories.
+- Added: Health Check now has an __Error-handling Audit__: it finds Tasks where a web request, shell command, Perform Task or file write is set to 'Continue Task After Error' and nothing after it reads %err, so a failure is thrown away without a word. It reads the loaded XML only, so it needs no phone, and you can untick it in the Health Check categories.
 
 ### Changed
 

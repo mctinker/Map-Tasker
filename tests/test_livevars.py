@@ -219,3 +219,154 @@ def test_a_long_multiline_value_is_one_short_line() -> None:
     assert "\n" not in shown
     assert len(shown) < 70
     assert shown.endswith("...'")
+
+
+# ##################################################################################
+# Setting one global on the phone
+# ##################################################################################
+def _device(monkeypatch: pytest.MonkeyPatch, *, held: str | None = "", post_code: int = 0) -> dict[str, Any]:
+    """A phone that takes a POST to api/globals and answers the read-back with what `held` says it holds."""
+    seen: dict[str, Any] = {"posts": [], "reads": []}
+
+    def post(
+        _ip: str, _port: str, _location: str, endpoint: str, body: bytes, key: str, content_type: str = ""
+    ) -> tuple:
+        seen["posts"].append({"endpoint": endpoint, "body": json.loads(body), "key": key, "type": content_type})
+        return (post_code, b"{}" if post_code == 0 else "refused")
+
+    def read(_ip: str, _port: str, _location: str, endpoint: str, query: str, key: str, **_kwargs: Any) -> tuple:
+        seen["reads"].append({"endpoint": endpoint, "query": query, "key": key})
+        listed = [] if held is None else [{"name": "Mode", "value": _encoded(held)}]
+        return 0, json.dumps(listed).encode()
+
+    monkeypatch.setattr(livevars, "auth_key_for", lambda *_args: (0, "key"))
+    monkeypatch.setattr(livevars, "http_post_request", post)
+    monkeypatch.setattr(livevars, "http_request", read)
+    monkeypatch.setattr(livevars, "request_with_auth_key", lambda _ip, _port, request: request("key"))
+    return seen
+
+
+def test_a_global_is_sent_as_json_with_a_base64_value_and_read_back(monkeypatch: pytest.MonkeyPatch) -> None:
+    seen = _device(monkeypatch, held="evening")
+
+    code, message = livevars.set_global(" 192.168.0.210 ", "1821", "%Mode", "evening")
+
+    assert (code, message) == (0, "%Mode is now set on 192.168.0.210:1821.")
+    (posted,) = seen["posts"]
+    assert posted["endpoint"] == "api/globals"
+    assert posted["type"] == "application/json"
+    assert posted["body"] == {"name": "Mode", "value": _encoded("evening")}
+    assert seen["reads"] == [{"endpoint": "api/globals", "query": "?name=Mode", "key": "key"}]
+
+
+def test_a_value_the_phone_does_not_hold_afterwards_is_not_reported_as_set(monkeypatch: pytest.MonkeyPatch) -> None:
+    _device(monkeypatch, held="something else")
+
+    code, message = livevars.set_global("192.168.0.210", "1821", "Mode", "evening")
+
+    assert code == 8
+    assert "does not hold what was sent" in message
+    assert "'something else'" in message
+
+
+def test_a_global_the_phone_does_not_have_afterwards_is_said_so(monkeypatch: pytest.MonkeyPatch) -> None:
+    _device(monkeypatch, held=None)
+
+    code, message = livevars.set_global("192.168.0.210", "1821", "Mode", "evening")
+
+    assert code == 8
+    assert "it has no value" in message
+
+
+@pytest.mark.parametrize("name", ["mode", "Mo", "My Var", "Bad%Name"])
+def test_a_name_the_device_would_refuse_is_refused_here_and_nothing_is_sent(
+    monkeypatch: pytest.MonkeyPatch, name: str
+) -> None:
+    seen = _device(monkeypatch)
+
+    code, message = livevars.set_global("192.168.0.210", "1821", name, "x")
+
+    assert code == 8
+    assert "cannot be set through Tasker's HTTP API" in message
+    assert seen["posts"] == []
+
+
+def test_an_empty_value_is_not_sent_because_the_api_reads_it_as_clear(monkeypatch: pytest.MonkeyPatch) -> None:
+    seen = _device(monkeypatch)
+
+    code, message = livevars.set_global("192.168.0.210", "1821", "Mode", "")
+
+    assert code == 8
+    assert "would clear it" in message
+    assert seen["posts"] == []
+
+
+def test_no_address_is_asked_for(monkeypatch: pytest.MonkeyPatch) -> None:
+    seen = _device(monkeypatch)
+
+    assert livevars.set_global("", "1821", "Mode", "x")[0] == 8
+    assert seen["posts"] == []
+
+
+def test_a_refused_write_is_the_devices_message_and_is_not_read_back(monkeypatch: pytest.MonkeyPatch) -> None:
+    seen = _device(monkeypatch, post_code=8)
+
+    assert livevars.set_global("192.168.0.210", "1821", "Mode", "x") == (8, "refused")
+    assert seen["reads"] == []
+
+
+def test_a_value_with_non_ascii_text_survives_the_round_trip(monkeypatch: pytest.MonkeyPatch) -> None:
+    seen = _device(monkeypatch, held="café ☕")
+
+    assert livevars.set_global("192.168.0.210", "1821", "Mode", "café ☕")[0] == 0
+    assert livevars.parse_globals(json.dumps([seen["posts"][0]["body"]])) == {"%Mode": "café ☕"}
+
+
+# ##################################################################################
+# Removing one global from the phone
+# ##################################################################################
+def test_a_global_is_removed_by_posting_it_with_no_value_and_read_back_as_gone(monkeypatch: pytest.MonkeyPatch) -> None:
+    seen = _device(monkeypatch, held=None)
+
+    code, message = livevars.delete_global(" 192.168.0.210 ", "1821", "%Mode")
+
+    assert (code, message) == (0, "%Mode is no longer on 192.168.0.210:1821.")
+    (posted,) = seen["posts"]
+    assert posted["body"] == {"name": "Mode", "value": None}
+    assert posted["type"] == "application/json"
+    assert seen["reads"] == [{"endpoint": "api/globals", "query": "?name=Mode", "key": "key"}]
+
+
+def test_a_global_the_phone_still_holds_afterwards_is_not_reported_as_removed(monkeypatch: pytest.MonkeyPatch) -> None:
+    _device(monkeypatch, held="evening")
+
+    code, message = livevars.delete_global("192.168.0.210", "1821", "Mode")
+
+    assert code == 8
+    assert "still holds 'evening'" in message
+
+
+def test_a_global_the_phone_never_had_is_already_gone(monkeypatch: pytest.MonkeyPatch) -> None:
+    _device(monkeypatch, held=None)
+
+    assert livevars.delete_global("192.168.0.210", "1821", "Mode")[0] == 0
+
+
+@pytest.mark.parametrize("name", ["mode", "Mo", "Bad Name"])
+def test_a_name_the_device_would_refuse_is_not_sent_for_removal_either(
+    monkeypatch: pytest.MonkeyPatch, name: str
+) -> None:
+    seen = _device(monkeypatch)
+
+    code, message = livevars.delete_global("192.168.0.210", "1821", name)
+
+    assert code == 8
+    assert "cannot be set through Tasker's HTTP API" in message
+    assert seen["posts"] == []
+
+
+def test_a_removal_the_phone_refused_is_its_message_and_is_not_read_back(monkeypatch: pytest.MonkeyPatch) -> None:
+    seen = _device(monkeypatch, post_code=8)
+
+    assert livevars.delete_global("192.168.0.210", "1821", "Mode") == (8, "refused")
+    assert seen["reads"] == []

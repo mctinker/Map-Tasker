@@ -32,6 +32,7 @@ from maptasker.src.gui.guiwins_restore import build_restore_dialog
 from maptasker.src.gui.guiwins_taskstep import build_taskstep_dialog
 from maptasker.src.gui.guiwins_tnupdate import build_tnupdate_dialog
 from maptasker.src.gui.guiwins_trend import build_trend_dialog
+from maptasker.src.gui.guiwins_varman import build_variable_manager
 from maptasker.src.gui.userintr_group import HandlerGroup
 
 if TYPE_CHECKING:
@@ -120,6 +121,26 @@ class ToolEventHandlers(HandlerGroup):
             return
         self.gui.refactor_dialog = dialog
         dialog.open()
+
+    def variable_manager_event(self) -> None:
+        """Open the Variable Manager: every global variable, its value, where it is used, and what can be done to it.
+
+        Rebuilt on every press rather than kept, for refactor_event's reason: what it holds closes over live
+        elements of the loaded configuration, and a window kept across a reload would be looking at a tree nothing
+        renders from.  Its rows open in a window of their own for the same reason a refactor's do -- a jump that
+        reused the tab would take the manager with it.
+        """
+
+        def make_jump(target: mapjump.Target) -> Callable[[], Coroutine[Any, Any, None]]:
+            async def go() -> None:
+                with opening_view_in_a_new_window(self.gui):
+                    await go_to_target(self.gui, target)
+
+            return go
+
+        dialog = build_variable_manager(self.gui, make_jump, self.hub.save_whole_configuration, state=self.state)
+        if dialog is not None:
+            dialog.open()
 
     def fix_findings_event(self) -> None:
         """Open the Fix Findings dialog: the Health Check's findings, with a repair for each.

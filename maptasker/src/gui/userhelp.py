@@ -427,6 +427,22 @@ BATTERY_HELP_TEXT = (
     " Task runs -- and the weights are printed in the report.  Click a finding to see it in the Map view.  Nothing is"
     " changed and nothing is sent.  \n"
 )
+VARMAN_HELP_TEXT = (
+    "- Variable Manager: A table of every global variable in the loaded configuration: its value in Tasker's Variables"
+    " tab, its type, how many places set it and how many read it, and -- once you press Get From Phone -- what the"
+    " phone holds for it and whether that differs from the file.  A variable set but never read, read but never set, or"
+    " in the Variables tab and used nowhere is marked.  Choose one to see every place that uses it, each a link to the"
+    " Map view.  Rename changes it everywhere it is written; Change Value sets its value in the Variables tab, and the"
+    " type you pick is a check on the value (Tasker itself keeps every value as text); Delete removes its Variables tab"
+    " entry and leaves the actions that use it alone, and takes every variable you have ticked at once -- the buttons"
+    " above the table show just the ones set but never read, read but never set, or unused, ready to tick and delete"
+    " together.  Each of these shows a preview first, changes the loaded configuration only, and is one press of Undo."
+    "  Send To Phone sets one global on the Android device through"
+    " Tasker's HTTP API and reads it back to confirm; it needs the Tasker HTTP API project's 'POST Globals' Profile"
+    " enabled, and an empty value is never sent, because the API reads it as clearing the variable.  Delete On Phone"
+    " clears the ticked variables from the phone the same way, one at a time, and asks the phone whether each is gone;"
+    " it never touches the file, and Delete never touches the phone.  \n"
+)
 COMMAND_REFERENCE_TEXT = (
     "See the MapTasker [Command Reference](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference)"
     " for more information.  \n"
@@ -456,5 +472,5 @@ def build_help(translate: Callable[[str], str] | None = None) -> str:
     lookup: Callable[[str], str] = translate or (lambda text: text)
     return (
         f"MapTasker {VERSION} {lookup(HELP_HEADING)}  \n{lookup(COMMAND_REFERENCE_TEXT)}{lookup(INFO_TEXT)}"
-        f"{lookup(OUTPUT_FOLDER_HELP_TEXT)}{lookup(TASKERNET_UPDATES_HELP_TEXT)}{lookup(TASKSTEP_HELP_TEXT)}{lookup(TREND_HELP_TEXT)}{lookup(VARIABLE_HELP_TEXT)}{lookup(RESOURCES_HELP_TEXT)}{lookup(MONITOR_HELP_TEXT)}{lookup(PREBUILD_HELP_TEXT)}{lookup(CARRY_HELP_TEXT)}{lookup(TASKTESTS_HELP_TEXT)}{lookup(OUTBOUND_HELP_TEXT)}{lookup(TNDESC_HELP_TEXT)}{lookup(LAUNCHER_HELP_TEXT)}{lookup(DESCRIBE_HELP_TEXT)}{lookup(BATTERY_HELP_TEXT)}"
+        f"{lookup(OUTPUT_FOLDER_HELP_TEXT)}{lookup(TASKERNET_UPDATES_HELP_TEXT)}{lookup(TASKSTEP_HELP_TEXT)}{lookup(TREND_HELP_TEXT)}{lookup(VARIABLE_HELP_TEXT)}{lookup(RESOURCES_HELP_TEXT)}{lookup(MONITOR_HELP_TEXT)}{lookup(PREBUILD_HELP_TEXT)}{lookup(CARRY_HELP_TEXT)}{lookup(TASKTESTS_HELP_TEXT)}{lookup(OUTBOUND_HELP_TEXT)}{lookup(TNDESC_HELP_TEXT)}{lookup(LAUNCHER_HELP_TEXT)}{lookup(DESCRIBE_HELP_TEXT)}{lookup(BATTERY_HELP_TEXT)}{lookup(VARMAN_HELP_TEXT)}"
     )

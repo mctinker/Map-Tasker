@@ -344,7 +344,7 @@ def _auth_headers(auth_key: str = "", content_type: str = "") -> dict[str, str] 
 _API_PROJECT = "Tasker HTTP API"
 _FILE_PROJECT = "HTTP Server Example"
 # The Profile that answers a route MapTasker POSTs to, for the messages that name it.
-_POST_PROFILES = {"api/import": "POST Import", "api/tasks": "POST Task"}
+_POST_PROFILES = {"api/import": "POST Import", "api/tasks": "POST Task", "api/globals": "POST Globals"}
 
 
 def _project_for(route: str) -> str:
