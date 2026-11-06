@@ -98,6 +98,7 @@ increase shows up in review with its reason.
 | coverage | `fail_under` for the whole program, and a floor per layer (a well-tested layer cannot cover for a neglected one) | `scripts/coverage_baseline.json` | `pytest --cov=maptasker` then `python scripts/coverage_ratchet.py` |
 | build speed | the Map and Diagram build times, against a copy of `tests/data` scaled up, in units of a fixed piece of Python work so the machine does not matter; more than 25% slower fails | `scripts/perf_baseline.json` | `python scripts/perf_check.py` |
 | import layers | the table above | `[tool.importlinter]` | `lint-imports` |
+| package smoke test | the built wheel installs into an empty environment and runs: it holds every file git tracks under `maptasker/` and no more, every module imports, and `-version`, `-healthcheck` and `-export` work on a sample backup | -- | `python scripts/package_smoke.py` |
 | dependency audit | the versions pinned in `uv.lock` against the known-vulnerability databases | -- | `scripts/dependency_audit.sh` |
 
 ## Continuous integration

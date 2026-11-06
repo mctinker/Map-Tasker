@@ -217,6 +217,13 @@ jobs:
       - name: Check package metadata
         run: uvx twine check dist/*
 
+      # twine check reads metadata and nothing else.  This installs the wheel just built into an empty
+      # environment, away from the checkout, and runs it: the files it must hold (every one git tracks under
+      # maptasker/, and no more), every module importing, and the command line reading a backup and writing
+      # reports.  See scripts/package_smoke.py.
+      - name: Install the wheel and run it
+        run: python scripts/package_smoke.py --dist dist
+
       - name: Upload distribution
         uses: actions/upload-artifact@v5
         with:

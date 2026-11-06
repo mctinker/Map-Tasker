@@ -110,6 +110,9 @@ explicit = true
 [tool.hatch.build.targets.wheel]
 # Ensure only the maptasker folder is treated as the package
 packages = ["maptasker"]
+# Anything a tool leaves in the package folder is shipped with it unless named here: a .claude settings file with the
+# author's paths in it was (scripts/package_smoke.py checks the wheel holds what git tracks, and nothing else).
+exclude = [".claude"]
 
 [dependency-groups]
 test = [
@@ -321,6 +324,8 @@ max-complexity = 12
 # and times the steps of a command-line run by calling the setup that run is made of, which clireports keeps to itself
 # because nothing else is meant to start a run that way (SLF001).
 'scripts/perf_check.py' = ['S603', 'SLF001']
+# package_smoke.py runs uv and git, and the console script it has just installed, from the project's own tools.
+'scripts/package_smoke.py' = ['S603', 'S607']
 # xmldata.py reads a Tasker backup with the standard library's own C parser, which is several times faster than
 # defusedxml's pure-Python one (S314).  What defusedxml was there to refuse -- a document that declares an entity -- is
 # refused before the parse begins (see ENTITY_DECLARATION).  Shares from strangers are still read with defusedxml.

@@ -123,6 +123,11 @@ else
     trap 'rm -rf "$DIST"' EXIT
     run_gate "build + twine check" \
         bash -c 'uv build --out-dir "$1" >/dev/null && uvx twine check "$1"/*' _ "$DIST"
+
+    # twine check reads the wheel's metadata and nothing else.  This installs that wheel into an empty
+    # environment and runs it: the files it must hold, every module importing, and the command line reading a backup.
+    # Needs a network (the dependencies come from the index).
+    run_gate "package smoke test" uv run --no-sync python scripts/package_smoke.py --dist "$DIST"
 fi
 
 printf '%s\n' "${BOLD}── summary${RESET}"
