@@ -384,12 +384,28 @@ def _localising_blocks(
     return blocks
 
 
+def _merge_warning(index: varxref.VariableIndex, old: str, new: str) -> str:
+    """What folding one variable into another that already exists does, for the top of the preview."""
+    target = index.variables.get((new, ""))
+    held = (
+        f"{new} is set in {len(target.sets)} and read in {len(target.reads)} place(s)"
+        if target is not None
+        else f"{new} is already a variable"
+    )
+    return (
+        f"MERGE: {held}.  After this {old} is {new} -- one variable, so everything that set or read {old} now sets "
+        f"or reads what {new} holds.  If {old} was a deliberate local copy, it will stop being one."
+    )
+
+
 def _blocks(
     operation: str,
     index: varxref.VariableIndex,
     entries: list[varxref.Variable],
     old: str,
     new: str,
+    *,
+    merge: bool = False,
 ) -> list[Block]:
     """Every reason this change will not be made, or an empty list.
 
@@ -411,7 +427,7 @@ def _blocks(
     if problems:
         return problems
 
-    blocks = _clash_blocks(index, entries, old, new)
+    blocks = [] if merge else _clash_blocks(index, entries, old, new)
     if operation == TO_LOCAL:
         blocks.extend(_localising_blocks(index, entries, old))
     return blocks
@@ -615,8 +631,15 @@ def plan_variable(
     new_name: str,
     state: RunState,
     index: varxref.VariableIndex | None = None,
+    *,
+    merge: bool = False,
 ) -> Plan:
     """Everything this change to a variable would do, or the reasons it cannot be done.
+
+    `merge` says that the new name is a variable that ALREADY EXISTS and the two are to become one -- a lower case
+    %aab_animsteps folded into the global %AAB_AnimSteps it was meant to be.  Without it a name already taken is a
+    block, because "rename" must never silently mean "merge"; with it the clash is a warning that says what will
+    happen, and everything else is checked as usual.
 
     `owner` is varxref's own: a Task id for one local, "" for a global, EVERY_INSTANCE for every Task's local of
     that name.  An empty `new_name` means the one the scope implies (see suggested_name).  `index` is the
@@ -628,7 +651,7 @@ def plan_variable(
     entries = mapswap_rename.entries_to_rename(index, old, owner)
     what = _headline(operation, old, new, index, _owners(entries))
 
-    problems = _blocks(operation, index, entries, old, new)
+    problems = _blocks(operation, index, entries, old, new, merge=merge)
     if problems:
         return blocked(VARIABLE, what, *problems)
 
@@ -646,6 +669,8 @@ def plan_variable(
         )
     plan = Plan(kind=VARIABLE, what=what)
     plan.warnings = _warnings(operation, index, entries, old, new)
+    if merge:
+        plan.warnings.insert(0, _merge_warning(index, old, new))
     plan.steps = _steps(changes, old, new)
     plan.elements = tuple(change.site.element for change in changes)
     plan.run = _runner(changes, state)

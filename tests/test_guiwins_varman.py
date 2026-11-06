@@ -624,3 +624,107 @@ async def test_nothing_is_sent_to_the_phone_until_the_dialogs_button_is_pressed(
         await asyncio.sleep(0.3)
 
     assert sent == []
+
+
+# ##################################################################################
+# Fix Scope
+# ##################################################################################
+def _scope_page(tmp_path: Path) -> None:
+    from tests.test_scopecheck import _XML as scope_xml
+
+    _load_local(tmp_path, scope_xml)
+
+
+def _fixer_rows(user: User) -> list[dict[str, Any]]:
+    """The rows of the Fix Scope window's table: the newest table on the page."""
+    tables = user.find(kind=ui.table).elements
+    return max(tables, key=lambda table: table.id).rows
+
+
+@pytest.mark.asyncio
+async def test_fix_scope_lists_what_breaks_the_case_rule(tmp_path: Path) -> None:
+    _scope_page(tmp_path)
+
+    async with _open() as user:
+        await user.should_see("Variable Manager")
+        _press(user, _only(user, "Fix Scope"))
+        await user.should_see("Tasker decides whether a variable is local or global")
+        rows = _fixer_rows(user)
+        summary = next(text for text in _labels(user) if "same letters as a global" in text.lower() and "," in text)
+
+    assert {row["name"] for row in rows} >= {"%counter", "%mode", "%shared"}
+    assert {row["suggestion"] for row in rows if row["name"] == "%mode"} == {"%Mode"}
+    assert "in the variables tab, no capital" in summary.lower()
+
+
+@pytest.mark.asyncio
+async def test_choosing_a_finding_says_why_and_enables_the_buttons(tmp_path: Path) -> None:
+    _scope_page(tmp_path)
+
+    async with _open() as user:
+        await user.should_see("Variable Manager")
+        _press(user, _only(user, "Fix Scope"))
+        await user.should_see("Tasker decides whether a variable is local or global")
+        fixer = _fixer_of(user)
+        before = (fixer.fix_button.enabled, fixer.show_button.enabled)
+        fixer.choose(next(i for i in fixer.issues if i.kind == "SCOPE-DECLARED-LOWERCASE"))
+        after = (fixer.fix_button.enabled, fixer.show_button.enabled)
+        detail = fixer.detail.text
+
+    assert before == (False, False)
+    assert after == (True, True)
+    assert "Variables tab" in detail
+
+
+def _fixer_of(user: User) -> Any:
+    """The ScopeFixer behind the open window: it is what the Manager's Fix Scope button made."""
+    manager = _built["manager"]
+    return manager.fixer
+
+
+@pytest.mark.asyncio
+async def test_a_finding_is_fixed_through_a_preview_and_the_lists_follow(tmp_path: Path) -> None:
+    _scope_page(tmp_path)
+
+    async with _open() as user:
+        await user.should_see("Variable Manager")
+        _press(user, _only(user, "Fix Scope"))
+        await user.should_see("Tasker decides whether a variable is local or global")
+        fixer = _fixer_of(user)
+        fixer.choose(next(i for i in fixer.issues if i.kind == "SCOPE-DECLARED-LOWERCASE"))
+        _press(user, _only(user, "Fix..."))
+        await user.should_see("Rename %mode")
+        _press(user, _only(user, "Preview"))
+        await user.should_see("ready to apply")
+        assert _held("%mode") == "day", "a preview changes nothing"
+        _press(user, _newest(user, "Fix"))
+        await _until(lambda: _held("%Mode") == "day")
+        await _until(lambda: "%mode" not in {row["name"] for row in fixer.shown_rows})
+        names = {row.name for row in _built["manager"].rows}
+
+    assert "%Mode" in names, "the Variable Manager behind it follows"
+    assert _held("%mode") is None
+
+
+@pytest.mark.asyncio
+async def test_a_finding_with_no_suggestion_cannot_be_applied_until_a_name_is_given(tmp_path: Path) -> None:
+    xml = (
+        '<TaskerData sr="" dvi="1" tv="6.3.13">'
+        '<Variable sr="vars0"><n>%MyVar</n><v>1</v></Variable><Variable sr="vars1"><n>%Myvar</n><v>2</v></Variable>'
+        '<Task sr="task1" ve="2"><id>1</id><nme>Slip</nme>'
+        '<Action sr="act0" ve="7"><code>548</code><Str sr="arg0" ve="3">%myvar</Str>'
+        '<Int sr="arg1" val="0"/><Int sr="arg2" val="0"/></Action></Task></TaskerData>'
+    )
+    _load_local(tmp_path, xml)
+
+    async with _open() as user:
+        await user.should_see("Variable Manager")
+        _press(user, _only(user, "Fix Scope"))
+        await user.should_see("Tasker decides whether a variable is local or global")
+        fixer = _fixer_of(user)
+        fixer.choose(fixer.issues[0])
+        _press(user, _only(user, "Fix..."))
+        await user.should_see("Make global %myvar")
+        _press(user, _only(user, "Preview"))
+        await user.should_see("cannot be done")
+        assert not [button for button in _buttons(user, "Fix") if button.enabled]

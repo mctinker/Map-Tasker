@@ -20,7 +20,7 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
-from maptasker.src.analysis import errcheck, plugchk, profconflict, proflint, resrefs, taskflow
+from maptasker.src.analysis import errcheck, plugchk, profconflict, proflint, resrefs, scopecheck, taskflow
 from maptasker.src.core import clock, piiscan
 from maptasker.src.core.actionc import action_codes
 from maptasker.src.core.mapjump import (
@@ -46,7 +46,7 @@ from maptasker.src.edit import scenemodel
 from maptasker.src.mapgen import codelint, varxref
 
 if TYPE_CHECKING:
-    from collections.abc import Collection
+    from collections.abc import Callable, Collection
     from datetime import datetime
     from xml.etree.ElementTree import Element
 
@@ -167,6 +167,21 @@ CATEGORIES: tuple[Category, ...] = (
     Category("FLOW-UNREACHABLE", GROUP_FLOW, "Actions nothing can reach."),
     Category(codelint.JS_SYNTAX, GROUP_CODE, "A JavaScriptlet whose brackets, strings or comments do not close."),
     Category(codelint.SHELL_SYNTAX, GROUP_CODE, "A Run Shell command with a quote or bracket left open."),
+    Category(
+        scopecheck.CASE_MISMATCH,
+        GROUP_VARIABLES,
+        "A lower case name that is the same letters as a global, so Tasker reads two variables.",
+    ),
+    Category(
+        scopecheck.DECLARED_LOWERCASE,
+        GROUP_VARIABLES,
+        "A name in the Variables tab with no capital letter, so actions reach a local, not it.",
+    ),
+    Category(
+        scopecheck.LOCAL_NEVER_SET,
+        GROUP_VARIABLES,
+        "A local read where nothing sets it, while another Task sets one of the same name.",
+    ),
     Category("VAR-NEAR-DUPLICATE", GROUP_VARIABLES, "Two variable names differing only in spelling."),
     Category("VAR-NEVER-SET", GROUP_VARIABLES, "A variable that is read but nothing sets."),
     Category("VAR-NEVER-READ", GROUP_VARIABLES, "A variable that is set but nothing reads."),
@@ -215,6 +230,7 @@ _PASS_TAGS = {
     "behaviour": proflint.TAGS,
     "errors": errcheck.TAGS,
     "overlap": profconflict.TAGS,
+    "scope": scopecheck.TAGS,
     "plugins": plugchk.TAGS,
     "resources": resrefs.TAGS,
     "secrets": piiscan.TAGS,
@@ -963,6 +979,20 @@ def _check_behaviour(index: ReferenceIndex, state: RunState) -> None:
         index.add(problem.severity, problem.tag, problem.where, problem.detail)
 
 
+def _check_scope(index: ReferenceIndex, state: RunState) -> None:
+    """Fold the check for names that break Tasker's case rule into this report.
+
+    Folded in for _check_variables' reason, which it extends: that pass asks whether a variable is set and read, this
+    one whether its SPELLING says what it is.  Tasker takes a variable's scope from its case, so a name typed with the
+    wrong one is a different variable that nothing flags.  The finding says what it saw; the Variable Manager's Fix
+    Scope button makes the change, with a preview and one Undo.
+
+    The severity and the tag both come from scopecheck unchanged, as proflint's are.
+    """
+    for issue in scopecheck.find_issues(state=state):
+        index.add(issue.severity, issue.kind, issue.where, issue.detail)
+
+
 def _check_overlaps(index: ReferenceIndex, state: RunState) -> None:
     """Fold the check for Profiles that can be active together and leave a setting two ways into this report.
 
@@ -1218,6 +1248,25 @@ def _device_check_notes(index: ReferenceIndex) -> list[str]:
     return notes
 
 
+def _scope_note(index: ReferenceIndex) -> list[str]:
+    """The closing note on what the SCOPE- findings cannot know, when there is one to read it against."""
+    if not any(item.tag in scopecheck.TAGS for item in index.findings):
+        return []
+    return [
+        "",
+        "NOTE ON VARIABLE SPELLING",
+        "-" * _REPORT_WIDTH,
+        "Tasker takes a variable's scope from the case of its name: all lower case is local to",
+        "the running Task, and one capital makes it global.  The findings tagged SCOPE- are names",
+        "whose spelling and use seem to disagree.  They are judgements from the file alone: a",
+        "Task that copies a global into a local of the same letters on purpose, or one handed a",
+        "local by the Task that performs it, is doing something Tasker allows, and the checks",
+        "leave those out as far as they can tell.  The Fix Scope button in the Variable Manager",
+        "shows what changing a spelling would do everywhere it is used, and is one Undo.",
+        "",
+    ]
+
+
 def _overlaps_note(index: ReferenceIndex) -> list[str]:
     """The closing note on what PROFILE-OVERLAP cannot know, when there is a finding of that kind to read it against."""
     if not any(item.tag in profconflict.TAGS for item in index.findings):
@@ -1302,6 +1351,7 @@ def _limitations(index: ReferenceIndex) -> list[str]:
             "",
         ]
 
+    notes += _scope_note(index)
     notes += _overlaps_note(index)
     notes += _ignored_errors_note(index)
     notes += _device_check_notes(index)
@@ -1437,24 +1487,24 @@ def collect_findings(skip: Collection[str] = (), *, state: RunState) -> Referenc
 
     _check_reachability(index, state=state)
     _check_hygiene(index, state=state)
-    if not _PASS_TAGS["flow"] <= skip:
-        _check_control_flow(index, state=state)
-    if not _PASS_TAGS["code"] <= skip:
-        _check_code(index, state=state)
-    if not _PASS_TAGS["variables"] <= skip:
-        _check_variables(index, state=state)
-    if not _PASS_TAGS["behaviour"] <= skip:
-        _check_behaviour(index, state=state)
-    if not _PASS_TAGS["overlap"] <= skip:
-        _check_overlaps(index, state=state)
-    if not _PASS_TAGS["errors"] <= skip:
-        _check_errors(index, state=state)
-    if not _PASS_TAGS["plugins"] <= skip:
-        _check_plugins(index, state=state)
-    if not _PASS_TAGS["resources"] <= skip:
-        _check_resources(index, state=state)
-    if not _PASS_TAGS["secrets"] <= skip:
-        _check_secrets(index, state=state)
+    # Each folded-in pass, in the order its findings are reported, run unless every category it can raise was unticked.
+    # Looked up here, when the check runs, rather than held in a table made at import: a test that stands in for a
+    # pass has to be the one that is called.
+    passes: tuple[tuple[str, Callable[..., None]], ...] = (
+        ("flow", _check_control_flow),
+        ("code", _check_code),
+        ("variables", _check_variables),
+        ("behaviour", _check_behaviour),
+        ("scope", _check_scope),
+        ("overlap", _check_overlaps),
+        ("errors", _check_errors),
+        ("plugins", _check_plugins),
+        ("resources", _check_resources),
+        ("secrets", _check_secrets),
+    )
+    for key, run in passes:
+        if not _PASS_TAGS[key] <= skip:
+            run(index, state=state)
 
     if skip:
         # The closing notes are keyed off what is left (see _limitations), so filtering

@@ -22,7 +22,16 @@ import xml.etree.ElementTree as ET
 from unittest import mock
 
 import pytest
-from maptasker.src.analysis import errcheck, healthck, plugchk, profconflict, proflint, resrefs, taskflow
+from maptasker.src.analysis import (
+    errcheck,
+    healthck,
+    plugchk,
+    profconflict,
+    proflint,
+    resrefs,
+    scopecheck,
+    taskflow,
+)
 from maptasker.src.analysis.healthck import (
     CATEGORIES,
     ERROR,
@@ -802,6 +811,7 @@ def test_every_tag_the_folded_in_passes_raise_is_offered(report: str) -> None:
         | resrefs.TAGS
         | errcheck.TAGS
         | profconflict.TAGS
+        | scopecheck.TAGS
     )
     assert declared - offered == set()
 

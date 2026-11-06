@@ -441,7 +441,10 @@ VARMAN_HELP_TEXT = (
     " Tasker's HTTP API and reads it back to confirm; it needs the Tasker HTTP API project's 'POST Globals' Profile"
     " enabled, and an empty value is never sent, because the API reads it as clearing the variable.  Delete On Phone"
     " clears the ticked variables from the phone the same way, one at a time, and asks the phone whether each is gone;"
-    " it never touches the file, and Delete never touches the phone.  \n"
+    " it never touches the file, and Delete never touches the phone.  Fix Scope lists the names that break Tasker's case"
+    " rule -- all lower case is local to a Task, one capital makes it global -- such as a lower case name that is the"
+    " same letters as a global, or a name in the Variables tab with no capital, and fixes the one you choose everywhere"
+    " it is used, with a preview and one press of Undo.  The Health Check reports the same names.  \n"
 )
 COMMAND_REFERENCE_TEXT = (
     "See the MapTasker [Command Reference](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference)"

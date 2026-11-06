@@ -23,6 +23,7 @@ from typing import TYPE_CHECKING, Any, TypeVar
 
 from nicegui import run, ui
 
+from maptasker.src.analysis import scopecheck
 from maptasker.src.core.mapjump import LINK_CLICK_JS
 from maptasker.src.core.maputil2 import translate_string
 from maptasker.src.gui import livevars
@@ -31,7 +32,7 @@ from maptasker.src.gui.guiutils_android import (
     remember_android_address,
     remember_android_address_fields,
 )
-from maptasker.src.mapops import maprefac, mapvars
+from maptasker.src.mapops import maprefac, mapscope, mapvars
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Coroutine
@@ -80,6 +81,65 @@ def _shown(value: str) -> str:
     return folded if len(folded) <= _VALUE_SHOWN else f"{folded[: _VALUE_SHOWN - 3]}..."
 
 
+def open_plan_dialog(
+    state: RunState,
+    heading: str,
+    fields: Callable[[], None],
+    make_plan: Callable[[], Plan | None],
+    apply_label: str,
+    on_done: Callable[[], None],
+) -> None:
+    """A dialog that previews a change and applies it: the fields, a preview, and Apply that follows the preview.
+
+    `fields` draws whatever the person fills in, `make_plan` reads it and answers the plan (or None when a box is
+    empty), and `on_done` is called once the change has been applied.  Apply is enabled only for a plan that can be
+    applied, and only the plan on screen is ever applied -- the whole of it one Undo, by maprefac.apply.
+    """
+    held: dict[str, Any] = {"plan": None}
+    with ui.dialog().props("persistent") as dialog, ui.card().classes("w-[700px] max-w-full p-4"):
+        ui.label(heading).classes("text-lg font-bold text-blue-600")
+        fields()
+        summary = ui.label("").classes("text-sm font-bold text-orange-500 mt-2")
+        area = ui.scroll_area().classes("w-full h-56 border rounded dark:border-gray-700")
+
+        def preview() -> None:
+            plan = make_plan()
+            if plan is None:
+                ui.notify(translate_string("Fill in every box first."), type="warning")
+                return
+            held["plan"] = plan
+            summary.set_text(
+                f"{plan.what} -- "
+                + (translate_string("cannot be done") if plan.is_blocked else translate_string("ready to apply"))
+            )
+            area.clear()
+            with area, ui.column().classes("w-full gap-0 p-2"):
+                for line in maprefac.report_rows(plan)[:_PREVIEW_LINE_LIMIT]:
+                    ui.label(line.text).classes("font-mono text-xs whitespace-pre")
+            apply_button.set_enabled(plan.can_apply)
+
+        def apply_plan() -> None:
+            plan = held["plan"]
+            if plan is None:
+                ui.notify(translate_string("Press Preview first."), type="warning")
+                return
+            done, errors = maprefac.apply(plan, state=state)
+            for message in errors[:4]:
+                ui.notify(message, type="negative")
+            if not done:
+                return
+            ui.notify(f"{plan.what}. {translate_string('Undo is available.')}", type="positive")
+            dialog.close()
+            on_done()
+
+        with ui.row().classes("w-full justify-end gap-2 mt-3"):
+            ui.button(translate_string("Close"), on_click=dialog.close).props("outline")
+            ui.button(translate_string("Preview"), on_click=preview).props("outline")
+            apply_button = ui.button(apply_label, on_click=apply_plan).classes("bg-blue-600")
+            apply_button.set_enabled(False)
+    dialog.open()
+
+
 def build_variable_manager(
     gui: MyGui,
     make_jump: Callable[[Target], Callable[[], Coroutine[Any, Any, None]]],
@@ -117,6 +177,8 @@ class VariableManager:
         self.rows: list[mapvars.Row] = []
         # What the table was last given to show: its own rows, kept here because the table's are untyped.
         self.shown_rows: list[dict[str, Any]] = []
+        # The Fix Scope window, once it has been opened.
+        self.fixer: ScopeFixer
         # The rows ticked in the table, in table order.  Delete acts on all of them; every other change needs exactly one.
         self.picked: list[mapvars.Row] = []
         self.dialog: ui.dialog
@@ -142,6 +204,7 @@ class VariableManager:
             with ui.row().classes("w-full items-center gap-4"):
                 filter_box = ui.input(translate_string("Search")).props("dense clearable").classes("w-64")
                 ui.space()
+                ui.button(translate_string("Fix Scope"), icon="spellcheck", on_click=self.fix_scope).props("outline")
                 ui.button(translate_string("Get From Phone"), icon="sensors", on_click=self.read_live).props("outline")
 
             with ui.row().classes("w-full items-center gap-2"):
@@ -519,6 +582,11 @@ class VariableManager:
         self.live.values[name] = value
         self.refresh()
 
+    def fix_scope(self) -> None:
+        """Open the window that finds names breaking Tasker's case rule and fixes them."""
+        self.fixer = ScopeFixer(self.make_jump, self.state, self.refresh)
+        self.fixer.build().open()
+
     # ---------------------------------------------------------------- the changes
     def _plan_dialog(
         self,
@@ -527,50 +595,8 @@ class VariableManager:
         make_plan: Callable[[], Plan | None],
         apply_label: str,
     ) -> None:
-        """A dialog that previews a change and applies it: the fields, a preview, and Apply that follows the preview."""
-        held: dict[str, Any] = {"plan": None}
-        with ui.dialog().props("persistent") as dialog, ui.card().classes("w-[700px] max-w-full p-4"):
-            ui.label(heading).classes("text-lg font-bold text-blue-600")
-            fields()
-            summary = ui.label("").classes("text-sm font-bold text-orange-500 mt-2")
-            area = ui.scroll_area().classes("w-full h-56 border rounded dark:border-gray-700")
-
-            def preview() -> None:
-                plan = make_plan()
-                if plan is None:
-                    ui.notify(translate_string("Fill in every box first."), type="warning")
-                    return
-                held["plan"] = plan
-                summary.set_text(
-                    f"{plan.what} -- "
-                    + (translate_string("cannot be done") if plan.is_blocked else translate_string("ready to apply"))
-                )
-                area.clear()
-                with area, ui.column().classes("w-full gap-0 p-2"):
-                    for line in maprefac.report_rows(plan)[:_PREVIEW_LINE_LIMIT]:
-                        ui.label(line.text).classes("font-mono text-xs whitespace-pre")
-                apply_button.set_enabled(plan.can_apply)
-
-            def apply_plan() -> None:
-                plan = held["plan"]
-                if plan is None:
-                    ui.notify(translate_string("Press Preview first."), type="warning")
-                    return
-                done, errors = maprefac.apply(plan, state=self.state)
-                for message in errors[:4]:
-                    ui.notify(message, type="negative")
-                if not done:
-                    return
-                ui.notify(f"{plan.what}. {translate_string('Undo is available.')}", type="positive")
-                dialog.close()
-                self.refresh()
-
-            with ui.row().classes("w-full justify-end gap-2 mt-3"):
-                ui.button(translate_string("Close"), on_click=dialog.close).props("outline")
-                ui.button(translate_string("Preview"), on_click=preview).props("outline")
-                apply_button = ui.button(apply_label, on_click=apply_plan).classes("bg-blue-600")
-                apply_button.set_enabled(False)
-        dialog.open()
+        """A dialog that previews a change and applies it, and brings the table up to date afterwards."""
+        open_plan_dialog(self.state, heading, fields, make_plan, apply_label, self.refresh)
 
     def rename(self) -> None:
         """Rename the chosen variable everywhere it is written."""
@@ -643,3 +669,172 @@ class VariableManager:
         """Write the loaded configuration, with every change made here, to a file."""
         if await self.save_configuration():
             self.refresh()
+
+
+# ##################################################################################
+# Fix Scope: the names that break Tasker's case rule.
+# ##################################################################################
+def _kind_words() -> dict[str, str]:
+    """What each kind of finding is called in the table.  Looked up when asked, in whatever language is on."""
+    return {
+        scopecheck.CASE_MISMATCH: translate_string("Same letters as a global"),
+        scopecheck.DECLARED_LOWERCASE: translate_string("In the Variables tab, no capital"),
+        scopecheck.LOCAL_NEVER_SET: translate_string("Local read, never set"),
+    }
+
+
+class ScopeFixer:
+    """The window that lists variables whose spelling and use disagree, and fixes the one chosen, with a preview.
+
+    All the finding is scopecheck's and all the fixing is mapscope's (maprefac_variable's, underneath): this lists
+    what they say, lets the person choose one and edit the spelling to use, and hands the rest to the same preview
+    dialog the Variable Manager's own changes go through.  What is applied is one Undo, and the list is read again
+    afterwards, because a fix usually settles more than one finding.
+    """
+
+    def __init__(
+        self,
+        make_jump: Callable[[Target], Callable[[], Coroutine[Any, Any, None]]],
+        state: RunState,
+        on_changed: Callable[[], None],
+    ) -> None:
+        """Remember how to follow a place into the Map, the run's state, and what to tell when something was fixed."""
+        self.make_jump = make_jump
+        self.state = state
+        self.on_changed = on_changed
+        self.issues: list[scopecheck.ScopeIssue] = []
+        # What the table was last given to show, kept here because the table's own rows are untyped.
+        self.shown_rows: list[dict[str, Any]] = []
+        self.chosen: scopecheck.ScopeIssue | None = None
+        self.dialog: ui.dialog
+        self.table: ui.table
+        self.summary: ui.label
+        self.detail: ui.label
+        self.fix_button: ui.button
+        self.show_button: ui.button
+
+    def build(self) -> ui.dialog:
+        """Draw the window and read the findings."""
+        with (
+            ui.dialog().props("persistent maximized") as self.dialog,
+            ui.card().classes("w-full h-full p-4 no-wrap gap-2"),
+        ):
+            ui.label(translate_string("Fix Scope")).classes("text-lg font-bold text-blue-600")
+            ui.label(
+                translate_string(
+                    "Tasker decides whether a variable is local or global from the case of its name: all lower case is "
+                    "local to its Task, and a single capital makes it global.  These are names whose spelling and use "
+                    "disagree.",
+                ),
+            ).classes("text-sm text-gray-600 dark:text-gray-300")
+            self.summary = ui.label("").classes("text-sm font-bold")
+            self.table = (
+                ui.table(columns=self._columns(), rows=[], row_key="key", selection="single", on_select=self.chose)
+                .props("dense flat virtual-scroll")
+                .classes("w-full")
+                .style("flex: 1 1 0; min-height: 8rem")
+            )
+            self.detail = ui.label("").classes("text-sm whitespace-pre-wrap")
+            with ui.row().classes("w-full items-center gap-2"):
+                self.fix_button = ui.button(translate_string("Fix..."), icon="spellcheck", on_click=self.fix)
+                self.show_button = ui.button(translate_string("Show In Map"), icon="travel_explore", on_click=self.show)
+                ui.space()
+                ui.button(translate_string("Close"), on_click=self.dialog.close).props("outline")
+        self.refresh()
+        return self.dialog
+
+    @staticmethod
+    def _columns() -> list[dict[str, Any]]:
+        """The table's columns."""
+
+        def column(name: str, label: str, *, numeric: bool = False) -> dict[str, Any]:
+            return {
+                "name": name,
+                "label": label,
+                "field": name,
+                "sortable": True,
+                "align": "right" if numeric else "left",
+            }
+
+        return [
+            column("name", translate_string("Variable")),
+            column("kind", translate_string("Problem")),
+            column("suggestion", translate_string("Suggested")),
+            column("uses", translate_string("Uses"), numeric=True),
+        ]
+
+    @staticmethod
+    def _key(issue: scopecheck.ScopeIssue) -> str:
+        """A row's identity: the kind, the name and where it is, so two Tasks' local of one name are two rows."""
+        return f"{issue.kind}|{issue.name}|{issue.owner}"
+
+    def refresh(self) -> None:
+        """Read the findings again from the loaded configuration, keeping the choice if it is still a finding."""
+        keep = self._key(self.chosen) if self.chosen else ""
+        self.issues = scopecheck.find_issues(self.state)
+        kinds = _kind_words()
+        self.shown_rows = [
+            {
+                "key": self._key(issue),
+                "name": issue.name,
+                "kind": kinds[issue.kind],
+                "suggestion": issue.suggestion or "?",
+                "uses": issue.uses,
+            }
+            for issue in self.issues
+        ]
+        self.table.rows = self.shown_rows
+        self.table.update()
+        counts = {kind: sum(1 for issue in self.issues if issue.kind == kind) for kind in scopecheck.TAGS}
+        self.summary.set_text(
+            ", ".join(f"{counts[kind]} {kinds[kind].lower()}" for kind in sorted(counts))
+            if self.issues
+            else translate_string("No variable breaks the case rule."),
+        )
+        self.choose(next((issue for issue in self.issues if self._key(issue) == keep), None))
+
+    def chose(self, event: TableSelectionEventArguments) -> None:
+        """A row was ticked or unticked in the table."""
+        keys = {item["key"] for item in event.selection}
+        self.choose(next((issue for issue in self.issues if self._key(issue) in keys), None), sync=False)
+
+    def choose(self, issue: scopecheck.ScopeIssue | None, *, sync: bool = True) -> None:
+        """Make this the finding the buttons act on, and say what was seen."""
+        self.chosen = issue
+        if sync:
+            self.table.selected = [
+                row for row in self.shown_rows if issue is not None and row["key"] == self._key(issue)
+            ]
+        self.fix_button.set_enabled(issue is not None)
+        self.show_button.set_enabled(issue is not None)
+        self.detail.set_text(issue.detail if issue is not None else translate_string("Choose a variable to see why."))
+
+    def fix(self) -> None:
+        """Preview the fix for the chosen finding, with the spelling it suggests open to change, and apply it."""
+        issue = self.chosen
+        if issue is None:
+            return
+        box: dict[str, ui.input] = {}
+
+        def fields() -> None:
+            ui.label(issue.detail).classes("text-sm whitespace-pre-wrap")
+            box["name"] = ui.input(translate_string("New name"), value=issue.suggestion).classes("w-full")
+
+        open_plan_dialog(
+            self.state,
+            mapscope.fix_name(issue),
+            fields,
+            lambda: mapscope.plan_fix(issue, self.state, str(box["name"].value or "")),
+            translate_string("Fix"),
+            self._fixed,
+        )
+
+    def _fixed(self) -> None:
+        """A fix was applied: read the findings again, and tell whoever opened this."""
+        self.refresh()
+        self.on_changed()
+
+    async def show(self) -> None:
+        """Take the person to where the chosen variable is used, in the Map."""
+        if self.chosen is not None:
+            await self.make_jump(self.chosen.where)()
