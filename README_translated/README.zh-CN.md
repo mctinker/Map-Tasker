@@ -374,7 +374,7 @@ AI 分析功能仅在图形界面中可用。您只能针对单个 Project、Pro
   - 您的操作系统和 Python 版本。
   - MapTasker 版本。
   - 与 Tasker XML 文件的相关部分（如果适用，并确保其中不包含任何敏感信息）。
-  - 如果使用 `-debug` 选项生成文件，则会产生名为 `maptasker.log` 的文件。
+  - 生成的 `maptasker.log` 文件（如果使用了 `-debug` 选项）。
 
 **提出改进建议：**
 

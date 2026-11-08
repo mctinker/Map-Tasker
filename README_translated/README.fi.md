@@ -299,49 +299,49 @@ Katso [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/caveats.txt)-
 
 ## Tehtävälista (ei erityisessä järjestyksessä)
 
-- [x] Readiness Check (valmiustarkistus)
+- [x] Tukee lisälaajennuksia
 
-- [x] Lisäplugareiden tuki
+- [x] Tuonti riippuvuuksineen
 
-- [x] Tuonti riippuvuuksineen (Import with Dependencies)
+- [x] Tehtävätestit – Tallenna ja vertaile tehtävien vaiheiden sessioita ennen ja jälkeen muutosten tekemisen
 
-- [x] Tehtävä-askel: suorita tehtävä vaihe vaiheelta, näyttäen, mitkä `If`, `For` ja `Goto`-haarat suoritetaan ja mitä kukin muuttuja sisältää.
+- [x] Tehtävän suorittaja: testaa tehtävän suorittamista vaihe vaiheelta, näyttäen, mitkä If-, For- ja Goto-haarat suoritetaan ja mitä kukin muuttuja sisältää.
 
-- [ ] Jäljellä olevien Tasker-asetusten (preferences) kartoittaminen
+- [x] Reaaliaikainen valvontatoiminto: näyttää, mitkä profiilit ja tehtävät toimivat puhelimessa ja valaisee ne kaaviossa.
 
-- [x] TaskerNet päivityseurantajärjestelmä: ilmoittaa, kun käytössäsi olevan sovelluksen kehittäjä on julkaissut uudemman version, ja näyttää muutosten erotuksen.
+- [x] TaskerNetin päivityseurantajärjestelmä: Ilmoittaa sinulle, kun TaskerNetin käyttämäsi sovelluksen kehittäjä on julkaissut uudemman version, ja näyttää muutosten erotuksen.
 
-- [ ] Määritä jäljellä olevat Taskerin asetukset
+- [x] Resurssien tarkistus: varmista, että tiedostot, kansiot, kuvat, äänet, kohtaukset ja sovellukset, joita toiminnot käyttävät, ovat edelleen olemassa.
 
-- [x] Task Stepper: "kuivaharjoittele" Task toiminto toiminnolta, näyttäen mitkä If-, For- ja Goto-haarat suoritetaan ja mitä kukin muuttuja sisältää
+- [x] Monitoiminen taulu: Seuraa tehtävien pituutta, sisäkkäisyyttä, puheluketien syvyyttä ja tuloksia ajan kuluessa.
 
-- [x] Live Run Monitor: toista suoratoistona, mitkä Profiles ja Tasks laukeavat puhelimessa, ja korosta ne Diagram-näkymässä
+- [x] Muuttujan nimen muokkaus- ja laajuuden apuohjelma: muuta muuttujan nimeä tai tee siitä paikallinen muuttuja, missä tahansa se on käytössä, yhdellä peruutustoiminnolla.
 
-- [ ] Kolmisuuntainen yhdistäminen (three-way merge) kahdesta varmuuskopiosta suhteessa yhteiseen esivanhempaan, ratkaistuna konflikti konfliktilta ja peruutettavissa yhdellä askeleella
+- [x] TaskerNet-kuvaukset: lisää/muokkaa.
 
-- [x] TaskerNet-päivitysseuranta: ilmoittaa sinulle, kun käyttämäsi jaon tekijä julkaisee uuden version, muutosten diffin kanssa
+- [x] Lähtevä varasto: tunnista kaikki ulkoiset viittaukset
 
-- [x] Akun-audito
+- [x] Akunvalvonta
 
-- [ ] Henkilökohtainen katkelmakirjasto (snippet library): tallenna uudelleenkäytettäviä action-sekvensseja, Taskeja ja Profile-malleja, ja lisää niitä parametrien kanssa
+- [x] Lisää vaatimukset TaskerNet-kuvaan
 
 - [x] Muuttujien hallinta
 
 - [x] Muistiinpanot ja tunnisteiden tuki
 
-- [x] TaskerNet-kuvaukset: lisäys/muokkaus.
+- [ ] Palauta Taskerin asetukset
 
-- [ ] Yksinkertaisella kielellä selitykset Map-näkymässä: AI:n kirjoittama, välimuistitettu ja muokattava yhden rivin yhteenveto joka Profilesta ja Taskista
+- [ ] Omat mallikirjastot: Tallenna uudelleenkäytettäviä toimintojaksoja, tehtäviä ja profiilimalleja ja lisää ne parametrien avulla.
 
-- [x] Puuttuvien resurssien tarkistin: varmista, että actions-toimintojesi viittaamat tiedostot, kansiot, kuvat, äänet, Scenet ja sovellukset ovat edelleen olemassa
+- [ ] Selkeät, helpottavat selitykset kartalla: tekoälyn luoma, välimuistiin tallennettu ja muokattava lyhyt yhteenveto jokaisesta profiilista ja tehtävästä
 
-- [x] Monimutkaisuuden ja trendien hallintapaneeli: seuraa Task-pituutta, sisäkkäisyyttä, kutsuketjun syvyyttä ja havaintoja ajan myötä
+- [ ] Dokumentaation sivuston vienti: linkitetty koko, joka koostuu Markdown- tai HTML-sivuista, yksi jokaiselle Projektille, Profilille, Tehtävälle ja Kohtaukselle, sekä kuvioista
 
-- [ ] Kolmastoiminen yhdistäminen, jolla voidaan yhdistää kaksi eri varmuuskopioa
+- [ ] Kolmen tietojen yhdistäminen, jotta kaksi erillistä varmuuskopioa voidaan yhdistää
 
-- [ ] Dokumentaatiosivuston vienti: toisiinsa linkitetty joukko Markdown- tai HTML-sivuja, yksi joka Projectia, Profilea, Taskia ja Scenea kohden, kutsukaavioiden kanssa
+- [ ] Lämpökartta, joka näyttää reaaliaikaiset tulipalot tietyn ajanjakson aikana, auttaa tunnistamaan, missä tulipalot ovat päässeet käynnistymään.
 
-- [x] Muuttujien uudelleennimeämis- ja scope-avustaja: nimeä muuttuja uudelleen, tai muuta globaali paikalliseksi, kaikkialla missä sitä käytetään, yhtenä peruutettavana toimintona
+- [ ] Samankaltaisen löytäjä, joka tunnistaa tehtävät, jotka on kopioitu ja liitetty pienillä muutoksilla, ja tarjoaa niiden yhdistämisen
 
 - [ ] Projektin riippuvuussuunnitelma
 

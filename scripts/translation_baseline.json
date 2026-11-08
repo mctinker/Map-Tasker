@@ -1,13 +1,5 @@
 {
-  "READMEs: changed": {
-    "- Ensure both desktop and Android devices are on the same local networ": "ar es ja",
-    "- If you find a bug, please open an issue on the [GitHub Issues page](": "zh-CN"
-  },
   "READMEs: still English": {
     "- `maptasker/`: Contains the core application code. - `maptasker/src/`": "hi"
-  },
-  "catalogs: placeholders changed": {
-    "...and {count} more -- type above to narrow it down.": "bn gu hi ta",
-    "Tasker lists this element, but MapTasker has never seen one in a saved Scene -- so it is added carrying nothing but its type and id, and even the type is inferred from the name above (written as type: \"{node_type}\"). If Tasker doesn't recognise it, press Undo.": "hi"
   }
 }
