@@ -471,7 +471,7 @@ def install_task_on_android(
 
     # via_file=False: a helper Task is MapTasker's own plumbing, and an ordinary import
     # leaves a .tsk.xml behind in /Tasker/tasks -- a folder the user browses for their own
-    # Tasks.  'MapTasker Send Profile v1.tsk.xml' sitting in it is litter they did not ask
+    # Tasks.  'MapTasker Open Profile v4.tsk.xml' sitting in it is litter they did not ask
     # for and would have to recognize before deleting.
     return_code, result = taskedit_save.save_task_to_android(
         built, ip_address, ip_port, task_name, via_file=False, state=state

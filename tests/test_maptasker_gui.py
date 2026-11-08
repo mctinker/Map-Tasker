@@ -1476,7 +1476,7 @@ async def test_the_user_is_told_which_file_is_waiting_on_the_device(
     )
 
     staged = "/storage/emulated/0/Tasker/profiles/Watched.prf.xml"
-    assert staged == deviceoffer.SEND_INTENT_ROUTE.staged_file_paths("Watched")[2]
+    assert staged == deviceoffer.OPEN_FILE_ROUTE.staged_file_paths("Watched")[2]
     assert any(staged in message for message, _type in calls["notify"])
 
     _pre_check, _offer, confirm = calls["io_bound"]

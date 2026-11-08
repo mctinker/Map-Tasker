@@ -138,8 +138,8 @@ def save_task_to_android(
     via_file=False skips step 1 and posts the render straight to api/import.  It exists for
     ONE caller -- devicetask.install_task_on_android, putting MapTasker's own helper Tasks on
     the device.  Those are plumbing: the user did not ask for them, would not recognize them,
-    and /Tasker/tasks is a folder they browse.  Filling it with 'MapTasker Send Profile
-    v1.tsk.xml' would be leaving MapTasker's tools among the user's own work.
+    and /Tasker/tasks is a folder they browse.  Filling it with 'MapTasker Open Profile
+    v4.tsk.xml' would be leaving MapTasker's tools among the user's own work.
 
     api/import is the only documented way into Tasker's live configuration over HTTP and it
     is Task-only -- api/tasks runs a Task that already exists, and /api/file and /upload put

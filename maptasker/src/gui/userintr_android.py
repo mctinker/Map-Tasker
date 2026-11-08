@@ -1027,11 +1027,12 @@ class AndroidEventHandlers(HandlerGroup):
     # one rather than a third guess.  OPEN_FILE_ROUTE fires an implicit ACTION_VIEW and
     # lets Android find the handler; it was measured working on 2026-08-27 and FAILING the
     # next day on the same device -- a chooser of seven apps with Tasker not among them.
-    # So it was swapped for SEND_INTENT_ROUTE, which names Tasker's package and class
-    # outright and is delivered with no filter matching at all.  That reaches Tasker (it is
-    # how a Scene got Tasker to open) but it has to carry a file:// URI, which Android 7
-    # and later rejects in an outgoing intent -- so on this device neither route imported
-    # anything, for two entirely different reasons.
+    # So it was swapped for a Send Intent route, which named Tasker's package and class
+    # outright and was delivered with no filter matching at all.  That reached Tasker (it is
+    # how a Scene got Tasker to open) but it had to carry a file:// URI, and Tasker opened
+    # on its default Project and imported nothing -- so on this device neither route
+    # imported anything, for two entirely different reasons.  That route has since been
+    # removed (see deviceoffer).
     #
     # What neither attempt tried is the thing a file manager actually does: an implicit
     # VIEW with NO MIME TYPE.  The failing chooser was a chooser of text/xml apps because

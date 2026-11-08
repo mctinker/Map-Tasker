@@ -34,10 +34,10 @@
   },
   "tests/test_deviceinv.py": {
     "reportArgumentType": 6,
-    "reportAttributeAccessIssue": 4,
+    "reportAttributeAccessIssue": 3,
     "reportCallIssue": 2,
     "reportOperatorIssue": 1,
-    "reportReturnType": 3
+    "reportReturnType": 2
   },
   "tests/test_devicemonitor.py": {
     "reportAttributeAccessIssue": 7

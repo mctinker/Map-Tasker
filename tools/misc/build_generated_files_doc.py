@@ -884,9 +884,10 @@ def build_page(files: list[OutputFile]) -> str:
         "| `MapTasker Backup For ID Check vx` | Runs Tasker's Data Backup so ids can be checked after an import.  The backup is only held in memory and is deleted from the device. |",
         "| `MapTasker Run Task vx` | Runs one of your Tasks by name and returns what it returned, passing %par1 and %par2 through.  'Run On Android' uses it for names Tasker's HTTP server cannot look up, such as '$Taskaroo'. |",
         "",
-        "Each import route has a pair, one that opens the file and one that sends an intent:",
-        "`MapTasker Open Profile vx` / `MapTasker Send Profile vx`, and the same for Project,",
-        "Scene and Task.",
+        "Each kind of import has a Task that opens the file: `MapTasker Open Profile vx`, and the same for",
+        "Project, Scene and Task.  (Earlier versions also installed a `MapTasker Send ... vx` for each; it did",
+        "not work and was removed.  If your phone still has them, the List Helper Tasks button names them as leftovers",
+        "you can delete.)",
         "",
     ]
     return "\n".join(out)

@@ -27,6 +27,7 @@ All notable changes to this project will be documented in this file!
 ### Removed
 
 - Removed: The 'MapTasker Import Profile' and 'MapTasker Open Tasker' helper Tasks are no longer put on your phone, because nothing in MapTasker used them any more. If your phone already has them, they now show up as old helper Tasks that you can delete.
+- Removed: The four 'MapTasker Send ...' helper Tasks (Profile, Project, Scene and Task) are no longer put on your phone, because the intent they sent only opened Tasker on its default Project and never showed an import screen. If your phone already has them, 'List Helper Tasks' now names them as old ones you can delete.
 
 ### Fixed
 

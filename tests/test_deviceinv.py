@@ -1754,119 +1754,42 @@ def test_nothing_to_ask_about_is_not_confirmed(open_device: _FakeImportRequests)
 
 
 # ##################################################################################
-# The same offer, addressed to Tasker explicitly
+# One kind's offer is never read as another's, and nothing is sent to Tasker explicitly
 #
-# 'Open File' asks Android to find a handler; 'Send Intent' names one.  These assert the
-# intent's shape -- which is taken from the ACTION_VIEW intents in this repo's real backups,
-# not invented -- and that choosing a route actually changes which Task runs and which file
-# is read, rather than quietly running the other one.
+# There used to be a second route per kind, a Send Intent addressed at Tasker's own activity.  It was measured on a
+# real phone to open Tasker on its default Project and import nothing, and it was removed.
 # ##################################################################################
-GOOD_INTENT_PAYLOAD = """MAPTASKER-SEND-PROFILE 1
-OFFERED
-/storage/emulated/0/Tasker/profiles/Watched.prf.xml
-MAPTASKER-END
-"""
-
-
-@pytest.fixture
-def intent_device(monkeypatch: pytest.MonkeyPatch) -> _FakeImportRequests:
-    from maptasker.src.core import maputil2
-
-    fake = _FakeImportRequests(payload=GOOD_INTENT_PAYLOAD)
-    fake.result_filename = "maptasker_send_profile.txt"
-    monkeypatch.setattr(maputil2, "requests", fake)
-    monkeypatch.setattr(time, "sleep", lambda _seconds: None)
-    maputil2._auth_keys.clear()
-    _load(_FIXTURE_XML)
-    return fake
-
-
-def test_the_intent_is_the_shape_real_backups_use(intent_device: _FakeImportRequests) -> None:
-    """Every ACTION_VIEW 'Send Intent' in this repo's backups uses Cat=None (0) and
-    Target=Activity (1), and the ones meant for a particular app name it in Package.  A
-    Broadcast Receiver or a Service target would send it somewhere that cannot show an
-    import screen, and neither failure would say so."""
-    return_code, message = _open(intent_device, route=deviceoffer.SEND_INTENT_ROUTE)
-    assert return_code == 0, message
-
-    imported = ET.fromstring(intent_device.imported_xml)
-    intent = imported.find(".//Action[code='877']")
-    assert intent is not None
-    assert intent.findtext("Str[@sr='arg0']") == "android.intent.action.VIEW"
-    assert required(intent.find("Int[@sr='arg1']")).get("val") == "0"  # Cat: None
-    assert intent.findtext("Str[@sr='arg2']") == "text/xml"
-    assert intent.findtext("Str[@sr='arg3']") == "file://%par1"  # told which file at run time
-    assert intent.findtext("Str[@sr='arg7']") == "net.dinglisch.android.taskerm"
-    assert intent.findtext("Str[@sr='arg8']") == "net.dinglisch.android.taskerm.Tasker"
-    assert required(intent.find("Int[@sr='arg9']")).get("val") == "1"  # Target: Activity
-
-
-def test_choosing_a_route_changes_which_task_runs(intent_device: _FakeImportRequests) -> None:
-    """The routes are separate Tasks with separate names, so a device can hold both and
-    neither run is the other's.  Asking for one and getting the other would be invisible
-    from here -- both write a MAPTASKER-* file and both end in the same terminator."""
-    _open(intent_device, route=deviceoffer.SEND_INTENT_ROUTE)
-
-    imported = ET.fromstring(intent_device.imported_xml)
-    assert imported.findtext(".//Task/nme") == deviceoffer.SEND_INTENT_ROUTE.task_name
-    assert "102" not in _codes(intent_device.imported_xml)  # not the Open File Task
-
-    assert deviceoffer.SEND_INTENT_ROUTE.read_path != deviceoffer.OPEN_FILE_ROUTE.read_path
-    assert deviceoffer.SEND_INTENT_ROUTE.header != deviceoffer.OPEN_FILE_ROUTE.header
-    assert deviceoffer.SEND_INTENT_ROUTE.task_name != deviceoffer.OPEN_FILE_ROUTE.task_name
-
-
 def test_a_route_reads_only_its_own_answer_file(monkeypatch: pytest.MonkeyPatch) -> None:
-    """A device still holding the OTHER route's answer file must not be read as this one's
-    success.  The header is what catches it."""
+    """A device still holding the OTHER kind's answer file must not be read as this one's success.  The header is
+    what catches it: the Project route is handed the Profile route's payload."""
     from maptasker.src.core import maputil2
 
-    fake = _FakeImportRequests(payload=GOOD_OPEN_PAYLOAD)  # the wrong route's payload
-    fake.result_filename = "maptasker_send_profile.txt"
+    fake = _FakeImportRequests(payload=GOOD_OPEN_PAYLOAD)  # the Profile route's payload
+    fake.result_filename = "maptasker_open_project.txt"
     monkeypatch.setattr(maputil2, "requests", fake)
     monkeypatch.setattr(time, "sleep", lambda _seconds: None)
     maputil2._auth_keys.clear()
     _load(_FIXTURE_XML)
 
-    return_code, message = _open(fake, route=deviceoffer.SEND_INTENT_ROUTE)
+    return_code, message = _open(fake, route=deviceoffer.OPEN_PROJECT_ROUTE)
 
     assert return_code != 0
     assert "not a MapTasker import result" in message
 
 
-def test_the_intent_route_names_the_failure_only_it_has(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Since Android 7 a file:// URI in an outgoing intent is rejected, and this route is the
-    only one that has to use one -- 'Open File' can hand out a content:// URI and this
-    cannot.  A device that writes nothing back should point at that, and at the route that
-    does not have the problem, rather than leaving the user guessing."""
-    from maptasker.src.core import maputil2
-
-    fake = _FakeImportRequests(payload=None)
-    fake.result_filename = "maptasker_send_profile.txt"
-    monkeypatch.setattr(maputil2, "requests", fake)
-    monkeypatch.setattr(time, "sleep", lambda _seconds: None)
-    maputil2._auth_keys.clear()
-    _load(_FIXTURE_XML)
-
-    return_code, message = _open(fake, route=deviceoffer.SEND_INTENT_ROUTE)
-
-    assert return_code != 0
-    assert "file://" in message
-    assert "try the Open File route instead" in message  # named for a user, not for a reader of this code
-
-
-def test_both_routes_share_everything_around_the_task(intent_device: _FakeImportRequests) -> None:
-    """Staging, the duplicate refusal and the confirmation wait are one implementation, not
-    two -- the routes are data handed to one orchestrator.  Asserted through the intent
-    route because the other one's tests would pass either way."""
-    return_code, message = _open(intent_device, route=deviceoffer.SEND_INTENT_ROUTE)
-
-    assert return_code == 0, message
-    assert intent_device.uploaded == _STAGED_PROFILE_XML  # the shared staging upload
-    assert "is now in Tasker" in message  # the shared confirmation wait
+def test_no_offer_sends_an_intent_to_tasker(loaded: None) -> None:
+    """The Send Intent route was measured to import nothing (Tasker opened on its default Project and showed no
+    import screen), so no helper Task carries a Send Intent action.  The 'Open File' action is the whole offer."""
+    for route in deviceoffer.ALL_OFFER_ROUTES:
+        built = route.builder(state=PrimeItems)
+        assert not isinstance(built, str), built
+        task_xml = ET.fromstring(ET.tostring(built.task_element, encoding="unicode"))
+        assert task_xml.find(".//Action[code='877']") is None, route.task_name
+        assert task_xml.find(".//Action[code='102']") is not None, route.task_name
 
 
 # ##################################################################################
+# Confirming at the right endpoint# ##################################################################################
 # Confirming at the right endpoint
 #
 # The three kinds do not all confirm the same way.  A Profile and a Scene each have an
@@ -1907,35 +1830,6 @@ def _open_file_args(route: deviceoffer.OfferRoute) -> tuple[str, str]:
     action = task_xml.find(".//Action[code='102']")
     assert action is not None
     return action.findtext("Str[@sr='arg0']"), action.findtext("Str[@sr='arg1']")
-
-
-def _send_intent_args(route: deviceoffer.OfferRoute) -> tuple[str, str, str]:
-    """The mime type, data URI and package the route's helper Task sends ACTION_VIEW with."""
-    built = route.builder(state=PrimeItems)
-    assert not isinstance(built, str), built
-    task_xml = ET.fromstring(ET.tostring(built.task_element, encoding="unicode"))
-    action = task_xml.find(".//Action[code='877']")
-    assert action is not None
-    return (
-        action.findtext("Str[@sr='arg2']"),
-        action.findtext("Str[@sr='arg3']"),
-        action.findtext("Str[@sr='arg7']"),
-    )
-
-
-def test_the_intent_names_a_class_and_not_just_a_package(import_device: _FakeImportRequests) -> None:
-    """What makes an intent addressed rather than advertised, which is what this route is
-    for.  A package with no class is still matched against that package's intent-filters, so
-    package-only is not the fallback it claims to be -- it fails wherever implicit
-    resolution fails, and looks identical from here.  Package AND class is an explicit
-    component, delivered without matching anything."""
-    for route in (deviceoffer.SEND_INTENT_ROUTE, deviceoffer.SEND_INTENT_PROJECT_ROUTE):
-        _mime, _uri, package = _send_intent_args(route)
-        built = route.builder(state=PrimeItems)
-        task_xml = ET.fromstring(ET.tostring(built.task_element, encoding="unicode"))
-        intent = task_xml.find(".//Action[code='877']")
-        assert package == "net.dinglisch.android.taskerm"
-        assert required(intent).findtext("Str[@sr='arg8']") == "net.dinglisch.android.taskerm.Tasker"
 
 
 # ##################################################################################
@@ -2313,14 +2207,6 @@ def test_each_kind_stages_into_the_folder_it_belongs_in() -> None:
 
     assert deviceoffer.OPEN_FILE_ROUTE.stage_location == profedit.ANDROID_PROFILE_LOCATION == "Tasker/profiles"
     assert deviceoffer.OPEN_PROJECT_ROUTE.stage_location == projedit.ANDROID_PROJECT_LOCATION == "Tasker/projects"
-    # Both routes of a kind stage the same file -- they differ in how Tasker is asked to open
-    # it, never in what it is asked to open.
-    assert deviceoffer.SEND_INTENT_ROUTE.staged_file_paths("A") == deviceoffer.OPEN_FILE_ROUTE.staged_file_paths("A")
-    assert deviceoffer.SEND_INTENT_PROJECT_ROUTE.staged_file_paths(
-        "A"
-    ) == deviceoffer.OPEN_PROJECT_ROUTE.staged_file_paths(
-        "A",
-    )
 
 
 # ##################################################################################
@@ -2397,39 +2283,24 @@ def test_every_kind_has_an_open_with_route_into_its_own_folder() -> None:
     assert deviceoffer.OPEN_PROJECT_ROUTE.confirm_endpoint == devicetask.PROFILES_ENDPOINT
 
 
-def test_only_the_open_with_route_drops_the_mime_type(loaded: None) -> None:
-    """The two routes want opposite things from a mime type, so the change is scoped to one.
-
-    Open File is matched against every filter on the device, and a type excludes the
-    extension filters that are the only ones claiming '.prf.xml'.  Send Intent names a
-    component and is delivered without matching at all, so its type is not doing any
-    matching -- it is what the receiver reads to know what it was handed, and dropping it
-    there would lose information for no gain.
-    """
+def test_the_open_with_route_sends_no_mime_type(loaded: None) -> None:
+    """Open File is matched against every filter on the device, and a type excludes the extension filters that are
+    the only ones claiming '.prf.xml'."""
     built = deviceoffer.OPEN_FILE_ROUTE.builder(state=PrimeItems)
     assert not isinstance(built, str), built
     task_xml = ET.fromstring(ET.tostring(built.task_element, encoding="unicode"))
     assert (required(task_xml.find(".//Action[code='102']")).findtext("Str[@sr='arg1']") or "") == ""
 
-    built = deviceoffer.SEND_INTENT_ROUTE.builder(state=PrimeItems)
-    assert not isinstance(built, str), built
-    task_xml = ET.fromstring(ET.tostring(built.task_element, encoding="unicode"))
-    assert required(task_xml.find(".//Action[code='877']")).findtext("Str[@sr='arg2']") == "text/xml"
-
 
 def test_no_two_routes_share_an_answer_file() -> None:
-    """Eight routes now, and reading one's payload as another's has to be impossible rather
+    """Four routes now, and reading one's payload as another's has to be impossible rather
     than unlikely: a Task route reading the Profile route's answer would report a stale
     Profile import as its own success."""
     routes = (
         deviceoffer.OPEN_FILE_ROUTE,
-        deviceoffer.SEND_INTENT_ROUTE,
         deviceoffer.OPEN_PROJECT_ROUTE,
-        deviceoffer.SEND_INTENT_PROJECT_ROUTE,
         deviceoffer.OPEN_SCENE_ROUTE,
-        deviceoffer.SEND_INTENT_SCENE_ROUTE,
         deviceoffer.OPEN_TASK_ROUTE,
-        deviceoffer.SEND_INTENT_TASK_ROUTE,
     )
     assert len({route.read_path for route in routes}) == len(routes)
     assert len({route.header for route in routes}) == len(routes)
@@ -2441,13 +2312,9 @@ def test_the_answer_files_stay_out_of_those_folders() -> None:
     'maptasker_open_profile.txt' in the list they browse is litter in a place they look."""
     for route in (
         deviceoffer.OPEN_FILE_ROUTE,
-        deviceoffer.SEND_INTENT_ROUTE,
         deviceoffer.OPEN_PROJECT_ROUTE,
-        deviceoffer.SEND_INTENT_PROJECT_ROUTE,
         deviceoffer.OPEN_SCENE_ROUTE,
-        deviceoffer.SEND_INTENT_SCENE_ROUTE,
         deviceoffer.OPEN_TASK_ROUTE,
-        deviceoffer.SEND_INTENT_TASK_ROUTE,
     ):
         assert route.read_path.startswith("/Tasker/maptasker_")
         for folder in ("/profiles/", "/projects/", "/scenes/", "/tasks/"):
@@ -2462,13 +2329,9 @@ def test_the_helper_task_name_moved_with_what_the_task_opens() -> None:
     opens %par1.  Each change needed a new name."""
     for route in (
         deviceoffer.OPEN_FILE_ROUTE,
-        deviceoffer.SEND_INTENT_ROUTE,
         deviceoffer.OPEN_PROJECT_ROUTE,
-        deviceoffer.SEND_INTENT_PROJECT_ROUTE,
         deviceoffer.OPEN_SCENE_ROUTE,
-        deviceoffer.SEND_INTENT_SCENE_ROUTE,
         deviceoffer.OPEN_TASK_ROUTE,
-        deviceoffer.SEND_INTENT_TASK_ROUTE,
     ):
         assert route.task_name.endswith(" v4"), route.task_name
 
@@ -2490,7 +2353,7 @@ def test_the_current_helper_names_come_from_the_routes_themselves() -> None:
     Task now in use as dead and invite the user to delete the working one."""
     current = devicehelpers.current_helper_task_names(state=PrimeItems)
 
-    assert len(deviceoffer.ALL_OFFER_ROUTES) == 8
+    assert len(deviceoffer.ALL_OFFER_ROUTES) == 4
     for route in deviceoffer.ALL_OFFER_ROUTES:
         assert route.task_name in current, route.task_name
     for standalone in (
@@ -2499,6 +2362,16 @@ def test_the_current_helper_names_come_from_the_routes_themselves() -> None:
     ):
         assert standalone in current
     assert all(name.startswith(devicehelpers.HELPER_TASK_PREFIX) for name in current)
+
+
+def test_the_retired_send_tasks_are_named_as_leftovers() -> None:
+    """A phone that had the Send Intent helpers installed keeps them: nothing can delete a Task from here.  They are
+    no longer this program's, so the helper list names them for the user to delete rather than calling them in use."""
+    retired = [f"MapTasker Send {kind} v4" for kind in ("Profile", "Project", "Scene", "Task")]
+    current, stale = devicehelpers.classify_helper_tasks([*retired, "MapTasker Open Profile v4"], state=PrimeItems)
+
+    assert current == ["MapTasker Open Profile v4"]
+    assert stale == sorted(retired)
 
 
 def test_only_this_programs_leftovers_are_called_stale() -> None:

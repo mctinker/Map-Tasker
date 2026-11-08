@@ -262,10 +262,6 @@ def _open_with_project(device: Device) -> Outcome:
     return _offer(device, _PROJECT_XML, "OPEN_PROJECT_ROUTE", "Project")
 
 
-def _send_intent_profile(device: Device) -> Outcome:
-    return _offer(device, _PROFILE_XML, "SEND_INTENT_ROUTE", "Profile, sent straight to Tasker")
-
-
 def _share_link(device: Device) -> Outcome:
     from maptasker.src.core import maputil2
     from maptasker.src.core.primitem import PrimeItems
@@ -358,13 +354,6 @@ CHECKS = (
         "'Open with' reaches Tasker for a Project",
         "the same for .prj.xml",
         _open_with_project,
-        needs_backup=True,
-    ),
-    Check(
-        "send-intent-profile",
-        "An explicit intent reaches Tasker's import screen",
-        "a file:// URI in Send Intent is accepted by Tasker (measured 2026-11-03: Tasker opens and shows no import screen)",
-        _send_intent_profile,
         needs_backup=True,
     ),
     Check(

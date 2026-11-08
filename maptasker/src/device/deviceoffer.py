@@ -58,8 +58,7 @@ if TYPE_CHECKING:
 # bad answer is unrecoverable.  An import screen that takes one tap on the device uses
 # Tasker's own documented import, with nothing else in the configuration at stake -- and that
 # is what the GUI is built on: see userintr_android.import_profile_into_tasker_event and
-# import_project_into_tasker_event.  SEND_INTENT_* stays as the fallback for a device where implicit resolution does not land
-# on Tasker, not as a second candidate still being chosen between.
+# import_project_into_tasker_event.
 #
 # WHAT THE ANSWER FILE PROVES, WHICH IS LESS THAN THE OTHER ROUTE'S
 #
@@ -92,13 +91,7 @@ if TYPE_CHECKING:
 # path and a mime type and nothing else.)
 
 _OPEN_FILE_ACTION = "102t"  # arg0 File, arg1 Mime Type
-_SEND_INTENT_ACTION = "877t"  # arg0 Action, arg1 Cat, arg2 Mime Type, arg3 Data,
-#                               arg4-6 Extra, arg7 Package, arg8 Class, arg9 Target
-# The mime type an explicit Send Intent carries.  It has a named component to be delivered
-# to, so the type is not doing any matching -- it is what the receiver reads to know what it
-# was handed.
-_SEND_INTENT_MIME_TYPE = "text/xml"
-# ...and the OPEN WITH route deliberately carries NONE.  This is the one that matters, and it
+# The OPEN WITH route deliberately carries NO mime type.  This is the one that matters, and it
 # is reasoned rather than measured, so here is the reasoning in full.
 #
 # 'Open File' fires an implicit ACTION_VIEW, which is what produces Android's "Open with..."
@@ -131,54 +124,24 @@ _OPEN_PAYLOAD_OFFERED = "OFFERED"
 # Firing an intent is immediate; this is a timeout on the device answering at all.
 _OPEN_POLL_ATTEMPTS = 15
 
-# --- 'Send Intent', for when implicit resolution does not find Tasker -------------------
+# --- WHY THERE IS NO 'SEND INTENT' ROUTE -------------------------------------------------
 #
-# 'Open File' asks Android to find something that handles the file, and trusts it to land on
-# Tasker.  If it does not -- nothing registered for 'text/xml', or a chooser comes up and
-# Tasker is not in it -- this says where to send it instead: ACTION_VIEW at Tasker's own
-# activity, explicitly.
+# There used to be a second route beside 'Open File': a Send Intent, ACTION_VIEW addressed outright at Tasker's own
+# activity (package AND class, so Android delivers it without matching any intent-filter), for a device where the
+# implicit "Open with..." does not land on Tasker.  It is gone because it was measured not to do the job:
 #
-# MEASURED, 2026-08-28, and the reason this route is no longer only a fallback: a '.scn.xml'
-# offered through 'Open File' brings up a chooser with no Tasker in it, while the identical
-# offer of a '.prf.xml' lands on Tasker's import screen.  Same mime type, same action, same
-# staged directory -- so what Tasker matches on is the EXTENSION in its manifest, and it
-# claims Profile, Project and Task files but not Scene files.  No mime type fixes that; a
-# Scene has to be addressed rather than advertised.
+#   * 2026-08-28, a '.scn.xml': 'Open File' brought up a chooser with no Tasker in it, so the explicit intent was
+#     built for Scenes.  It reached Tasker, and Tasker did nothing with the file.
+#   * 2026-11-03 (tools/device_check.py, a real phone), a '.prf.xml': Tasker opened on its default Project ('Base')
+#     and showed no import screen and no chooser.  The same result.  The intent arrives; Tasker does nothing with
+#     the file.  Why is not established -- the Data field can only be a 'file://' URI from here, which Android 7 and
+#     later refuses to let an app put in an outgoing intent, and 'Open File' hands out 'content://' URIs from Tasker's
+#     own FileProvider instead -- but the result does not depend on the reason.
 #
-# NAMING THE PACKAGE IS NOT ENOUGH TO ADDRESS IT.  An intent with a package but no class is
-# still resolved against that package's intent-filters -- exactly the matching that just
-# failed -- so a Scene sent that way would fail the same way, silently.  Naming the class
-# (arg8) makes the intent EXPLICIT, and an explicit intent skips filter matching altogether
-# and is delivered to that activity whatever its manifest claims.
-#
-# The shape is not invented.  Every ACTION_VIEW 'Send Intent' in this repo's real backups
-# uses Cat=None and Target=Activity, and the ones aimed at a particular app name it in
-# Package (arg7) -- e.g. 'google.navigation:q=%address' at com.google.android.apps.maps.
-#
-# THE ONE WAY THIS CAN FAIL THAT 'Open File' CANNOT: the Data field has to be a URI, and the
-# only URI available from here is 'file://'.  Since Android 7 an app that puts a file:// URI
-# into an outgoing intent gets a FileUriExposedException -- which is precisely what 'Open
-# File' exists to avoid, since it can hand out a content:// URI from Tasker's own
-# FileProvider and this cannot.  Whether Tasker's 'Send Intent' converts it or passes it
-# straight through is not established here.
-#
-# MEASURED 2026-11-03 (tools/device_check.py send-intent-profile, a real phone): Tasker opened, on its default Project
-# ('Base'), and showed no import screen and no chooser.  The same as the Scene measured above: the intent reaches Tasker
-# and Tasker does nothing with the file.  So this route does not do what the 'Open File' route does, and is no fallback
-# for it.
-_VIEW_ACTION = "android.intent.action.VIEW"
-# Both dropdowns by the label apply_arg_values matches on -- see actiont.lookup_values
-# ["877"] and ["877a"], and the real backups above, which agree on both.
-_INTENT_CATEGORY_NONE = "None"
-_INTENT_TARGET_ACTIVITY = "Activity"
-_TASKER_PACKAGE = "net.dinglisch.android.taskerm"
-# Tasker's main activity, and the component an explicit ACTION_VIEW is delivered to.  Not
-# guessed: Tasker writes this class itself, in the two places a backup records a component
-# -- an <Img> naming Tasker's own launcher icon (<cls> beside <pkg>), and an Application
-# event's <appClass> beside its <appPkg>.  It is the launcher activity, so it is exported
-# and an outside intent can start it; it is also what an implicitly-resolved '.prf.xml'
-# reaches today, so a Scene sent here arrives where a working Profile import arrives.
-_TASKER_MAIN_ACTIVITY = "net.dinglisch.android.taskerm.Tasker"
+# So it never imported anything, and a fallback that opens Tasker on the wrong screen is worse than the message the
+# user gets instead: the staged file is in Tasker's own folder under its own name, with the steps to import it by hand.
+# Nothing here reaches Tasker explicitly any more.  (The taskernet link in deviceserver is a different Send Intent,
+# with no file in it, and does work.)
 # Where MapTasker's own bookkeeping goes -- the answer files every helper Task writes, and
 # nothing else.  Not a staging folder: the file being imported goes in Tasker's own folder
 # for its kind (below), and a '.txt' of ours dropped among the user's Profiles would be
@@ -251,8 +214,8 @@ def build_open_file_task(
     'Open with' -- Android puts up the chooser, the user picks Tasker, and Tasker's ordinary
     import screen comes up on a file it was handed the way it expects to be handed one.
     Nothing here decides what handles it, which is the point: the alternative is guessing
-    what Android will resolve to and being wrong silently (see build_send_intent_task, and
-    _OPEN_WITH_MIME_TYPE for why this sends no mime type at all).
+    what Android will resolve to and being wrong silently (see _OPEN_WITH_MIME_TYPE for why this
+    sends no mime type at all).
 
     The staged path defaults to %par1 -- handed over with the run rather than baked in at
     install time.  It used to be baked in, on the belief that 'POST /api/tasks carries a
@@ -277,64 +240,15 @@ def build_open_file_task(
     return finish_helper_task(edited_task, task_name, values, state)
 
 
-def build_send_intent_task(
-    task_name: str,
-    stage_path: str = STAGE_PATH_PARAMETER,
-    result_write_path: str = "",
-    header: str = "",
-    mime_type: str = _SEND_INTENT_MIME_TYPE,
-    package: str = _TASKER_PACKAGE,
-    activity_class: str = _TASKER_MAIN_ACTIVITY,
-    *,
-    state: RunState,
-) -> EditableTask | str:
-    """Build the Task that sends Tasker an explicit ACTION_VIEW for the staged file.
-
-    The same job build_open_file_task does, addressed rather than broadcast -- see the
-    section comment above for when that matters and for the file:// caveat that comes with
-    it, and build_open_file_task for why the path is %par1 rather than a literal.  Its
-    answer file means exactly what that one's does.
-
-    Package AND class, not package alone: with only a package this is still matched against
-    Tasker's intent-filters, which is the matching that fails for a Scene.  Both together
-    make it an explicit component intent, which is delivered without matching anything --
-    the whole reason this route can reach Tasker where 'Open File' cannot.
-    """
-    built = new_helper_task(task_name, state=state)
-    if isinstance(built, str):
-        return built
-    edited_task, add, values = built
-
-    error = add(
-        _SEND_INTENT_ACTION,
-        {
-            "0": _VIEW_ACTION,
-            "1": _INTENT_CATEGORY_NONE,
-            "2": mime_type,
-            "3": f"file://{stage_path}",
-            "7": package,
-            "8": activity_class,
-            "9": _INTENT_TARGET_ACTIVITY,
-        },
-    ) or _add_result_writes(add, result_write_path, header, stage_path)
-    if error:
-        return error
-    return finish_helper_task(edited_task, task_name, values, state)
-
-
 @dataclass(frozen=True)
 class OfferRoute:
-    """One way of putting one kind of thing in front of Tasker's import screen.
+    """How one kind of thing (a Profile, Project, Scene or Task) is put in front of Tasker's import screen.
 
-    Two dimensions, and they multiply: WHAT is being imported (a Profile, a Project) decides
-    the staged file's extension -- which is what tells Tasker what it is looking at -- and
-    HOW the screen is opened (Open File, Send Intent) decides the action in the helper Task.
-    Every combination is otherwise identical, so they are data handed to one orchestrator
-    rather than four copies of it.
+    WHAT is being imported decides the staged file's extension -- which is what tells Tasker what it is looking at.
+    Every kind is otherwise identical, so they are data handed to one orchestrator rather than four copies of it.
 
-    Separate answer files and headers per combination are not incidental: reading one
-    route's payload as another's has to be an error rather than a silent misparse, the same
-    reason _FILE_PAYLOAD_HEADER differs from _PAYLOAD_HEADER.
+    Separate answer files and headers per kind are not incidental: reading one kind's payload as another's has to
+    be an error rather than a silent misparse, the same reason _FILE_PAYLOAD_HEADER differs from _PAYLOAD_HEADER.
 
     THE STAGED FILE IS NOT PART OF THE ROUTE, because it is not fixed any more.  It is named
     after the object being imported and worked out per call by staged_file_paths, then handed
@@ -360,24 +274,17 @@ class OfferRoute:
         return staged_paths(self.stage_location, object_name, self.extension, self.label.lower())
 
 
-def _build_offer_routes(
+def _build_offer_route(
     label: str,
     extension: str,
     confirm_endpoint: str,
     stage_location: str,
-) -> tuple[OfferRoute, OfferRoute]:
-    """The Open File and Send Intent routes for one kind of thing, from its name and the
-    extension Tasker recognizes it by.
+) -> OfferRoute:
+    """The Open File route for one kind of thing, from its name and the extension Tasker recognizes it by.
 
-    A factory rather than eight hand-written constants: every one of those fields is derived
-    from these arguments, and the way a hand-written set goes wrong is one of them not being
-    -- a Project route left pointing at the Profile route's answer file would read a stale
-    Profile import as its own success.
-
-    ONLY A PROFILE AND A PROJECT, which is not an oversight: a Scene cannot be handed to
-    Tasker by intent at all (measured four ways -- see the section comment above), so it
-    does not go through here.  userintr_android.import_scene_into_tasker_event uploads it under its
-    own name and opens Tasker instead.
+    A factory rather than four hand-written constants: every field is derived from these arguments, and the way
+    a hand-written set goes wrong is one of them not being -- a Project route left pointing at the Profile route's
+    answer file would read a stale Profile import as its own success.
 
     THE STAGED FILE CARRIES THE OBJECT'S OWN NAME, and it did not used to.  It was one fixed
     'maptasker_import.<ext>' per kind, on the reasoning that the path had to be baked into
@@ -399,58 +306,42 @@ def _build_offer_routes(
     be litter in a place they browse.
     """
     key = label.lower()
+    # v4 since 2026-08-30, when the route stopped sending a mime type (see _OPEN_WITH_MIME_TYPE); v3 was the same
+    # day, when the staged path stopped being baked in and became %par1.  THE VERSION IN THE NAME IS LOAD-BEARING,
+    # and this is what it is for: what the Task opens and what it opens it AS are both part of its body, and
+    # install_task_on_android installs only what is not already there -- so a device holding 'MapTasker Open
+    # Profile v3' would go on asking for text/xml forever, silently, since that Task runs fine and writes its
+    # answer file either way.  A new name is a new Task.
+    #
+    # ("Open" stays in every name although it is the only verb now: the Tasks already on people's phones are named
+    # that, and a new name would mean installing them all again.)
+    task_name = f"MapTasker Open {label} v4"
+    write_path = f"{_BOOKKEEPING_LOCATION}/maptasker_open_{key}.txt"
+    header = f"MAPTASKER-OPEN-{label.upper()} 1"
 
-    def route(verb: str, builder: Callable[..., EditableTask | str], hint: str) -> OfferRoute:
-        # v4 since 2026-08-30, when the Open route stopped sending a mime type (see
-        # _OPEN_WITH_MIME_TYPE); v3 was the same day, when the staged path stopped being
-        # baked in and became %par1.  THE VERSION IN THE NAME IS LOAD-BEARING, and this is
-        # what it is for: what the Task opens and what it opens it AS are both part of its
-        # body, and install_task_on_android installs only what is not already there -- so a
-        # device holding 'MapTasker Open Profile v3' would go on asking for text/xml forever,
-        # silently, since that Task runs fine and writes its answer file either way.  A new
-        # name is a new Task.
-        task_name = f"MapTasker {verb} {label} v4"
-        write_path = f"{_BOOKKEEPING_LOCATION}/maptasker_{verb.lower()}_{key}.txt"
-        header = f"MAPTASKER-{verb.upper()}-{label.upper()} 1"
+    def build(state: RunState) -> EditableTask | str:
+        # No path handed to the builder: it builds with %par1 and is told the real one when it is run.
+        return build_open_file_task(task_name, STAGE_PATH_PARAMETER, write_path, header, state=state)
 
-        def build(state: RunState) -> EditableTask | str:
-            return builder(task_name, STAGE_PATH_PARAMETER, write_path, header, state=state)
-
-        return OfferRoute(
-            label=label,
-            confirm_endpoint=confirm_endpoint,
-            task_name=task_name,
-            # No path handed to the builder: it builds with %par1 and is told the real one
-            # when it is run.
-            builder=build,
-            stage_location=stage_location,
-            extension=extension,
-            read_path=f"/{write_path}",
-            header=header,
-            failure_hint=hint,
-        )
-
-    return (
-        route("Open", build_open_file_task, "Tasker could not open {path} for import."),
-        route(
-            "Send",
-            build_send_intent_task,
-            "Tasker refused an ACTION_VIEW for file://{path}.  A file:// URI in an outgoing "
-            "intent is rejected on Android 7 and later; try the Open File route instead.",
-        ),
+    return OfferRoute(
+        label=label,
+        confirm_endpoint=confirm_endpoint,
+        task_name=task_name,
+        builder=build,
+        stage_location=stage_location,
+        extension=extension,
+        read_path=f"/{write_path}",
+        header=header,
+        failure_hint="Tasker could not open {path} for import.",
     )
 
 
-OPEN_FILE_ROUTE, SEND_INTENT_ROUTE = _build_offer_routes(
-    "Profile", "prf.xml", PROFILES_ENDPOINT, stage_location=PROFILE_STAGE_LOCATION
-)
+OPEN_FILE_ROUTE = _build_offer_route("Profile", "prf.xml", PROFILES_ENDPOINT, stage_location=PROFILE_STAGE_LOCATION)
 # A Project has no endpoint of its own, so it is confirmed through the Profiles it brings --
 # see offer_to_tasker's confirm_names.
-OPEN_PROJECT_ROUTE, SEND_INTENT_PROJECT_ROUTE = _build_offer_routes(
-    "Project", "prj.xml", PROFILES_ENDPOINT, stage_location=_PROJECT_STAGE_LOCATION
-)
-# A Scene HAS routes now, and it did not before.  Every way of handing Tasker a '.scn.xml'
-# had been tried and measured failing (see the section comment below), so a Scene was merely
+OPEN_PROJECT_ROUTE = _build_offer_route("Project", "prj.xml", PROFILES_ENDPOINT, stage_location=_PROJECT_STAGE_LOCATION)
+# A Scene HAS a route now, and it did not before.  Every way of handing Tasker a '.scn.xml'
+# had been tried and measured failing (see the section comment above), so a Scene was merely
 # uploaded and Tasker opened, with the import left entirely to the user.  What had not been
 # tried is an implicit ACTION_VIEW carrying NO mime type -- the "Open with..." a file manager
 # fires -- and that is a different attempt from either of the measured ones: the implicit try
@@ -460,31 +351,18 @@ OPEN_PROJECT_ROUTE, SEND_INTENT_PROJECT_ROUTE = _build_offer_routes(
 # It is offered on that reasoning, not on a measurement, and it costs nothing if it is wrong:
 # the file is already in /Tasker/scenes under the Scene's own name, and the message still
 # tells the user how to import it by hand.  That instruction is what this route used to be.
-OPEN_SCENE_ROUTE, SEND_INTENT_SCENE_ROUTE = _build_offer_routes(
-    "Scene", "scn.xml", SCENES_ENDPOINT, stage_location=_SCENE_LOCATION
-)
+OPEN_SCENE_ROUTE = _build_offer_route("Scene", "scn.xml", SCENES_ENDPOINT, stage_location=_SCENE_LOCATION)
 # And a Task, which reaches Tasker headlessly through api/import and needs none of this --
 # taskedit_save.save_task_to_android is the route that works.  This is what is left when that has
 # been tried twice and Tasker still does not report the Task: the file is in /Tasker/tasks,
 # and the user can be handed the same chooser rather than told it did not work.  See
 # userintr's Task import.
-OPEN_TASK_ROUTE, SEND_INTENT_TASK_ROUTE = _build_offer_routes(
-    "Task", "tsk.xml", TASKS_ENDPOINT, stage_location=_TASK_STAGE_LOCATION
-)
+OPEN_TASK_ROUTE = _build_offer_route("Task", "tsk.xml", TASKS_ENDPOINT, stage_location=_TASK_STAGE_LOCATION)
 # Every route there is, in one place, so anything that has to reason about all of them cannot
 # be left behind by a new kind being added -- current_helper_task_names above all, where
 # missing one would mean reporting a Task that is in use as dead and inviting the user to
 # delete it.
-ALL_OFFER_ROUTES = (
-    OPEN_FILE_ROUTE,
-    SEND_INTENT_ROUTE,
-    OPEN_PROJECT_ROUTE,
-    SEND_INTENT_PROJECT_ROUTE,
-    OPEN_SCENE_ROUTE,
-    SEND_INTENT_SCENE_ROUTE,
-    OPEN_TASK_ROUTE,
-    SEND_INTENT_TASK_ROUTE,
-)
+ALL_OFFER_ROUTES = (OPEN_FILE_ROUTE, OPEN_PROJECT_ROUTE, OPEN_SCENE_ROUTE, OPEN_TASK_ROUTE)
 
 
 def stage_xml(
@@ -671,10 +549,8 @@ def offer_to_tasker(
             then says the import is still pending, and must not be shown as a completed
             save.  True skips the wait when it could not mean anything and says so instead:
             see import_is_confirmable.
-        route: which kind, and how the screen is asked for.  OPEN_FILE_ROUTE and
-            OPEN_PROJECT_ROUTE let Android find the handler; the SEND_INTENT_* pair address
-            Tasker explicitly.  Prefer the first -- see the section comment for the file://
-            URI only the second can trip over.
+        route: which kind, and how the screen is asked for.  OPEN_FILE_ROUTE,
+            OPEN_PROJECT_ROUTE, OPEN_SCENE_ROUTE or OPEN_TASK_ROUTE; each lets Android find the handler.
 
     (See the comment above this function for the rest.)
 
