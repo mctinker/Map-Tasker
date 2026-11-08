@@ -372,7 +372,7 @@ class MyGui:
     # Set to None until the layout, the settings restore or a dialog gives them a value, and then
     # set to a widget, a string or a flag; typed loosely for that reason rather than as the Optional that
     # every use would then have to test.
-    _version_check: Any
+    version_check: Any
     ai_analyze_button: Any
     ai_apikey: Any
     ai_apikey_window: Any

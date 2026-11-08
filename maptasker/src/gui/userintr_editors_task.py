@@ -248,7 +248,7 @@ class TaskEditorHandlers(EditorHandlerBase):
         to, WITHOUT touching the loaded configuration.
 
         Called whenever the panel holding those widgets is about to be torn down -- a sub-tab
-        switch, a Property Type change, or Ok (see guiwins_sceneprops._build_scene_properties_dialog's
+        switch, a Property Type change, or Ok (see guiwins_sceneprops.build_scene_properties_dialog's
         flush_event_task_edits).  The copy outlives the widgets; the widgets do not survive
         the rebuild, so anything typed and not snapshotted here is gone.  Cancel does not run
         it: the copies it would write onto are the ones being thrown away.

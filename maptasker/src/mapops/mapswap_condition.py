@@ -127,7 +127,7 @@ def condition_choices(index: mapfind.FindIndex) -> list[tuple[str, str, int]]:
     the user, and the count beside each one is also the number of places a swap would touch
     before any preview is run.
     """
-    counts: Counter = Counter()
+    counts: Counter[str] = Counter()
     names: dict[str, str] = {}
     for record in index.objects:
         if record.kind != PROFILE:
@@ -218,7 +218,7 @@ def condition_targets(old_key: str, state: RunState) -> list[tuple[str, str, str
     """
     rank = {EXACT: 0, MAPPED: 1, RESET: 2, BLOCKED: 3}
     carried_count: dict[str, int] = {}
-    choices = []
+    choices: list[tuple[str, str, str]] = []
 
     candidates = [condition_key(tag) for tag in _FLAT_CONDITIONS]
     candidates += [
@@ -365,7 +365,7 @@ def _condition_summary(element: Element, tag: str, code_key: str = "", *, state:
     condition = profedit.EditableCondition(cond_index=0, cond_type=tag, condition_element=element)
     if tag == "Time":
         values = profedit.get_time_field_values(condition)
-        pieces = []
+        pieces: list[str] = []
         if _has_time_window(element):
             pieces.append(f"{values['start_time']} to {values['end_time']}")
         if values["rep_value"]:
@@ -435,7 +435,7 @@ def _condition_note(
     element = condition.element
     if element is None:  # The caller passes over conditions with no element.
         return ""
-    pieces = []
+    pieces: list[str] = []
 
     if condition.key and new_code:
         dropped = [

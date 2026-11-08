@@ -52,6 +52,7 @@ from maptasker.src.core.mapjump import (
     v2_property_holds_a_variable,
     v2_strings,
 )
+from maptasker.src.core.maputil2 import as_json_object
 from maptasker.src.core.sysconst import SCENE_TASK_TYPES, UNSET_DIMENSION
 from maptasker.src.edit import sceneedit_legacy, sceneedit_v2events, sceneedit_v2tree
 
@@ -108,7 +109,7 @@ class TextSite:
     text: str
     two_way: bool
     element: Element | None
-    path: tuple = ()
+    path: tuple[Any, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -417,8 +418,9 @@ class V2Model:
 
         for row in sceneedit_v2tree.v2_flatten(layout):
             for handler in sceneedit_v2events.v2_handlers(row.node):
-                for action in handler.get("actions") or ():
-                    if not isinstance(action, dict) or action.get("type") != "RunTask":
+                for raw_action in handler.get("actions") or ():
+                    action = as_json_object(raw_action)
+                    if action is None or action.get("type") != "RunTask":
                         continue
                     task_name = (action.get("task") or "").strip()
                     if not task_name:

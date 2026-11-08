@@ -47,7 +47,7 @@ def notify_if_plugin_needs_configuration(element: Element, name: str) -> None:
     taskedit_addable.tasker_configuration_warning, which decides whether one is warranted
     (nothing is shown for anything that isn't a plugin). The item's own panel in
     the dialog carries the same warning standing (guiwins.
-    _render_plugin_configuration_warning); this is the moment-of-adding nudge, so
+    render_plugin_configuration_warning); this is the moment-of-adding nudge, so
     it isn't missed in a long action list.
     """
     warning = taskedit_addable.tasker_configuration_warning(element, name)

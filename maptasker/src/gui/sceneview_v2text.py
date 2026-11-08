@@ -6,10 +6,11 @@ from __future__ import annotations
 
 import html
 import re
+from typing import Any
 
 from nicegui import ui
 
-from maptasker.src.core.maputil2 import tasker_icon_name, translate_string
+from maptasker.src.core.maputil2 import as_json_object, tasker_icon_name, translate_string
 from maptasker.src.core.sysconst import V2_MATERIAL_PALETTE
 from maptasker.src.gui.sceneview import HTML_TAG
 from maptasker.src.gui.sceneview_v2base import V2_ALIGNMENT, V2_DEFAULT_TEXT_SIZE, v2_colour, v2_swatch_colour
@@ -22,7 +23,7 @@ from maptasker.src.gui.sceneview_v2style import v2_binding_lines, v2_handler_lin
 _V2_NAMED_BY_PROPERTY = {"Text": "text", "Button": "text", "IconButton": "icon"}
 
 
-def v2_bounds_label(node: dict) -> None:
+def v2_bounds_label(node: dict[str, Any]) -> None:
     """The component's name, the way the designer's tree says it -- so a component picked out
     of the picture can be found in the tree, and the other way round.
 
@@ -48,7 +49,7 @@ def v2_bounds_label(node: dict) -> None:
     )
 
 
-def v2_condition_badge(node: dict) -> None:
+def v2_condition_badge(node: dict[str, Any]) -> None:
     """What decides whether this component is on screen, and what happens when it is not:
     "Gone" takes its space back, "Invisible" leaves the space behind.  Two different layouts,
     so the mode is shown and not just the condition.
@@ -62,7 +63,7 @@ def v2_condition_badge(node: dict) -> None:
     )
 
 
-def v2_event_badge(node: dict) -> None:
+def v2_event_badge(node: dict[str, Any]) -> None:
     """What this component does when it is used -- the V2 answer to the Legacy Task badge."""
     lines = v2_handler_lines(node) + v2_binding_lines(node)
     if not lines:
@@ -79,7 +80,7 @@ def v2_event_badge(node: dict) -> None:
             )
 
 
-def v2_tooltip(container: ui.element, node: dict) -> None:
+def v2_tooltip(container: ui.element, node: dict[str, Any]) -> None:
     """Everything about this component the drawing cannot carry: its id and type, its
     modifiers in the order they apply, the %variables it depends on, what it does, and where
     it writes to.
@@ -93,11 +94,12 @@ def v2_tooltip(container: ui.element, node: dict) -> None:
     if tree_label:
         lines.append(f"{translate_string('Tree label')}: {tree_label}")
 
+    drawn_modifiers = (as_json_object(raw) for raw in node.get("modifiers") or ())
     modifiers = [
         str(modifier.get("type", "?"))
         + ("" if v2_modifier_drawn(str(modifier.get("type", ""))) else f" ({translate_string('not drawn')})")
-        for modifier in node.get("modifiers") or []
-        if isinstance(modifier, dict)
+        for modifier in drawn_modifiers
+        if modifier is not None
     ]
     if modifiers:
         lines.append(f"{translate_string('Modifiers')}: {' → '.join(modifiers)}")
@@ -114,7 +116,7 @@ def v2_tooltip(container: ui.element, node: dict) -> None:
         ui.tooltip("\n".join(lines)).style("white-space: pre-wrap")
 
 
-def v2_text_style(node: dict, default_colour: str = "") -> str:
+def v2_text_style(node: dict[str, Any], default_colour: str = "") -> str:
     """Size and colour for anything that shows text."""
     size = str(node.get("textSize", "")).strip()
     try:
@@ -167,7 +169,7 @@ _V2_AUTOLINK_TRAILING = ".,;:!?)\"'"
 _V2_HTML_FORMAT = "html"
 
 
-def v2_is_html(node: dict) -> bool:
+def v2_is_html(node: dict[str, Any]) -> bool:
     """Whether this component's text is to be read as markup: contentFormat says Html, and
     there is text to read it in.
 
@@ -187,7 +189,7 @@ def v2_is_html(node: dict) -> bool:
     return bool(text) and not text.startswith("%")
 
 
-def _v2_link_colour(node: dict) -> str:
+def _v2_link_colour(node: dict[str, Any]) -> str:
     """The CSS colour this component's tappable links are drawn in.
 
     linkColor is an ordinary HTML colour -- a name or a #hex -- which is one more form than
@@ -205,7 +207,7 @@ def _v2_link_colour(node: dict) -> str:
     return v2_swatch_colour(raw) or V2_MATERIAL_PALETTE["primary"]
 
 
-def v2_html_text(node: dict, style: str) -> None:
+def v2_html_text(node: dict[str, Any], style: str) -> None:
     """Draw an Html-format text: its links in the component's link colour, the rest as text.
 
     The markup is taken apart rather than rendered.  A V2 component draws in the page's own

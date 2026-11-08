@@ -185,11 +185,11 @@ class _RefactorDialog:
         # a Plan cannot be remembered on the view the way a Find query can -- it holds live
         # elements, and holding them across a reopen is the stale-handle case
         # maprefac.apply's attachment check exists to catch.
-        self.held: dict = {"plan": None, "inputs": None}
+        self.held: dict[str, Any] = {"plan": None, "inputs": None}
         self.dialog: ui.dialog
         self.mode: ui.toggle
         self.blurb: ui.label
-        self.widgets: dict
+        self.widgets: dict[str, Any]
         self.summary: ui.label
         self.preview_area: ui.scroll_area
         self.apply_button: ui.button
@@ -331,7 +331,7 @@ class _RefactorDialog:
         ):
             widgets[key].on_value_change(invalidate)
 
-    def current_inputs(self) -> tuple:
+    def current_inputs(self) -> tuple[Any, ...]:
         """Every field that feeds a plan, as one comparable value.
 
         What "the preview matches the fields" is checked against.  Every field of every
@@ -542,7 +542,7 @@ def _row_classes(text: str) -> str:
     return "text-gray-700 dark:text-gray-300"
 
 
-def _build_extract_row(widgets: dict) -> None:
+def _build_extract_row(widgets: dict[str, Any]) -> None:
     """Extract: the Task to take actions out of, the run to move, and the new Task's name."""
     with ui.column().classes("w-full gap-0 mt-2") as widgets["rows"][EXTRACT]:
         with ui.row().classes("w-full items-center gap-2"):
@@ -583,7 +583,7 @@ def _build_extract_row(widgets: dict) -> None:
         )
 
 
-def _build_inline_row(widgets: dict) -> None:
+def _build_inline_row(widgets: dict[str, Any]) -> None:
     """Inline: the Task holding the call, and which call to fold back in."""
     with ui.row().classes("w-full items-center gap-2 mt-2") as widgets["rows"][INLINE]:
         widgets["inline_task"] = _select(
@@ -599,7 +599,7 @@ def _build_inline_row(widgets: dict) -> None:
         )
 
 
-def _build_move_row(widgets: dict) -> None:
+def _build_move_row(widgets: dict[str, Any]) -> None:
     """Move: a Task or a Profile, and the Project that is to own it."""
     with ui.row().classes("w-full items-center gap-2 mt-2") as widgets["rows"][MOVE]:
         widgets["move_kind"] = ui.toggle(
@@ -628,7 +628,7 @@ def _build_move_row(widgets: dict) -> None:
         )
 
 
-def _build_duplicate_row(widgets: dict) -> None:
+def _build_duplicate_row(widgets: dict[str, Any]) -> None:
     """Duplicate: what kind of object, which one, and what to call the copy."""
     with ui.row().classes("w-full items-center gap-2 mt-2") as widgets["rows"][DUPLICATE]:
         widgets["duplicate_kind"] = ui.toggle(
@@ -663,7 +663,7 @@ def _build_duplicate_row(widgets: dict) -> None:
         )
 
 
-def _build_variable_row(widgets: dict) -> None:
+def _build_variable_row(widgets: dict[str, Any]) -> None:
     """Variable: what to do, to which variable, and what to call it."""
     with ui.row().classes("w-full items-center gap-2 mt-2") as widgets["rows"][VARIABLE]:
         widgets["variable_operation"] = ui.toggle(
@@ -698,7 +698,7 @@ def _build_variable_row(widgets: dict) -> None:
         )
 
 
-def _build_mode_rows() -> dict:
+def _build_mode_rows() -> dict[str, Any]:
     """Every mode's fields, built once and shown one row at a time.
 
     All four rows exist from the start rather than being rebuilt on each mode change, so
@@ -707,7 +707,7 @@ def _build_mode_rows() -> dict:
     to an empty form.
     """
     # What each dependent pulldown was last filled from -- see _stale.
-    widgets: dict = {"rows": {}, "filled": {}}
+    widgets: dict[str, Any] = {"rows": {}, "filled": {}}
 
     _build_extract_row(widgets)
     _build_inline_row(widgets)
@@ -736,7 +736,7 @@ def _select(label: str, classes: str, tip: str = "") -> ui.select:
     return pulldown
 
 
-def fill_options(widgets: dict, state: RunState) -> None:
+def fill_options(widgets: dict[str, Any], state: RunState) -> None:
     """Fill every pulldown from the loaded configuration.
 
     Public for the same reason plan_for is: which pulldown gets what, and when one is filled
@@ -780,7 +780,7 @@ def fill_options(widgets: dict, state: RunState) -> None:
     _describe_extract_scope(widgets, state=state)
 
 
-def _describe_extract_scope(widgets: dict, state: RunState) -> None:
+def _describe_extract_scope(widgets: dict[str, Any], state: RunState) -> None:
     """Say what Extract has been narrowed to, or nothing at all when it has not been.
 
     Three states rather than two.  The empty one matters: a Scene selected puts no Tasks in
@@ -814,7 +814,7 @@ def _describe_extract_scope(widgets: dict, state: RunState) -> None:
         )
 
 
-def _stale(widgets: dict, slot: str, key: object) -> bool:
+def _stale(widgets: dict[str, Any], slot: str, key: object) -> bool:
     """Whether a dependent pulldown needs refilling, and record that it has been.
 
     THE GUARD THAT MAKES THE DEPENDENT PULLDOWNS USABLE, and it is not an optimisation.
@@ -835,7 +835,7 @@ def _stale(widgets: dict, slot: str, key: object) -> bool:
     return True
 
 
-def _fill_actions(widgets: dict, state: RunState) -> None:
+def _fill_actions(widgets: dict[str, Any], state: RunState) -> None:
     """The chosen Task's actions, in both of Extract's two pulldowns."""
     task_id = widgets["extract_task"].value or ""
     if not _stale(widgets, "actions", task_id):
@@ -848,7 +848,7 @@ def _fill_actions(widgets: dict, state: RunState) -> None:
     widgets["extract_to"].set_options(dict(choices), value=None)
 
 
-def _fill_calls(widgets: dict, state: RunState) -> None:
+def _fill_calls(widgets: dict[str, Any], state: RunState) -> None:
     """The chosen Task's Perform Task actions, and only those -- see maprefac.call_choices."""
     task_id = widgets["inline_task"].value or ""
     if not _stale(widgets, "calls", task_id):
@@ -859,7 +859,7 @@ def _fill_calls(widgets: dict, state: RunState) -> None:
     )
 
 
-def _fill_move_objects(widgets: dict, state: RunState) -> None:
+def _fill_move_objects(widgets: dict[str, Any], state: RunState) -> None:
     """Tasks or Profiles, depending on which kind is being moved."""
     kind = widgets["move_kind"].value
     if not _stale(widgets, "move", kind):
@@ -868,7 +868,7 @@ def _fill_move_objects(widgets: dict, state: RunState) -> None:
     widgets["move_object"].set_options(dict(choices), value=None)
 
 
-def _fill_duplicate_objects(widgets: dict, state: RunState) -> None:
+def _fill_duplicate_objects(widgets: dict[str, Any], state: RunState) -> None:
     """Whatever kind of object is being duplicated, keyed the way its table keys it.
 
     Projects and Scenes by name, Profiles and Tasks by id -- the same split every table in
@@ -888,7 +888,7 @@ def _fill_duplicate_objects(widgets: dict, state: RunState) -> None:
     widgets["duplicate_object"].set_options(choices, value=None)
 
 
-def _fill_variables(widgets: dict, state: RunState) -> None:
+def _fill_variables(widgets: dict[str, Any], state: RunState) -> None:
     """The variables the chosen operation can be asked of.
 
     Rebuilt from a fresh cross-reference each time the operation changes: Make local offers only globals and
@@ -901,7 +901,7 @@ def _fill_variables(widgets: dict, state: RunState) -> None:
     widgets["variable"].set_options(dict(choices), value=None)
 
 
-def _suggest_name(widgets: dict) -> None:
+def _suggest_name(widgets: dict[str, Any]) -> None:
     """Fill in the spelling a scope change implies, and clear the box for a rename.
 
     Gated like the dependent pulldowns (see _stale), for the same reason: a select built with_input re-emits its
@@ -914,7 +914,7 @@ def _suggest_name(widgets: dict) -> None:
     widgets["variable_new_name"].set_value(maprefac_variable.suggested_name(operation, name) if name else "")
 
 
-def _plan_variable(widgets: dict, state: RunState) -> maprefac_model.Plan | None:
+def _plan_variable(widgets: dict[str, Any], state: RunState) -> maprefac_model.Plan | None:
     """The variable plan the fields describe, or None if a rename has no name yet.
 
     A scope change needs no name typed: the box was filled in with the spelling the scope implies, and an empty
@@ -929,7 +929,7 @@ def _plan_variable(widgets: dict, state: RunState) -> maprefac_model.Plan | None
     return maprefac_variable.plan_variable(operation, name, owner, new_name, state=state)
 
 
-def plan_for(mode_value: str, widgets: dict, state: RunState) -> maprefac_model.Plan | None:
+def plan_for(mode_value: str, widgets: dict[str, Any], state: RunState) -> maprefac_model.Plan | None:
     """Build the plan the fields describe, or None if they do not describe one yet.
 
     Public because it is the only part of this module that is a decision rather than a
@@ -951,7 +951,7 @@ def plan_for(mode_value: str, widgets: dict, state: RunState) -> maprefac_model.
     return planner(widgets, state) if planner else None
 
 
-def _plan_extract(widgets: dict, state: RunState) -> maprefac_model.Plan | None:
+def _plan_extract(widgets: dict[str, Any], state: RunState) -> maprefac_model.Plan | None:
     """Extract: the Task, the run of actions (either end first) and the new Task's name."""
     task_id = widgets["extract_task"].value
     first, last = widgets["extract_from"].value, widgets["extract_to"].value
@@ -963,7 +963,7 @@ def _plan_extract(widgets: dict, state: RunState) -> maprefac_model.Plan | None:
     )
 
 
-def _plan_inline(widgets: dict, state: RunState) -> maprefac_model.Plan | None:
+def _plan_inline(widgets: dict[str, Any], state: RunState) -> maprefac_model.Plan | None:
     """Inline: the Task and which of its calls to fold back in."""
     task_id, call = widgets["inline_task"].value, widgets["inline_call"].value
     if not task_id or call is None:
@@ -971,7 +971,7 @@ def _plan_inline(widgets: dict, state: RunState) -> maprefac_model.Plan | None:
     return maprefac_extract.plan_inline(task_id, int(call), state=state)
 
 
-def _plan_move(widgets: dict, state: RunState) -> maprefac_model.Plan | None:
+def _plan_move(widgets: dict[str, Any], state: RunState) -> maprefac_model.Plan | None:
     """Move: the Task or Profile and the Project to put it in."""
     key, project = widgets["move_object"].value, widgets["move_project"].value
     if not key or not project:
@@ -979,7 +979,7 @@ def _plan_move(widgets: dict, state: RunState) -> maprefac_model.Plan | None:
     return maprefac_move.plan_move(widgets["move_kind"].value, key, project, state=state)
 
 
-def _plan_duplicate(widgets: dict, state: RunState) -> maprefac_model.Plan | None:
+def _plan_duplicate(widgets: dict[str, Any], state: RunState) -> maprefac_model.Plan | None:
     """Duplicate: the object and, optionally, what to call the copy."""
     key = widgets["duplicate_object"].value
     if not key:

@@ -20,7 +20,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 from difflib import SequenceMatcher
-from typing import TYPE_CHECKING, Any, NamedTuple
+from typing import TYPE_CHECKING, Any, NamedTuple, cast
 
 from maptasker.src.core import clock
 from maptasker.src.core.actionc import action_codes
@@ -135,7 +135,7 @@ class Entry:
     kind: str
     category: str
     where: str
-    details: list[str] = field(default_factory=list)
+    details: list[str] = field(default_factory=list[str])
     # The object's identity as the tables key it -- a Task's or Profile's id, a Scene's
     # name, a Project's <id> -- or "" for a global Variable or Setting, which is not an
     # object.  The report never prints it; it is here so that a caller can do something
@@ -153,15 +153,15 @@ class Entry:
 class _Side:
     """One configuration, indexed the way the comparison needs it."""
 
-    objects: dict[str, dict] = field(default_factory=dict)  # kind -> {identity: element}
-    names: dict[str, dict] = field(default_factory=dict)  # kind -> {identity: name}
+    objects: dict[str, dict[str, Any]] = field(default_factory=dict[str, dict[str, Any]])  # kind -> {identity: element}
+    names: dict[str, dict[str, Any]] = field(default_factory=dict[str, dict[str, Any]])  # kind -> {identity: name}
     # kind -> {identity: owning Project ID}.  Keyed by the Project's id and not its name
     # on purpose: renaming a Project would otherwise report every Profile, Task and Scene
     # inside it as having moved -- 17 of them at once, measured on two real backups.
-    project_of: dict[str, dict] = field(default_factory=dict)
-    project_names: dict[str, str] = field(default_factory=dict)
-    variables: dict[str, str] = field(default_factory=dict)
-    settings: dict[str, str] = field(default_factory=dict)
+    project_of: dict[str, dict[str, Any]] = field(default_factory=dict[str, dict[str, Any]])
+    project_names: dict[str, str] = field(default_factory=dict[str, str])
+    variables: dict[str, str] = field(default_factory=dict[str, str])
+    settings: dict[str, str] = field(default_factory=dict[str, str])
 
     def project_name_of(self, kind: str, key: str) -> str:
         """The name of the Project owning this object, or "" if none does."""
@@ -244,10 +244,12 @@ def _index(configuration: Configuration) -> _Side:
     """
     side = _Side()
     for kind, table_name, keyed_by_id, name_tag in _KINDS:
-        table = configuration.tables.get(table_name) or {}
-        objects, names = {}, {}
+        table: dict[str, Any] = configuration.tables.get(table_name) or {}
+        objects: dict[str, Element] = {}
+        names: dict[str, str] = {}
         for table_key, entry in table.items():
-            element = entry["xml"] if isinstance(entry, dict) else entry
+            wrapper = cast("dict[str, Any]", entry) if isinstance(entry, dict) else None
+            element: Element = wrapper["xml"] if wrapper is not None else cast("Element", entry)
             identity = table_key if keyed_by_id else (_text(element, "id") or table_key)
             objects[identity] = element
             names[identity] = _text(element, name_tag)
@@ -334,7 +336,7 @@ def _argument_names(code: str) -> dict[str, str]:
 
 def _action_arguments(action: Element) -> dict[str, str]:
     """{arg id: value} for one action, across whichever element types hold its arguments."""
-    arguments = {}
+    arguments: dict[str, str] = {}
     for child in action:
         sr = child.attrib.get("sr", "")
         if not sr.startswith("arg"):
@@ -359,7 +361,7 @@ def _action_detail(
         # values would report a change of meaning as a change of value.
         return [f"{position}. {_action_code_name(before_code)}  ->  {_action_code_name(after_code)}"]
 
-    details = []
+    details: list[str] = []
     before_label, after_label = _text(before, "label"), _text(after, "label")
     if before_label != after_label:
         details.append(
@@ -437,7 +439,7 @@ def _shape_difference(before: Element, after: Element) -> str:
     def named(keys: list[str], side: dict[str, Element]) -> str:
         return ", ".join(f"{key} (empty)" if _is_empty(side[key]) else key for key in keys)
 
-    parts = []
+    parts: list[str] = []
     if only_now := sorted(key for key in now if key not in was):
         parts.append(f"only in the newer file: {named(only_now, now)}")
     if only_was := sorted(key for key in was if key not in now):
@@ -453,8 +455,8 @@ def _is_empty(element: Element) -> bool:
 
 
 def _pair_replaced_actions(
-    before_actions: list,
-    after_actions: list,
+    before_actions: list[Any],
+    after_actions: list[Any],
     i1: int,
     i2: int,
     j1: int,
@@ -564,7 +566,7 @@ def _task_field_changes(before: Element, after: Element) -> list[str]:
     """What differs in a Task's own settings -- 'pri: '100' -> '7'' -- as opposed to its actions."""
 
     def fields(task: Element) -> dict[str, Element]:
-        keyed = {}
+        keyed: dict[str, Element] = {}
         for key, child in _children_by_key(task).items():
             if child.tag in _TASK_NOT_FIELDS:
                 continue
@@ -713,7 +715,7 @@ def _condition_edit_details(kind: str, before: list[Element], after: list[Elemen
 
 def _profile_summary(side: _Side, profile: Element) -> list[str]:
     """What an added or removed Profile was, so the entry means something on its own."""
-    details = []
+    details: list[str] = []
     condition_types = sorted(_conditions(profile))
     if condition_types:
         details.append(f"Conditions: {', '.join(condition_types)}.")
@@ -726,7 +728,7 @@ def _profile_summary(side: _Side, profile: Element) -> list[str]:
 def _profile_details(older: _Side, newer: _Side, key: str) -> list[str]:
     """What changed about a Profile: whether it is on, the Tasks it runs, its conditions."""
     before, after = older.objects["Profile"][key], newer.objects["Profile"][key]
-    details = []
+    details: list[str] = []
 
     was_disabled = _text(before, "limit") == "true"
     now_disabled = _text(after, "limit") == "true"
@@ -773,7 +775,7 @@ def _profile_details(older: _Side, newer: _Side, key: str) -> list[str]:
 def _project_details(older: _Side, newer: _Side, key: str) -> list[str]:
     """What changed about a Project: what is in it, its variables, anything else."""
     before, after = older.objects["Project"][key], newer.objects["Project"][key]
-    details = []
+    details: list[str] = []
 
     for list_tag, kind, plural in _MEMBERSHIP_TAGS:
         was, now = _split_list(before, list_tag), _split_list(after, list_tag)
@@ -857,7 +859,7 @@ def _scene_details(older: _Side, newer: _Side, key: str) -> list[str]:
             return ["Version 2 layout changed (not compared in detail)."]
         return []
 
-    details = []
+    details: list[str] = []
     for tag, label in _SCENE_DIMENSIONS:
         was, now = _text(before, tag), _text(after, tag)
         if was != now and (was or now):
@@ -883,7 +885,7 @@ def _scene_element_details(
     if _canonical(before) == _canonical(after):
         return []
 
-    details = []
+    details: list[str] = []
     if _text(before, "geom") != _text(after, "geom"):
         details.append(f"{label} moved.")
 

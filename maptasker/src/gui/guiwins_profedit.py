@@ -11,7 +11,7 @@ and the Properties button -- comes from guiwins_editor.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from nicegui import ui
 
@@ -27,7 +27,7 @@ from maptasker.src.gui.guiwins_editor import (
     editor_state,
 )
 from maptasker.src.gui.guiwins_impact import build_impact_panel
-from maptasker.src.gui.guiwins_taskedit import _render_plugin_configuration_warning
+from maptasker.src.gui.guiwins_taskedit import render_plugin_configuration_warning
 from maptasker.src.gui.guiwins_taskpickers import (
     after_condition_fetch,
     render_app_arg_field,
@@ -55,7 +55,7 @@ def set_weekday_checkboxes(boxes: dict[int, ui.checkbox], selected: set[int]) ->
         checkbox.value = day_number in selected
 
 
-def _mark_unsupported_options(select_widget: ui.select, unsupported_values: set) -> None:
+def _mark_unsupported_options(select_widget: ui.select, unsupported_values: set[Any]) -> None:
     """Greys out and blocks selection of any option in select_widget whose
     underlying value is in unsupported_values -- e.g. an Event/State condition
     code this tool can't synthesize from scratch (see
@@ -79,8 +79,10 @@ def _mark_unsupported_options(select_widget: ui.select, unsupported_values: set)
     suspend_updates() defers that signal until the whole batch (every
     "disable" flag plus the "option-disable" prop) is in place.
     """
-    with select_widget._props.suspend_updates():  # noqa: SLF001
-        for option, value in zip(select_widget._props["options"], select_widget._values, strict=True):  # noqa: SLF001
+    # NiceGUI keeps these on the widget as private attributes; there is no public way to reach them (see above).
+    widget = cast("Any", select_widget)
+    with widget._props.suspend_updates():  # noqa: SLF001
+        for option, value in zip(widget._props["options"], widget._values, strict=True):  # noqa: SLF001
             if value in unsupported_values:
                 option["disable"] = True
         select_widget.props('option-disable="disable"')
@@ -120,7 +122,7 @@ class _ProfileEditorBody:
         self,
         gui: MyGui,
         edited_profile: profedit.EditableProfile,
-        field_refs: dict,
+        field_refs: dict[str, Any],
         parent_dialog: ui.dialog,
     ) -> None:
         """
@@ -315,7 +317,7 @@ class _ProfileEditorBody:
 
     def _render_code_condition(self, condition: profedit.EditableCondition) -> None:
         """A State or Event condition: a field for each of its arguments."""
-        _render_plugin_configuration_warning(
+        render_plugin_configuration_warning(
             condition.condition_element,
             profedit.get_condition_display_name(condition),
         )
@@ -593,7 +595,7 @@ class _ProfileEditorBody:
         self.render_conditions()
 
 
-def _build_code_type_picker(rows: list[dict], label: str, type_picker: Select, shown_for: str) -> Select:
+def _build_code_type_picker(rows: list[dict[str, Any]], label: str, type_picker: Select, shown_for: str) -> Select:
     """A searchable picker of every Event or State code, shown only while the type picker says so.
 
     Args:
@@ -777,7 +779,7 @@ def build_edit_profile_dialog(self: MyGui, edited_profile: profedit.EditableProf
     per Profile. Field widgets are kept in a plain dict (matching this file's existing
     ad-hoc widget-ref pattern) and read at Save time rather than using NiceGUI bindings.
     """
-    field_refs: dict = {}
+    field_refs: dict[str, Any] = {}
 
     with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[500px] max-w-[900px] w-full p-6"):
         title_label = _build_edit_profile_fields(self, edited_profile, field_refs, dialog)
@@ -1037,7 +1039,7 @@ def build_add_profile_dialog(
     elemvals.get_ids -- not by the all_profiles lookup table register_new_profile
     populates), which is why a Project is required at all.
     """
-    field_refs: dict = {"target_project_name": target_project_name}
+    field_refs: dict[str, Any] = {"target_project_name": target_project_name}
 
     with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[500px] max-w-[900px] w-full p-6"):
         _build_add_profile_fields(self, edited_profile, field_refs, dialog, target_project_name)

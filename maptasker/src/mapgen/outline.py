@@ -28,9 +28,10 @@
 #   }
 # }
 import contextlib
+from typing import Any
 from xml.etree.ElementTree import Element
 
-import defusedxml.ElementTree  # Need for type hints
+import defusedxml
 
 from maptasker.src.core.elemvals import get_ids
 from maptasker.src.core.format import format_html
@@ -62,7 +63,7 @@ def bare_task_name(name: str) -> str:
 
 # Update Task with calls and called_by details
 def update_caller_and_called_tasks(
-    task: dict,
+    task: dict[str, Any],
     perform_task_name: str,
     state: RunState,
 ) -> None:
@@ -119,7 +120,7 @@ def update_caller_and_called_tasks(
 # Go through the Task's Actions looking for any Perform Task actions.
 def do_task_actions(
     task_actions: list[Element],
-    task: dict,
+    task: dict[str, Any],
     state: RunState,
 ) -> None:
     """
@@ -158,7 +159,7 @@ def do_task_actions(
 
 # Go through all Tasks for Profile and see if any have a "Perform Task" action.
 # If so, save the link to the other Task to be displayed in the outline.
-def get_perform_task_actions(the_tasks: list, state: RunState) -> None:
+def get_perform_task_actions(the_tasks: list[Any], state: RunState) -> None:
     """
     Go through all Tasks for Profile and see if any have a "Perform Task" action.
     If so, save the link to the other Task to be displayed in the outline.
@@ -189,7 +190,7 @@ def get_perform_task_actions(the_tasks: list, state: RunState) -> None:
 
 
 # Output the Tasks that are not in any Profile
-def tasks_not_in_profile(all_profiles_tasks: list, tasks_in_project: list, state: RunState) -> None:
+def tasks_not_in_profile(all_profiles_tasks: list[Any], tasks_in_project: list[Any], state: RunState) -> None:
     # Now process all Tasks under Project that are not called by any Profile
     # task_ids is a list of strings, each string is a Task id.
     """
@@ -208,8 +209,8 @@ def tasks_not_in_profile(all_profiles_tasks: list, tasks_in_project: list, state
 
     task_line = ""
     all_profiles_tasks = list(dict.fromkeys(all_profiles_tasks))  # Remove dups
-    no_profile_tasks = []
-    no_profile_task_lines = []
+    no_profile_tasks: list[dict[str, Any]] = []
+    no_profile_task_lines: list[dict[str, Any]] = []
 
     # Go through all Tasks in the Project
     for task in tasks_in_project:
@@ -250,7 +251,7 @@ def tasks_not_in_profile(all_profiles_tasks: list, tasks_in_project: list, state
 
 
 # Outline the Scenes under the Project
-def outline_scenes(project_name: str, network: dict, state: RunState) -> None:
+def outline_scenes(project_name: str, network: dict[str, Any], state: RunState) -> None:
     """
     Outline the Scenes under the Project
         Args:
@@ -287,11 +288,11 @@ def outline_scenes(project_name: str, network: dict, state: RunState) -> None:
 def do_profile_tasks(
     project_name: str,
     profile_name: str,
-    the_tasks: list,
-    task_output_line: list,
-    network: dict,
+    the_tasks: list[Any],
+    task_output_line: list[Any],
+    network: dict[str, Any],
     state: RunState,
-) -> list:
+) -> list[Any]:
     """
     Go through the Tasks in the Profile and output them.
         Args:
@@ -311,7 +312,7 @@ def do_profile_tasks(
     # elbow = f"└{line*5}▶"
     arrow_to_use = arrow1
 
-    tasks_in_profile = []
+    tasks_in_profile: list[Any] = []
     # If no Project, then this XML only has a Profile or Task
     if not project_name:
         project_name = "No Project"
@@ -367,9 +368,9 @@ def do_profile_tasks(
 # Given a Project, outline it's Profiles, Tasks and Scenes
 def outline_profiles_tasks_scenes(
     project_name: str,
-    profile_ids: list,
-    tasks_in_project: list,
-    network: dict,
+    profile_ids: list[Any],
+    tasks_in_project: list[Any],
+    network: dict[str, Any],
     config: RunConfig,
     state: RunState,
 ) -> None:
@@ -381,7 +382,7 @@ def outline_profiles_tasks_scenes(
             tasks_in_project (list): list of Tasks under this Project
             network (dict): Dictionary structure for our network
     """
-    all_profiles_tasks = []
+    all_profiles_tasks: list[Any] = []
 
     # Go thru all Profiles
     no_name_counter = 1
@@ -414,9 +415,9 @@ def outline_profiles_tasks_scenes(
             )
 
             # Get Tasks for this Profile and output them
-            task_output_line = []  # Profile's Tasks will be filled in here
-            tasks_in_profile = []  # Keep track of Tasks processed/output.
-            list_of_found_tasks = []
+            task_output_line: list[Any] = []  # Profile's Tasks will be filled in here
+            tasks_in_profile: list[Any] = []  # Keep track of Tasks processed/output.
+            list_of_found_tasks: list[Any] = []
 
             the_tasks = _get_profile_tasks(profile, list_of_found_tasks, task_output_line, config, state=state)
 
@@ -438,7 +439,7 @@ def outline_profiles_tasks_scenes(
 
 
 # Start outline beginning with the Projects
-def do_the_outline(network: dict, config: RunConfig, state: RunState) -> None:
+def do_the_outline(network: dict[str, Any], config: RunConfig, state: RunState) -> None:
     """
     Start outline beginning with the Projects
         Args:
@@ -460,7 +461,7 @@ def do_the_outline(network: dict, config: RunConfig, state: RunState) -> None:
     if not state.tasker_root_elements["all_projects"] and (
         state.tasker_root_elements["all_profiles"] or state.tasker_root_elements["all_tasks"]
     ):
-        tids = []
+        tids: list[Any] = []
         # Get the Profile and Task IDs
         pids = list(state.tasker_root_elements["all_profiles"])
         for key in state.tasker_root_elements["all_tasks"]:
@@ -528,7 +529,7 @@ def do_the_outline(network: dict, config: RunConfig, state: RunState) -> None:
 
 
 # Get the Project for the single named item (Profile or Task)
-def check_for_single_name(root: dict, single_name: str, do_pids: bool, state: RunState) -> bool:
+def check_for_single_name(root: dict[str, Any], single_name: str, do_pids: bool, state: RunState) -> bool:
     """
     Get the Project for the single named item (Profile or Task)
 
@@ -605,7 +606,7 @@ def outline_the_configuration(state: RunState) -> None:
     state.output_lines.add_line_to_output(1, "<hr>", FormatLine.dont_format_line)
 
     # Define our network.
-    network = {}
+    network: dict[str, Any] = {}
 
     # If doing a single profile or task, set single project to this profile/task's project
     fix_project_name_for_single_name(state=state)

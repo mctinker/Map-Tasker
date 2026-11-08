@@ -318,7 +318,7 @@ async def test_a_plugin_that_cannot_be_edited_here_carries_a_standing_warning(
     )
 
     def page() -> None:
-        guiwins_taskedit._render_plugin_configuration_warning(MagicMock(), "AutoApps")
+        guiwins_taskedit.render_plugin_configuration_warning(MagicMock(), "AutoApps")
 
     async with open_page(page) as user:
         assert (warning in label_texts(user)) is bool(warning)

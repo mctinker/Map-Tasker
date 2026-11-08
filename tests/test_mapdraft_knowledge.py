@@ -120,7 +120,7 @@ def test_a_name_inside_a_longer_word_is_not_mentioned() -> None:
 
 def test_the_global_variables_are_read_by_name_and_never_by_value(variables: None) -> None:
     assert mapdraft.declared_variable_names(PrimeItems) == ["%HomeCity", "%Password", "%Total"]
-    assert mapdraft.declared_variable_names(type("State", (), {"xml_root": None})()) == []  # type: ignore[arg-type]
+    assert mapdraft.declared_variable_names(type("State", (), {"xml_root": None, "backup_loaded": False})()) == []  # type: ignore[arg-type]
 
 
 def test_names_are_left_out_unless_the_user_allows_them(variables: None) -> None:

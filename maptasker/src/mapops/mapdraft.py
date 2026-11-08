@@ -57,7 +57,7 @@ from __future__ import annotations
 import dataclasses
 import json
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from maptasker.src.analysis.mapask import (
     LLAMA,
@@ -70,6 +70,7 @@ from maptasker.src.analysis.mapask import (
     values_of,
 )
 from maptasker.src.core.actionc import action_codes
+from maptasker.src.core.maputil2 import as_json_list, as_json_object
 from maptasker.src.core.sysconst import logger
 from maptasker.src.edit import taskedit, taskedit_addable, taskedit_apply, taskedit_args, taskedit_model
 from maptasker.src.mapops import mapcards
@@ -371,7 +372,7 @@ class DraftStep:
 
     action_key: str
     label: str = ""
-    values: dict[str, str] = field(default_factory=dict)
+    values: dict[str, str] = field(default_factory=dict[str, str])
 
 
 @dataclass(frozen=True)
@@ -417,24 +418,24 @@ class Applied:
 # ##################################################################################
 # What the model is shown.
 # ##################################################################################
-def action_catalog(state: RunState) -> list[dict]:
+def action_catalog(state: RunState) -> list[dict[str, Any]]:
     """The actions a draft may use: exactly the ones the Add Task picker lets the user add."""
     return [row for row in taskedit_addable.list_addable_actions(state=state) if row["addable"]]
 
 
-def _catalog_text(rows: list[dict]) -> str:
+def _catalog_text(rows: list[dict[str, Any]]) -> str:
     """The catalog as the model reads it: a heading per category, then 'key name' lines."""
-    by_category: dict[str, list[dict]] = {}
+    by_category: dict[str, list[dict[str, Any]]] = {}
     for row in rows:
         by_category.setdefault(row["category_name"], []).append(row)
-    lines = []
+    lines: list[str] = []
     for category in sorted(by_category):
         lines.append(f"## {category}")
         lines += [f"{row['action_key']} {row['name']}" for row in by_category[category]]
     return "\n".join(lines)
 
 
-def common_actions(state: RunState, scratch: dict | None = None) -> dict[str, list[FillableArg]]:
+def common_actions(state: RunState, scratch: dict[str, Any] | None = None) -> dict[str, list[FillableArg]]:
     """The common actions this catalog has, with the arguments the first question lists for each."""
     keys = {row["action_key"] for row in action_catalog(state)}
     common: dict[str, list[FillableArg]] = {}
@@ -467,7 +468,7 @@ def _kind_for_prompt(arg: FillableArg) -> str:
     return f"choice: {' | '.join(arg.options)}" if arg.options else arg.kind
 
 
-def _candidates(description: str, rows: list[dict]) -> list[dict]:
+def _candidates(description: str, rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """The few actions that most plausibly do what a description says, for a model with no room for them all.
 
     Ranked by mapcards on the words of the description against each action's name and card.  The
@@ -488,7 +489,7 @@ def example_recipes(description: str, state: RunState) -> list[mapcards.Recipe]:
 def related_actions(
     description: str,
     state: RunState,
-    scratch: dict | None = None,
+    scratch: dict[str, Any] | None = None,
 ) -> dict[str, list[FillableArg] | None]:
     """The actions outside the common list that best match a description, with their arguments where they fit.
 
@@ -513,7 +514,7 @@ def related_actions(
 def listed_with_arguments(
     description: str,
     state: RunState,
-    scratch: dict | None = None,
+    scratch: dict[str, Any] | None = None,
 ) -> dict[str, list[FillableArg]]:
     """Every action the first question lists WITH its arguments: the common ones, and the best matches that fit."""
     listed = dict(common_actions(state, scratch))
@@ -523,9 +524,8 @@ def listed_with_arguments(
 
 def declared_variable_names(state: RunState) -> list[str]:
     """The names of the global variables the backup declares, which is all that is read of them: never a value."""
-    root = state.xml_root
-    names = set()
-    for element in root.findall("Variable") if root is not None else ():
+    names: set[str] = set()
+    for element in state.xml_root.findall("Variable") if state.backup_loaded else ():
         children = list(element)
         name = (children[0].text or "").strip() if children else ""
         if name.startswith("%"):
@@ -567,7 +567,7 @@ def context_lines(description: str, state: RunState, *, share_names: bool = Fals
 def build_plan_prompt(
     description: str,
     state: RunState,
-    scratch: dict | None = None,
+    scratch: dict[str, Any] | None = None,
     *,
     compact: bool = False,
     share_names: bool = False,
@@ -607,7 +607,7 @@ def build_plan_prompt(
     return system, "\n".join(parts)
 
 
-def _examples_text(description: str, state: RunState, scratch: dict | None) -> list[str]:
+def _examples_text(description: str, state: RunState, scratch: dict[str, Any] | None) -> list[str]:
     """The lines of the worked examples nearest a description, or none if nothing is near."""
     recipes = example_recipes(description, state)
     if not recipes:
@@ -621,7 +621,7 @@ def _examples_text(description: str, state: RunState, scratch: dict | None) -> l
     return lines
 
 
-def fillable_args(action_key: str, state: RunState, scratch: dict | None = None) -> list[FillableArg]:
+def fillable_args(action_key: str, state: RunState, scratch: dict[str, Any] | None = None) -> list[FillableArg]:
     """The arguments of an action that a draft can set, read off the action as the editor builds it.
 
     Built the way Add Task builds a new one, in a Task of its own that is thrown away, so the
@@ -661,7 +661,7 @@ def build_detail_prompt(
     description: str,
     plan: Plan,
     state: RunState,
-    scratch: dict | None = None,
+    scratch: dict[str, Any] | None = None,
     answered: Collection[int] = (),
     *,
     share_names: bool = False,
@@ -671,7 +671,7 @@ def build_detail_prompt(
     'answered' are the steps (counted from 0) whose arguments the first question already got: the
     model has had its chance to set those, so they are not asked about again.
     """
-    steps = []
+    steps: list[dict[str, Any]] = []
     for number, step in enumerate(plan.steps):
         if number in answered:
             continue
@@ -701,7 +701,7 @@ def build_detail_prompt(
     return _DETAIL_INSTRUCTIONS, "\n".join(lines)
 
 
-def _arg_for_prompt(arg: FillableArg) -> dict:
+def _arg_for_prompt(arg: FillableArg) -> dict[str, Any]:
     """One argument as a small JSON object for the second prompt."""
     shown: dict[str, object] = {"id": arg.arg_id, "name": arg.name, "kind": arg.kind}
     if arg.options:
@@ -712,7 +712,7 @@ def _arg_for_prompt(arg: FillableArg) -> dict:
 # ##################################################################################
 # The replies.
 # ##################################################################################
-def _action_key(raw: str, rows: list[dict]) -> str:
+def _action_key(raw: str, rows: list[dict[str, Any]]) -> str:
     """The catalog key a model's action reference means, or "" if it names none.
 
     The key itself, with or without the trailing 't'; the line it was copied from ("37t If",
@@ -739,10 +739,10 @@ def _label(raw: object) -> str:
     return " ".join(str(raw or "").split())[:MAX_NAME]
 
 
-def _given_args(item: dict) -> tuple[tuple[str, object], ...]:
+def _given_args(item: dict[str, Any]) -> tuple[tuple[str, object], ...]:
     """The (id, value) pairs a step of a reply carries, as written."""
-    given = item.get("args")
-    entries = [entry for entry in given if isinstance(entry, dict)] if isinstance(given, list) else []
+    given = as_json_list(item.get("args")) or ()
+    entries = [entry for entry in map(as_json_object, given) if entry is not None]
     return tuple((str(entry.get("id") or ""), entry.get("value")) for entry in entries)
 
 
@@ -751,13 +751,12 @@ def parse_plan(reply: str, state: RunState) -> Plan:
     fields = reply_object(reply, "draft")
     rows = action_catalog(state)
 
-    named = fields.get("steps")
-    if not isinstance(named, list):
-        named = []
+    named = as_json_list(fields.get("steps")) or []
     steps: list[PlanStep] = []
     unknown: list[str] = []
-    for item in named:
-        if not isinstance(item, dict):
+    for raw_item in named:
+        item = as_json_object(raw_item)
+        if item is None:
             continue
         raw = str(item.get("action") or "").strip()
         if not raw:
@@ -846,7 +845,9 @@ def _checked_value(arg: FillableArg, raw: object, state: RunState) -> tuple[str,
     return value, ""
 
 
-def settle_plan(plan: Plan, state: RunState, scratch: dict | None = None) -> tuple[list[DraftStep], list[str]]:
+def settle_plan(
+    plan: Plan, state: RunState, scratch: dict[str, Any] | None = None
+) -> tuple[list[DraftStep], list[str]]:
     """The plan's steps as drafted, with the arguments the first reply gave checked against the actions' own.
 
     Returns:
@@ -870,7 +871,7 @@ def parse_details(
     plan: Plan,
     drafted: list[DraftStep],
     state: RunState,
-    scratch: dict | None = None,
+    scratch: dict[str, Any] | None = None,
 ) -> tuple[list[DraftStep], list[str]]:
     """Add the second reply's labels and argument values to the steps drafted so far, checked as the first's were.
 
@@ -889,16 +890,17 @@ def parse_details(
     return steps, dropped
 
 
-def _replies_by_step(fields: dict, step_count: int) -> tuple[dict[int, dict], list[str]]:
+def _replies_by_step(fields: dict[str, Any], step_count: int) -> tuple[dict[int, dict[str, Any]], list[str]]:
     """The second reply's entries by the step they are for (counted from 0), and the ones for no step."""
     given = fields.get("steps")
-    by_step: dict[int, dict] = {}
+    by_step: dict[int, dict[str, Any]] = {}
     dropped: list[str] = []
-    for item in given if isinstance(given, list) else []:
-        number = item.get("step") if isinstance(item, dict) else None
+    for raw_item in as_json_list(given) or ():
+        item = as_json_object(raw_item)
+        number: object = item.get("step") if item is not None else None
         if isinstance(number, str) and number.strip().isdigit():
             number = int(number)
-        if isinstance(number, int) and not isinstance(number, bool) and 1 <= number <= step_count:
+        if item is not None and isinstance(number, int) and not isinstance(number, bool) and 1 <= number <= step_count:
             by_step.setdefault(number - 1, item)
         else:
             dropped.append(f"A reply for a step that does not exist ({number!r}).")
@@ -923,8 +925,9 @@ def _checked_values(
 ) -> dict[str, str]:
     """The values in one step's reply that its action's arguments accept; the rest go on 'dropped'."""
     values: dict[str, str] = {}
-    for entry in args if isinstance(args, list) else []:
-        if not isinstance(entry, dict):
+    for raw_entry in as_json_list(args) or ():
+        entry = as_json_object(raw_entry)
+        if entry is None:
             continue
         raw_id = str(entry.get("id") or "").strip().removeprefix("arg")
         raw = entry.get("value")
@@ -978,7 +981,7 @@ class _PlanQuestion:
     system: str
     user: str
     state: RunState
-    scratch: dict
+    scratch: dict[str, Any]
 
 
 async def _first_plan(question: _PlanQuestion, *, compact: bool) -> tuple[Plan, str]:
@@ -1049,7 +1052,7 @@ async def draft_task(
     if not description:
         message = "Describe the Task first."
         raise AskError(message)
-    if state.xml_root is None:
+    if not state.backup_loaded:
         message = "Load a Tasker backup file first (a draft is built the way Add Task builds a Task)."
         raise AskError(message)
     description = description[:MAX_DESCRIPTION]
@@ -1059,7 +1062,7 @@ async def draft_task(
     compact = settings.provider == LLAMA
     share_names = share_names or compact
     timeout = LOCAL_ASK_TIMEOUT if compact else ASK_TIMEOUT
-    scratch: dict = {}
+    scratch: dict[str, Any] = {}
 
     system, user = build_plan_prompt(description, state, scratch, compact=compact, share_names=share_names)
     plan_settings = dataclasses.replace(

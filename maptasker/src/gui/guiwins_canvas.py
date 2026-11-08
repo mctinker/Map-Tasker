@@ -298,7 +298,7 @@ FIELD_COMMIT_DEBOUNCE_MS = 350
 _CANVAS_EVENT_CLIENTS: weakref.WeakSet[Client] = weakref.WeakSet()
 # Hands out a unique root class per designer, so two on one page cannot share a stylesheet
 # rule, a resize handler or a pointer target.
-_DESIGNER_SEQUENCE = itertools.count(1)
+DESIGNER_SEQUENCE = itertools.count(1)
 
 
 def register_canvas_events() -> None:

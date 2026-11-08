@@ -21,7 +21,7 @@ This module builds the whole Diagram and writes it out; the pieces it is built f
 from __future__ import annotations
 
 import re
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from maptasker.src.core.mapjump import PROFILE, PROJECT, Target
 
@@ -82,7 +82,7 @@ if TYPE_CHECKING:
 
 
 # If Task line has any "Task Call" Task actions, fill it with arrows.
-def handle_calls(output_lines: list, progress: dict, config: RunConfig, state: RunState) -> list:
+def handle_calls(output_lines: list[Any], progress: dict[str, Any], config: RunConfig, state: RunState) -> list[Any]:
     """
     Handle calls in output lines from parsing
     Args:
@@ -160,7 +160,7 @@ def handle_calls(output_lines: list, progress: dict, config: RunConfig, state: R
 
 
 # Process all Profiles and their Tasks for the given Project
-def print_profiles_and_tasks(project_name: str, profiles: dict, config: RunConfig, state: RunState) -> None:
+def print_profiles_and_tasks(project_name: str, profiles: dict[str, Any], config: RunConfig, state: RunState) -> None:
     """
     Prints profiles and tasks from a project.
 
@@ -181,9 +181,10 @@ def print_profiles_and_tasks(project_name: str, profiles: dict, config: RunConfi
     # Go through each Profile in the Project
     profile_counter = 0
     print_tasks = print_scenes = False
-    output_profile_lines = [filler, filler, filler]
-    output_task_lines = []
-    found_tasks = []
+    output_profile_lines: list[Any] = [filler, filler, filler]
+    output_task_lines: list[Any] = []
+    found_tasks: list[Any] = []
+    scenes: list[Any] = []
 
     # Now output each Profile and it's Tasks.
     for profile, tasks in profiles.items():
@@ -243,7 +244,7 @@ def print_profiles_and_tasks(project_name: str, profiles: dict, config: RunConfi
     add_output_line(" ", state=state)
 
 
-def remove_empty_strings(lst: list) -> list:
+def remove_empty_strings(lst: list[Any]) -> list[Any]:
     # return [s for s in lst if re.search(r"\w|\W", s) and not all(char == "|" for char in s)]
     """
     Remove empty strings from a list of strings.
@@ -267,7 +268,7 @@ def replace_maintain_column(line: str, target: str, replacement: str) -> str:
     # Split by the special characters, keeping them in the list
     parts = re.split(r"([│▼▲])", line)
     length_parts = len(parts)
-    new_parts = []
+    new_parts: list[str] = []
 
     for part_no, part in enumerate(parts):
         # If this part is one of our special markers, keep it exactly as is
@@ -304,7 +305,7 @@ def replace_maintain_column(line: str, target: str, replacement: str) -> str:
     return "".join(new_parts)
 
 
-def build_network_map(data: dict, progress: dict, config: RunConfig, state: RunState) -> None:
+def build_network_map(data: dict[str, Any], progress: dict[str, Any], config: RunConfig, state: RunState) -> None:
     """
     Builds a network map from project and profile data
     """
@@ -337,7 +338,7 @@ def build_network_map(data: dict, progress: dict, config: RunConfig, state: RunS
 
     # Remove lines that only contain bars ( | ). This shifts every subsequent line number, so
     # remap the GUI Diagram view's connector seeds (see draw_arrows_to_called_task()) along with it.
-    old_to_new_row = {}
+    old_to_new_row: dict[int, int] = {}
     new_row = 0
     for old_row, removal_line in enumerate(state.netmap_output):
         if all(char in (bar, " ", "\\") for char in removal_line):
@@ -393,8 +394,8 @@ def _write_diagram_file(config: RunConfig, state: RunState) -> tuple[list[str], 
     # the netmap_output index (num) maps to the final line number too, since the spacer lines
     # written between projects shift every subsequent line -- needed to keep the connector
     # seeds (recorded in netmap_output's coordinates) in sync with final_lines.
-    final_lines = []
-    netmap_to_file_line = {}
+    final_lines: list[str] = []
+    netmap_to_file_line: dict[int, int] = {}
     with open(str(output_dir), "w", encoding="utf-8") as mapfile:
         for num, line in enumerate(state.netmap_output):
             if (
@@ -462,7 +463,7 @@ def _resolve_object_placements(
     # line: a Task run by two Profiles drawn side by side is written on that line twice,
     # and each drawing has to be given the copy of the name it is actually drawn as
     # rather than both being handed the first.
-    placements = []
+    placements: list[tuple[str, int, int, int]] = []
     claimed: dict[int, int] = {}
     for anchor, row, snippet in state.diagram_object_placements:
         file_line = netmap_to_file_line.get(row)
@@ -496,7 +497,7 @@ def _build_diagram_model(final_lines: list[str], state: RunState) -> None:
     state.diagram_object_targets = {}
 
 
-def network_map(network: dict, config: RunConfig, state: RunState) -> None:
+def network_map(network: dict[str, Any], config: RunConfig, state: RunState) -> None:
     """
     Output a network map of the Tasker configuration.
 
@@ -504,7 +505,7 @@ def network_map(network: dict, config: RunConfig, state: RunState) -> None:
         network (dict): the Projects, Profiles and Tasks to draw.
         config (RunConfig): the run's settings, threaded down to everything that draws.
     """
-    progress = {}
+    progress: dict[str, Any] = {}
 
     # Start with a ruler line
     state.output_lines.add_line_to_output(1, "<hr>", FormatLine.dont_format_line)

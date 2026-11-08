@@ -7,8 +7,9 @@ from __future__ import annotations
 
 import copy
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
+from maptasker.src.core.maputil2 import as_json_list, as_json_object
 from maptasker.src.edit.sceneedit_v2tree import v2_child_slots, v2_flatten, v2_node_at
 
 if TYPE_CHECKING:
@@ -234,7 +235,7 @@ V2_PALETTE_LABELS: dict[str, str] = {entry.node_type: entry.label for entry in V
 # makes the component visible and sensible on screen -- a Text with no text renders as
 # nothing, which reads as a bug rather than as an empty component.  Everything else is left
 # absent rather than defaulted, so the encoded JSON stays as small as what Tasker writes.
-V2_NEW_NODE_DEFAULTS: dict[str, dict] = {
+V2_NEW_NODE_DEFAULTS: dict[str, dict[str, Any]] = {
     "Column": {"horizontalAlignment": "Center", "verticalArrangement": "Center", "children": []},
     "Row": {"horizontalArrangement": "Center", "verticalAlignment": "Center", "children": []},
     "FlowRow": {"children": []},
@@ -281,7 +282,7 @@ V2_NEW_NODE_DEFAULTS: dict[str, dict] = {
 V2_ELEMENT_ACTION_CODES = ("481", "483", "485")
 
 
-def v2_container_slots(node: dict) -> tuple[str, ...]:
+def v2_container_slots(node: dict[str, Any]) -> tuple[str, ...]:
     """Which slots this node can take children in.
 
     The declared slots for its type (V2_CONTAINER_SLOTS), plus any slot the node actually
@@ -294,12 +295,12 @@ def v2_container_slots(node: dict) -> tuple[str, ...]:
     return declared + present
 
 
-def v2_all_ids(layout: dict) -> set[str]:
+def v2_all_ids(layout: dict[str, Any]) -> set[str]:
     """Every component id currently in the tree -- what uniqueness is checked against."""
     return {row.node["id"] for row in v2_flatten(layout) if isinstance(row.node.get("id"), str)}
 
 
-def v2_next_id(layout: dict, node_type: str) -> str:
+def v2_next_id(layout: dict[str, Any], node_type: str) -> str:
     """A free id for a new component of this type: "Text1", "Text2", ...
 
     Serial per type, matching how Tasker's own Screen Builder names them (the 'V2' Scene
@@ -314,7 +315,7 @@ def v2_next_id(layout: dict, node_type: str) -> str:
     return f"{node_type}{index}"
 
 
-def v2_new_node(layout: dict, node_type: str) -> dict:
+def v2_new_node(layout: dict[str, Any], node_type: str) -> dict[str, Any]:
     """Build a component ready to insert: type, a free id, and its starting properties.
 
     Key order matters (see this module's designer notes) -- type then id then the rest,
@@ -325,7 +326,7 @@ def v2_new_node(layout: dict, node_type: str) -> dict:
     return node
 
 
-def _v2_parent_and_slot(layout: dict, path: tuple) -> tuple[dict | None, str, int]:
+def _v2_parent_and_slot(layout: dict[str, Any], path: tuple[Any, ...]) -> tuple[dict[str, Any] | None, str, int]:
     """The parent node, slot key and index a path's node sits at -- () for the root
     returns (None, "", -1), since the root has no parent and cannot be moved or deleted.
     """
@@ -335,7 +336,9 @@ def _v2_parent_and_slot(layout: dict, path: tuple) -> tuple[dict | None, str, in
     return parent, path[-2], path[-1]
 
 
-def v2_insert_node(layout: dict, path: tuple, node: dict, slot: str = "") -> tuple | None:
+def v2_insert_node(
+    layout: dict[str, Any], path: tuple[Any, ...], node: dict[str, Any], slot: str = ""
+) -> tuple[Any, ...] | None:
     """Insert a component relative to the node at `path`, and return the new node's path.
 
     Placement is one rule, chosen so a single "Add" button behaves predictably:
@@ -358,8 +361,8 @@ def v2_insert_node(layout: dict, path: tuple, node: dict, slot: str = "") -> tup
     slots = v2_container_slots(target)
     if slots:
         slot_key = slot or slots[0]
-        children = target.setdefault(slot_key, [])
-        if not isinstance(children, list):
+        children = as_json_list(target.setdefault(slot_key, []))
+        if children is None:
             return None
         children.append(node)
         return (*path, slot_key, len(children) - 1)
@@ -367,14 +370,14 @@ def v2_insert_node(layout: dict, path: tuple, node: dict, slot: str = "") -> tup
     parent, parent_slot, index = _v2_parent_and_slot(layout, path)
     if parent is None:
         return None
-    siblings = parent.get(parent_slot)
-    if not isinstance(siblings, list):
+    siblings = as_json_list(parent.get(parent_slot))
+    if siblings is None:
         return None
     siblings.insert(index + 1, node)
     return (*path[:-1], index + 1)
 
 
-def v2_insert_destination(layout: dict, path: tuple) -> tuple[str, str]:
+def v2_insert_destination(layout: dict[str, Any], path: tuple[Any, ...]) -> tuple[str, str]:
     """Where v2_insert_node would put a new component right now, as ("inside"/"after", id).
 
     The same two-case rule v2_insert_node implements, answered *before* the click rather
@@ -391,7 +394,7 @@ def v2_insert_destination(layout: dict, path: tuple) -> tuple[str, str]:
     return ("inside" if v2_container_slots(target) else "after"), name
 
 
-def _v2_insert_parent_type(layout: dict, path: tuple) -> str:
+def _v2_insert_parent_type(layout: dict[str, Any], path: tuple[Any, ...]) -> str:
     """The type of the component a new node added at `path` would end up *in* -- the target
     itself when it can hold children, otherwise the target's own parent.  Mirrors
     v2_insert_node's two cases, which is what makes v2_can_add agree with what a click does.
@@ -405,7 +408,7 @@ def _v2_insert_parent_type(layout: dict, path: tuple) -> str:
     return str((parent or {}).get("type", ""))
 
 
-def v2_can_add(layout: dict, path: tuple, node_type: str) -> str:
+def v2_can_add(layout: dict[str, Any], path: tuple[Any, ...], node_type: str) -> str:
     """ "" if this element can be added at this selection, otherwise the reason it can't.
 
     Only V2_PARENT_ONLY is consulted: everything else goes anywhere a container will take
@@ -423,7 +426,7 @@ def v2_can_add(layout: dict, path: tuple, node_type: str) -> str:
     return f"Only goes inside a {labels}. Select one first."
 
 
-def v2_palette_for(layout: dict, path: tuple) -> list[tuple[str, list[tuple[V2PaletteEntry, str]]]]:
+def v2_palette_for(layout: dict[str, Any], path: tuple[Any, ...]) -> list[tuple[str, list[tuple[V2PaletteEntry, str]]]]:
     """The whole palette as the Add Element dialog needs it: groups in V2_PALETTE_GROUPS
     order, each holding its entries paired with "" or the reason that entry can't be added
     at this selection.
@@ -442,7 +445,7 @@ def v2_palette_for(layout: dict, path: tuple) -> list[tuple[str, list[tuple[V2Pa
     ]
 
 
-def v2_delete_node(layout: dict, path: tuple) -> list[str]:
+def v2_delete_node(layout: dict[str, Any], path: tuple[Any, ...]) -> list[str]:
     """Delete a component and everything under it.  Returns [] on success, else errors
     (mirroring delete_scene's convention) and changes nothing.
 
@@ -458,7 +461,7 @@ def v2_delete_node(layout: dict, path: tuple) -> list[str]:
     return []
 
 
-def _v2_splice_run(layout: dict, path: tuple, count: int, insert_at: int) -> tuple | None:
+def _v2_splice_run(layout: dict[str, Any], path: tuple[Any, ...], count: int, insert_at: int) -> tuple[Any, ...] | None:
     """Lift `count` consecutive siblings starting at `path` out of their slot and put them
     back at `insert_at`, and return the run's new first path.
 
@@ -476,8 +479,8 @@ def _v2_splice_run(layout: dict, path: tuple, count: int, insert_at: int) -> tup
     parent, slot, start = _v2_parent_and_slot(layout, path)
     if parent is None or count < 1:
         return None
-    siblings = parent.get(slot)
-    if not isinstance(siblings, list) or start < 0 or start + count > len(siblings):
+    siblings = as_json_list(parent.get(slot))
+    if siblings is None or start < 0 or start + count > len(siblings):
         return None
     if insert_at == start or not 0 <= insert_at <= len(siblings) - count:
         return None
@@ -487,7 +490,7 @@ def _v2_splice_run(layout: dict, path: tuple, count: int, insert_at: int) -> tup
     return (*path[:-1], insert_at)
 
 
-def v2_move_run(layout: dict, path: tuple, count: int, offset: int) -> tuple | None:
+def v2_move_run(layout: dict[str, Any], path: tuple[Any, ...], count: int, offset: int) -> tuple[Any, ...] | None:
     """Move a run of `count` adjacent siblings `offset` places up (negative) or down.
 
     The run-sized Up/Down: offset is in sibling positions, so +1 steps the whole run past
@@ -497,7 +500,7 @@ def v2_move_run(layout: dict, path: tuple, count: int, offset: int) -> tuple | N
     return _v2_splice_run(layout, path, count, _v2_parent_and_slot(layout, path)[2] + offset)
 
 
-def v2_drop_run(layout: dict, path: tuple, count: int, before: int) -> tuple | None:
+def v2_drop_run(layout: dict[str, Any], path: tuple[Any, ...], count: int, before: int) -> tuple[Any, ...] | None:
     """Move a run of `count` adjacent siblings so it sits before sibling `before`.
 
     What a drag drops: `before` is a *gap* in the slot as the user sees it right now -- 0 is
@@ -513,7 +516,9 @@ def v2_drop_run(layout: dict, path: tuple, count: int, before: int) -> tuple | N
     return _v2_splice_run(layout, path, count, before - count if before > start else before)
 
 
-def v2_selection_run(layout: dict, anchor: tuple, other: tuple) -> tuple[tuple, int] | None:
+def v2_selection_run(
+    layout: dict[str, Any], anchor: tuple[Any, ...], other: tuple[Any, ...]
+) -> tuple[tuple[Any, ...], int] | None:
     """The run of adjacent siblings spanned by two selected paths, as (first path, count).
 
     What a shift-click means, and the one place the "adjacent" in "one or more adjacent
@@ -533,7 +538,7 @@ def v2_selection_run(layout: dict, anchor: tuple, other: tuple) -> tuple[tuple, 
     return (*anchor[:-1], first), last - first + 1
 
 
-def v2_run_paths(path: tuple, count: int) -> tuple[tuple, ...]:
+def v2_run_paths(path: tuple[Any, ...], count: int) -> tuple[tuple[Any, ...], ...]:
     """Every path in a run -- what the tree and the picture both highlight.  The run's own
     invariant is what makes this arithmetic rather than a search: adjacent siblings differ
     only in the last element of their path.
@@ -543,7 +548,7 @@ def v2_run_paths(path: tuple, count: int) -> tuple[tuple, ...]:
     return tuple((*path[:-1], path[-1] + step) for step in range(max(1, count)))
 
 
-def v2_run_is_valid(layout: dict, path: tuple, count: int) -> bool:
+def v2_run_is_valid(layout: dict[str, Any], path: tuple[Any, ...], count: int) -> bool:
     """Does this run still address `count` whole siblings?  Checked before every use of a
     remembered selection, because the tree it was taken from can have been re-rendered,
     undone or edited from the other view since.
@@ -551,11 +556,11 @@ def v2_run_is_valid(layout: dict, path: tuple, count: int) -> bool:
     parent, slot, start = _v2_parent_and_slot(layout, path)
     if parent is None or count < 1 or start < 0:
         return False
-    siblings = parent.get(slot)
-    return isinstance(siblings, list) and start + count <= len(siblings)
+    siblings = as_json_list(parent.get(slot))
+    return siblings is not None and start + count <= len(siblings)
 
 
-def v2_outdent_node(layout: dict, path: tuple) -> tuple | None:
+def v2_outdent_node(layout: dict[str, Any], path: tuple[Any, ...]) -> tuple[Any, ...] | None:
     """Move a component out of its parent, to sit just after it in the grandparent.
     Returns the new path, or None if there's no grandparent to move into.
 
@@ -574,29 +579,29 @@ def v2_outdent_node(layout: dict, path: tuple) -> tuple | None:
     return (*path[:-4], grandparent_slot, parent_index + 1)
 
 
-def v2_indent_node(layout: dict, path: tuple) -> tuple | None:
+def v2_indent_node(layout: dict[str, Any], path: tuple[Any, ...]) -> tuple[Any, ...] | None:
     """Move a component into the container immediately above it among its siblings.
     Returns the new path, or None if there is no previous sibling or it can't take children.
     """
     parent, slot, index = _v2_parent_and_slot(layout, path)
     if parent is None or index <= 0:
         return None
-    siblings = parent.get(slot)
-    if not isinstance(siblings, list):
+    siblings = as_json_list(parent.get(slot))
+    new_parent = as_json_object(siblings[index - 1]) if siblings is not None else None
+    if siblings is None or new_parent is None:
         return None
-    new_parent = siblings[index - 1]
     slots = v2_container_slots(new_parent)
     if not slots:
         return None
     target_slot = slots[0]
-    children = new_parent.setdefault(target_slot, [])
-    if not isinstance(children, list):
+    children = as_json_list(new_parent.setdefault(target_slot, []))
+    if children is None:
         return None
     children.append(siblings.pop(index))
     return (*path[:-1], index - 1, target_slot, len(children) - 1)
 
 
-def v2_duplicate_node(layout: dict, path: tuple) -> tuple | None:
+def v2_duplicate_node(layout: dict[str, Any], path: tuple[Any, ...]) -> tuple[Any, ...] | None:
     """Copy a component and everything under it in beside it, with fresh ids throughout.
 
     Every id in the copied subtree is renumbered, not just the top one -- two components
@@ -610,12 +615,13 @@ def v2_duplicate_node(layout: dict, path: tuple) -> tuple | None:
 
     clone = copy.deepcopy(node)
 
-    def renumber(current: dict) -> None:
+    def renumber(current: dict[str, Any]) -> None:
         if isinstance(current.get("type"), str):
             current["id"] = v2_next_id(layout, current["type"])
         for _, children in v2_child_slots(current):
-            for child in children:
-                if isinstance(child, dict):
+            for raw_child in children:
+                child = as_json_object(raw_child)
+                if child is not None:
                     renumber(child)
 
     # Insert first, then renumber against the tree the clone is now part of, so the clone's
@@ -625,7 +631,7 @@ def v2_duplicate_node(layout: dict, path: tuple) -> tuple | None:
     return (*path[:-1], index + 1)
 
 
-def v2_rename_id(layout: dict, path: tuple, new_id: str) -> list[str]:
+def v2_rename_id(layout: dict[str, Any], path: tuple[Any, ...], new_id: str) -> list[str]:
     """Rename a component's id, if the new one is free.  Returns [] on success, else errors.
 
     Does NOT rewrite anything that referred to the old id -- see
@@ -678,8 +684,9 @@ def find_component_id_references(scene_name: str, component_id: str, state: RunS
     wanted_scene = scene_name.strip().casefold()
     wanted_id = component_id.strip().casefold()
 
-    references = []
-    for entry in state.tasker_root_elements.get("all_tasks", {}).values():
+    references: list[str] = []
+    all_tasks: dict[str, Any] = state.tasker_root_elements.get("all_tasks") or {}
+    for entry in all_tasks.values():
         task_element = entry["xml"]
         task_name = task_element.findtext("nme") or f"Task {task_element.findtext('id', '?')}"
         for action in task_element.findall("Action"):

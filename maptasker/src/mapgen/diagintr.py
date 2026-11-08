@@ -33,7 +33,7 @@ collapsing hides whole lines rather than reflowing anything.
 from __future__ import annotations
 
 import json
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 
 from maptasker.src.core import assettext, mapjump
 from maptasker.src.core.mapjump import PROJECT, TASK, Target
@@ -61,7 +61,7 @@ _TASK_PREFIX = 3
 # ##################################################################################
 # The model, built once as the diagram is written.
 # ##################################################################################
-def _regions(anchors: dict, targets: dict, line_count: int, tail: int) -> list[dict]:
+def _regions(anchors: dict[str, Any], targets: dict[str, Any], line_count: int, tail: int) -> list[dict[str, Any]]:
     """Each Project's stretch of the diagram, top border to the line before the next one.
 
     A Project is the only object the diagram gives a contiguous run of lines to.  Profiles
@@ -80,7 +80,7 @@ def _regions(anchors: dict, targets: dict, line_count: int, tail: int) -> list[d
         for anchor, placement in anchors.items()
         if targets.get(anchor) is not None and targets[anchor].kind == PROJECT
     )
-    regions = []
+    regions: list[dict[str, Any]] = []
     for index, (line, anchor) in enumerate(starts):
         # The name is on the middle line of the three the box is drawn as, so the region
         # opens one line above it, on the box's top border.
@@ -103,7 +103,7 @@ def _regions(anchors: dict, targets: dict, line_count: int, tail: int) -> list[d
     return regions
 
 
-def _project_at(regions: list[dict], line: int) -> str:
+def _project_at(regions: list[dict[str, Any]], line: int) -> str:
     """The name of the Project whose region holds this line, or "" for none.
 
     Linear because a configuration has Projects in the dozens, not the thousands, and this
@@ -130,7 +130,12 @@ def _char_span(line: str, column: int, length: int) -> tuple[int, int]:
     return start, end - start
 
 
-def _nodes(lines: list[str], placements: list, targets: dict, regions: list[dict]) -> list[dict]:
+def _nodes(
+    lines: list[str],
+    placements: list[tuple[str, int, int, int]],
+    targets: dict[str, Any],
+    regions: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
     """Every DRAWING of every object, as a span the browser can wrap and a token to jump with.
 
     One per drawing and not one per object, which is the difference between "the first
@@ -151,7 +156,7 @@ def _nodes(lines: list[str], placements: list, targets: dict, regions: list[dict
     layers to get it here any other way.  Read per drawing, since a Task drawn under one
     Project can be drawn again under another.
     """
-    nodes = []
+    nodes: list[dict[str, Any]] = []
     for anchor, line, column, length in placements:
         target = targets.get(anchor)
         if target is None or length <= 0 or line >= len(lines):
@@ -192,7 +197,7 @@ def _nodes(lines: list[str], placements: list, targets: dict, regions: list[dict
     return nodes
 
 
-def _task_on_row(by_row: dict, row: int, name: str) -> str:
+def _task_on_row(by_row: dict[int, list[dict[str, Any]]], row: int, name: str) -> str:
     """The anchor of the Task drawn on this row, by name where the row holds several.
 
     Several Tasks share a row whenever their Profiles are drawn side by side, so the row
@@ -212,7 +217,9 @@ def _task_on_row(by_row: dict, row: int, name: str) -> str:
     return candidates[0]["anchor"] if candidates else ""
 
 
-def _edges(nodes: list[dict], call_edges: dict, connector_calls: dict) -> list[dict]:
+def _edges(
+    nodes: list[dict[str, Any]], call_edges: dict[str, Any], connector_calls: dict[str, Any]
+) -> list[dict[str, Any]]:
     """Every call, as the two Tasks it joins and the connectors drawn for it.
 
     This is the whole of the call graph the Diagram draws, in the Diagram's own terms: not
@@ -222,17 +229,17 @@ def _edges(nodes: list[dict], call_edges: dict, connector_calls: dict) -> list[d
     A call whose Tasks cannot both be identified is dropped.  It would otherwise be an edge
     into nothing, and a chain walked through it would light up an arbitrary Task.
     """
-    by_row: dict = {}
+    by_row: dict[int, list[dict[str, Any]]] = {}
     for node in nodes:
         if node["kind"] == TASK:
             by_row.setdefault(node["line"], []).append(node)
 
-    groups_by_call: dict = {}
+    groups_by_call: dict[str, Any] = {}
     for group_id, calls in connector_calls.items():
         for call_index in calls:
             groups_by_call.setdefault(call_index, []).append(group_id)
 
-    edges = []
+    edges: list[dict[str, Any]] = []
     for index, edge in call_edges.items():
         caller = _task_on_row(by_row, edge["caller_row"], edge.get("caller_name", ""))
         called = _task_on_row(by_row, edge["called_row"], edge.get("called_name", ""))
@@ -248,7 +255,7 @@ def _edges(nodes: list[dict], call_edges: dict, connector_calls: dict) -> list[d
     return edges
 
 
-def build_model(lines: list[str], state: RunState) -> dict:
+def build_model(lines: list[str], state: RunState) -> dict[str, Any]:
     """Assemble the interaction model from what the finished diagram recorded.
 
     Called at the very end of diagram.network_map, once every position is final: the
@@ -277,7 +284,7 @@ def build_model(lines: list[str], state: RunState) -> dict:
 # ##################################################################################
 # The model, read back by the view.
 # ##################################################################################
-def model(state: RunState) -> dict:
+def model(state: RunState) -> dict[str, Any]:
     """The model the last-built Diagram recorded, or an empty one.
 
     Empty is ordinary rather than an error: a Diagram file left on disk by an older run of
@@ -287,11 +294,15 @@ def model(state: RunState) -> dict:
     in -- this is what the renderer slices Python strings by.  The browser never measures a
     column itself: it finds a node by the element the renderer wrapped it in.
     """
-    stored = getattr(state, "diagram_model", None)
-    return stored if isinstance(stored, dict) and stored.get("nodes") else {"nodes": [], "regions": [], "edges": []}
+    stored: object = getattr(state, "diagram_model", None)
+    if isinstance(stored, dict):
+        stored_model = cast("dict[str, Any]", stored)
+        if stored_model.get("nodes"):
+            return stored_model
+    return {"nodes": [], "regions": [], "edges": []}
 
 
-def connector_tasks(the_model: dict) -> dict[str, list[str]]:
+def connector_tasks(the_model: dict[str, Any]) -> dict[str, list[str]]:
     """Each connector's id -> the anchors of the Tasks it joins, for the jump buttons.
 
     Which Task a connector's end belongs to is not something its cells say; the calls do.
@@ -304,15 +315,15 @@ def connector_tasks(the_model: dict) -> dict[str, list[str]]:
     return {group: sorted(anchors) for group, anchors in found.items()}
 
 
-def nodes_by_line(the_model: dict) -> dict[int, list[dict]]:
+def nodes_by_line(the_model: dict[str, Any]) -> dict[int, list[dict[str, Any]]]:
     """The model's nodes grouped by the line they were drawn on, for the renderer."""
-    by_line: dict[int, list[dict]] = {}
+    by_line: dict[int, list[dict[str, Any]]] = {}
     for node in the_model.get("nodes", []):
         by_line.setdefault(node["line"], []).append(node)
     return by_line
 
 
-def folds_by_line(the_model: dict) -> dict[int, str]:
+def folds_by_line(the_model: dict[str, Any]) -> dict[int, str]:
     """Which lines carry a Project's fold control: {line: region anchor}.
 
     The Project's name line, which is the one line of the box that says which Project this
@@ -322,7 +333,7 @@ def folds_by_line(the_model: dict) -> dict[int, str]:
     return {region["line"]: region["anchor"] for region in the_model.get("regions", [])}
 
 
-def model_json(the_model: dict) -> str:
+def model_json(the_model: dict[str, Any]) -> str:
     """The model as the browser receives it, with the class names it acts through."""
     return json.dumps(
         {
@@ -364,7 +375,7 @@ def model_json(the_model: dict) -> str:
 _INTERACTION_SCRIPT = "js/diagram_interaction.js"
 
 
-def interaction_js(container_id: str, status_id: str, the_model: dict) -> str:
+def interaction_js(container_id: str, status_id: str, the_model: dict[str, Any]) -> str:
     """The script that makes one rendered Diagram interactive."""
     return assettext.render(
         _INTERACTION_SCRIPT,

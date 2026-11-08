@@ -22,7 +22,7 @@ from __future__ import annotations
 
 import asyncio
 import json
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from nicegui import context, ui
 
@@ -139,12 +139,12 @@ class TextViewSearch:
     scroll_area: ui.scroll_area
     search_input: ui.input
     _content_token: int
-    _last_search: tuple[str, list, int, bool] | None
+    _last_search: tuple[str, list[Any], int, bool] | None
     find_query: mapfind.Query | None
-    find_ask: asyncio.Task | None
+    find_ask: asyncio.Task[Any] | None
     find_dialog: ui.dialog | None
-    replace_inputs: tuple | None
-    replace_ticks: collections.Counter | None
+    replace_inputs: tuple[Any, ...] | None
+    replace_ticks: collections.Counter[Any] | None
 
     def invalidate_search_cache(self) -> None:
         """Drops the cached search results, without touching the browser-side text index.
@@ -197,7 +197,9 @@ class TextViewSearch:
             # user is left with a search that silently never answers.  Say what
             # happened in the window instead.
             try:
-                search_result = await client.run_javascript(js_code, timeout=SEARCH_JAVASCRIPT_TIMEOUT)
+                search_result: Any = await cast(
+                    "Any", client.run_javascript(js_code, timeout=SEARCH_JAVASCRIPT_TIMEOUT)
+                )
             except TimeoutError:
                 logger.debug(f"guiwins search timed out after {SEARCH_JAVASCRIPT_TIMEOUT} seconds: '{query}'")
                 # The script may or may not have got as far as rearranging the highlights
@@ -229,7 +231,7 @@ class TextViewSearch:
     def _report_search_results(
         self,
         query: str,
-        found_items: list,
+        found_items: list[Any],
         total_matches: int,
         was_truncated: bool,
         client: Client,
@@ -304,7 +306,7 @@ class TextViewSearch:
         self,
         dialog: ui.dialog,
         index: mapfind.FindIndex,
-        jump_to: Callable,
+        jump_to: Callable[..., Any],
         replace_panel: ui.tab_panel,
     ) -> bool:
         """Build the Find dialog's Replace tab into `replace_panel`.
@@ -516,7 +518,7 @@ class _FindDialog:
         )
         # What the last Find produced, so "Save Results" writes exactly the list on
         # screen rather than re-running a query the user may have edited since.
-        self.produced: dict = {"query": None, "hits": [], "total": 0}
+        self.produced: dict[str, Any] = {"query": None, "hits": [], "total": 0}
 
         self.ask_button.on_click(self.ask)
         self.question_input.on("keydown.enter", self.ask)
@@ -556,7 +558,7 @@ class _FindDialog:
         )
         self.ask_notes.set_visibility(False)
 
-        self.pickers = {}
+        self.pickers: dict[str, Any] = {}
         with ui.row().classes("w-full items-center gap-2"):
             for facet in mapfind.FACETS:
                 choices = self.index.choices(facet)
@@ -624,7 +626,7 @@ class _FindDialog:
         # is the whole reason it moved.
         self.card.classes(remove="w-[900px] p-6", add="w-[620px] p-4")
 
-    def jump_to(self, target: mapjump.Target) -> Callable[[], Coroutine]:
+    def jump_to(self, target: mapjump.Target) -> Callable[[], Coroutine[Any, Any, None]]:
         """One result row's click: dock the list to the right, then go to the object.
 
         Docked rather than closed (see dock), so the list the row came from is
@@ -882,7 +884,7 @@ class _ReplaceTab:
         view: TextViewSearch,
         dialog: ui.dialog,
         index: mapfind.FindIndex,
-        jump_to: Callable,
+        jump_to: Callable[..., Any],
         replace_panel: ui.tab_panel,
         state: RunState,
     ) -> None:
@@ -905,7 +907,7 @@ class _ReplaceTab:
             # Built when the Replace tab is first used, not when the dialog opens.
             # It is a second full scan of the XML on top of the one mapfind just
             # did, and most presses of Find never come here at all.
-            self.held: dict = {"variables": None, "plan": None, "inputs": None}
+            self.held: dict[str, Any] = {"variables": None, "plan": None, "inputs": None}
 
             ui.label(
                 translate_string(
@@ -944,7 +946,9 @@ class _ReplaceTab:
                 "bg-blue-600 text-white px-4",
             )
 
-        self.source_select.set_options({key: label for key, label, _count in mapswap_action.source_choices(self.index)})
+        cast("Any", self.source_select).set_options(
+            {key: label for key, label, _count in mapswap_action.source_choices(self.index)}
+        )
         self.source_select.on_value_change(lambda: (self.fill_targets(), self.invalidate()))
         self.arg_action_select.on_value_change(lambda: (self.fill_arguments(), self.invalidate()))
         self.condition_select.on_value_change(lambda: (self.fill_condition_targets(), self.invalidate()))
@@ -1161,7 +1165,7 @@ class _ReplaceTab:
             self.condition_project.set_value(third or "")
         else:
             _, first, second, third = previous
-            choices = self.held.get("variable_choices") or []
+            choices: list[Any] = self.held.get("variable_choices") or []
             position = next(
                 (at for at, (name, owner, _label) in enumerate(choices) if (name, owner) == (first, second)),
                 None,
@@ -1176,7 +1180,7 @@ class _ReplaceTab:
             self.build_preview(remembered)
         return True
 
-    def current_inputs(self) -> tuple:
+    def current_inputs(self) -> tuple[Any, ...]:
         """What the Replace fields say right now, in the form the plan is built from.
 
         One tuple per mode, of whatever length that mode needs.  It is compared whole
@@ -1215,7 +1219,7 @@ class _ReplaceTab:
         # legitimately contain.  The owner may be mapswap_rename.EVERY_INSTANCE, which is
         # the entry meaning "every instance of this name", and passes straight
         # through to plan_variable_rename as it stands.
-        choices = self.held.get("variable_choices") or []
+        choices: list[Any] = self.held.get("variable_choices") or []
         position = self.variable_select.value
         if isinstance(position, int) and 0 <= position < len(choices):
             name, owner = choices[position][0], choices[position][1]
@@ -1263,9 +1267,9 @@ class _ReplaceTab:
         """
         source = self.source_select.value
         if not source:
-            self.target_select.set_options({})
+            cast("Any", self.target_select).set_options({})
             return
-        self.target_select.set_options(
+        cast("Any", self.target_select).set_options(
             {key: label for key, label, _fidelity in mapswap_action.fidelity_choices(source, state=self.state)},
             value=None,
         )
@@ -1281,9 +1285,9 @@ class _ReplaceTab:
         """
         action = self.arg_action_select.value
         if not action:
-            self.arg_select.set_options({})
+            cast("Any", self.arg_select).set_options({})
             return
-        self.arg_select.set_options(
+        cast("Any", self.arg_select).set_options(
             {arg_id: label for arg_id, label, _refusal in mapswap_argument.argument_choices(action, state=self.state)},
             value=None,
         )
@@ -1299,9 +1303,9 @@ class _ReplaceTab:
         """
         source = self.condition_select.value
         if not source:
-            self.condition_target_select.set_options({})
+            cast("Any", self.condition_target_select).set_options({})
             return
-        self.condition_target_select.set_options(
+        cast("Any", self.condition_target_select).set_options(
             {key: label for key, label, _fidelity in mapswap_condition.condition_targets(source, state=self.state)},
             value=None,
         )
@@ -1312,18 +1316,18 @@ class _ReplaceTab:
         self.argument_row.set_visibility(self.mode.value == "argument")
         self.condition_row.set_visibility(self.mode.value == "condition")
         self.variable_row.set_visibility(self.mode.value == "variable")
-        if self.mode.value == "argument" and not self.arg_action_select.options:
-            self.arg_action_select.set_options(
+        if self.mode.value == "argument" and not cast("Any", self.arg_action_select).options:
+            cast("Any", self.arg_action_select).set_options(
                 {key: label for key, label, _count in mapswap_action.source_choices(self.index)},
             )
-        if self.mode.value == "condition" and not self.condition_select.options:
-            self.condition_select.set_options(
+        if self.mode.value == "condition" and not cast("Any", self.condition_select).options:
+            cast("Any", self.condition_select).set_options(
                 {key: label for key, label, _count in mapswap_condition.condition_choices(self.index)},
             )
         if self.mode.value == "variable" and not self.held.get("variable_choices"):
             choices = mapswap_rename.variable_choices(self.variable_index())
             self.held["variable_choices"] = choices
-            self.variable_select.set_options(
+            cast("Any", self.variable_select).set_options(
                 {position: label for position, (_name, _owner, label) in enumerate(choices)},
             )
             # The same variables offered as completions on the target box: a rename
@@ -1333,7 +1337,7 @@ class _ReplaceTab:
             self.new_name_input.set_autocomplete(sorted({name for name, _owner, _label in choices}))
         self.invalidate()
 
-    def ticker(self, plan: mapswap_model.Plan, position: int) -> Callable:
+    def ticker(self, plan: mapswap_model.Plan, position: int) -> Callable[..., Any]:
         """One preview row's tick box: put this change in or out of what Replace applies.
 
         A factory rather than a lambda built in the loop, for the usual reason: a
@@ -1477,7 +1481,7 @@ class _ReplaceTab:
             plan = mapswap_rename.plan_variable_rename(self.variable_index(), name, owner, new_name, state=self.state)
         return plan
 
-    def build_preview(self, restore: collections.Counter | None = None) -> None:
+    def build_preview(self, restore: collections.Counter[Any] | None = None) -> None:
         """Build the plan for whatever the fields say, and show it.
 
         `restore` re-applies the tick boxes from a previous preview of the same

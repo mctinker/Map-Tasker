@@ -8,7 +8,7 @@ from __future__ import annotations
 import asyncio
 import json
 import re
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, cast
 
 from nicegui import run, ui
 
@@ -57,7 +57,7 @@ class NiceGuiTextView(TextViewSearch):
         self,
         master_gui: MyGui,
         title: str,
-        the_data: list | dict | str,
+        the_data: list[Any] | dict[str, Any] | str,
         container: ui.column | None = None,
         jump_to: str = "",
         map_scope: str = "",
@@ -102,7 +102,7 @@ class NiceGuiTextView(TextViewSearch):
         # and reload_diagram() drops it back to 0 while the content is replaced.
         self._content_token = 0
         self._content_generation = 0
-        self._last_search: tuple[str, list, int, bool] | None = None
+        self._last_search: tuple[str, list[Any], int, bool] | None = None
         # The last structured question asked of this view (see find_event).  Held so that
         # re-opening Find comes back to the query whose result row the user just followed,
         # rather than to an empty dialog they have to fill in again.
@@ -110,13 +110,13 @@ class NiceGuiTextView(TextViewSearch):
         # The Find dialog's question out with an AI model, while it is out -- held on the view
         # rather than the dialog so that _dismiss_find_dialog, which deletes a dialog without
         # its "hide" firing, can still cancel it (see cancel_find_ask).
-        self.find_ask: asyncio.Task | None = None
+        self.find_ask: asyncio.Task[Any] | None = None
         # The last Replace the user set up on this view -- ("action", old key, new key,
         # project) or ("variable", name, owner, new name).  The INPUTS, not the Plan: a
         # Plan holds live elements, and holding those across a dialog that may have been
         # reopened after another edit is the stale-handle bug apply()'s own attachment
         # check exists to catch.  Reopening rebuilds the plan from these instead.
-        self.replace_inputs: tuple | None = None
+        self.replace_inputs: tuple[Any, ...] | None = None
         # The Find/Replace dialog this view currently has up, or None.  Held because that
         # dialog no longer always takes itself down: following one of its own rows docks it
         # to the right edge and leaves it there (see _FindDialog.dock), so a second press
@@ -131,7 +131,7 @@ class NiceGuiTextView(TextViewSearch):
         self._loading_label: ui.label | None = None
         # Tasks this view starts and does not wait for.  asyncio keeps only a weak reference to a
         # running task, so one nobody holds can be collected before it finishes.
-        self._background_tasks: set[asyncio.Task] = set()
+        self._background_tasks: set[asyncio.Task[Any]] = set()
         self.build_ui()
         register_view(master_gui, self)
         # Schedule the coroutine into the active event loop safely
@@ -254,7 +254,7 @@ class NiceGuiTextView(TextViewSearch):
 
         with self.scroll_area:
             try:
-                landed = await ui.run_javascript(mapjump.jump_js(target.anchor), timeout=5)
+                landed: Any = await cast("Any", ui.run_javascript(mapjump.jump_js(target.anchor), timeout=5))
             except (TimeoutError, RuntimeError):
                 # The page went away, or never finished connecting, between the content
                 # arriving and this asking it to scroll.  There is nobody left to tell.
@@ -479,7 +479,7 @@ class NiceGuiTextView(TextViewSearch):
             # what it is waiting for, right here in the first paint -- see _show_loading.
             self._show_loading()
 
-    async def process_data(self, the_data: dict | list | str) -> None:
+    async def process_data(self, the_data: dict[str, Any] | list[Any] | str) -> None:
         """Converts data to HTML chunks, preventing single-packet WebSocket buffer overruns.
 
         All ui.html() calls below pass sanitize=False: the content is this program's own
@@ -508,6 +508,11 @@ class NiceGuiTextView(TextViewSearch):
         elif self.title.startswith("Misc") or is_flow:
             self._show_report(the_data, html_style, is_flow)
             return
+        else:
+            # No file stands behind a view of any other kind, so it is laid out from the data it was given.
+            self._process_fallback_data(the_data)
+            self._mark_content_ready()
+            return
 
         try:
             with open(file_to_read, encoding="utf-8") as f:
@@ -533,7 +538,7 @@ class NiceGuiTextView(TextViewSearch):
         self._process_fallback_data(the_data)
         self._mark_content_ready()
 
-    def _show_report(self, the_data: dict | list | str, html_style: str, is_flow: bool) -> None:
+    def _show_report(self, the_data: dict[str, Any] | list[Any] | str, html_style: str, is_flow: bool) -> None:
         """Show the Misc or Task Flow view: a report that has no generated file behind it."""
         # The Task Flow view is this renderer with the Diagram's habits: rows mapjump has
         # already made clickable, but a drawing rather than prose, so nothing may wrap
@@ -595,7 +600,9 @@ class NiceGuiTextView(TextViewSearch):
         self.scroll_area.style(f"font-family: '{view_font}', monospace;")
         return html_style
 
-    def _chunk_view_html(self, final_html: str, is_diagram: bool) -> tuple[list[tuple[str, int]], dict, dict | None]:
+    def _chunk_view_html(
+        self, final_html: str, is_diagram: bool
+    ) -> tuple[list[tuple[str, int]], dict[str, Any], dict[int, list[tuple[int, int, int]]] | None]:
         """Cut the file's text into the pieces it is streamed to the browser in.
 
         Args:
@@ -704,7 +711,9 @@ class NiceGuiTextView(TextViewSearch):
                 if number % 4 == 0:
                     await asyncio.sleep(0.01)
 
-    async def _finish_view(self, diagram_model: dict, connectors_by_line: dict | None) -> None:
+    async def _finish_view(
+        self, diagram_model: dict[str, Any], connectors_by_line: dict[int, list[tuple[int, int, int]]] | None
+    ) -> None:
         """Everything that happens once the last chunk is on the page: wiring, hints, and the jump.
 
         Args:
@@ -736,7 +745,7 @@ class NiceGuiTextView(TextViewSearch):
         # chunk that only just arrived.
         await self._deliver_jump()
 
-    def _enable_diagram_interaction(self, diagram_model: dict) -> None:
+    def _enable_diagram_interaction(self, diagram_model: dict[str, Any]) -> None:
         """Wire up the Diagram view's clickable nodes, folds, chains and zoom.
 
         The DOM half of it.  The Python half is one subscription -- the same "mt_jump" a
@@ -842,14 +851,16 @@ class NiceGuiTextView(TextViewSearch):
 
         return "Font name not found"
 
-    def _process_fallback_data(self, the_data: dict | list | str) -> None:
+    def _process_fallback_data(self, the_data: dict[str, Any] | list[Any] | str) -> None:
         """Fallback logic to assemble HTML content strings when the source file is missing."""
         # --- 2. FALLBACK DICTIONARY PROCESSING (Legacy Map View) ---
         # --- 3. FALLBACK LIST DATA PROCESSING (Other Views) ---
         # A report arrives as one string; its lines are what the fallback lays out.
         lines = the_data.splitlines() if isinstance(the_data, str) else the_data
         html_builder = (
-            fallback_map_html(cast("dict", the_data)) if self.is_map else fallback_lines_html(cast("list", lines))
+            fallback_map_html(cast("dict[str, Any]", the_data))
+            if self.is_map
+            else fallback_lines_html(cast("list[Any]", lines))
         )
 
         # --- 4. COMPRESS MULTIPLE BLANK LINES FOR FALLBACK DATA ---
@@ -895,7 +906,7 @@ class NiceGuiTextView(TextViewSearch):
         self.wrap_classes = new_classes
         ui.notify(f"Word wrap {'enabled' if self.wrap_enabled else 'disabled'} for {self.title}.", type="info")
 
-    def _profiles_per_line_selected(self, event: ValueChangeEventArguments | int | str) -> None:
+    def _profiles_per_line_selected(self, event: ValueChangeEventArguments[Any] | int | str) -> None:
         """Fires when the Diagram view's 'Profiles Per Line' pulldown selection changes."""
         new_value = int(str(getattr(event, "value", event)))
         if new_value != self.master_gui.profiles_per_line:

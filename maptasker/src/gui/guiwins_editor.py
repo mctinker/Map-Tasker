@@ -245,7 +245,7 @@ def build_properties_button(
 
     `opener` replaces what the button opens.  Only a Scene passes one: its properties are
     a <PropertiesElement>'s arguments rather than the scalars-and-variables the other
-    three share, so it has its own form (_build_scene_properties_dialog) and shares only
+    three share, so it has its own form (build_scene_properties_dialog) and shares only
     this button.  See that function for why the two could not be one.
 
     Deliberately NOT registered in the caller's field_refs.  The Task dialog's

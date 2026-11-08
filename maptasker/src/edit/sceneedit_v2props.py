@@ -5,6 +5,9 @@ which coerce what was typed to the type the property already holds."""
 
 from __future__ import annotations
 
+from typing import Any
+
+from maptasker.src.core.maputil2 import as_json_object
 from maptasker.src.edit.sceneedit_v2 import (
     ALIGNMENT,
     V2_DYNAMIC_STATE,
@@ -210,24 +213,25 @@ class V2NestedProps:
 
     __slots__ = ("_container", "_node")
 
-    def __init__(self, node: dict, container: str) -> None:
+    def __init__(self, node: dict[str, Any], container: str) -> None:
         """Hold the node and the name of the container on it that this view reads and writes."""
         self._node = node
         self._container = container
 
     @property
-    def _held(self) -> dict:
-        held = self._node.get(self._container)
-        return held if isinstance(held, dict) else {}
+    def _held(self) -> dict[str, Any]:
+        held = as_json_object(self._node.get(self._container))
+        return held if held is not None else {}
 
-    def _writable(self) -> dict | None:
+    def _writable(self) -> dict[str, Any] | None:
         """The object to write into, created if this node has never had one."""
-        held = self._node.get(self._container)
-        if isinstance(held, dict):
-            return held
+        raw = self._node.get(self._container)
+        held = as_json_object(raw)
         if held is not None:
+            return held
+        if raw is not None:
             return None
-        created: dict = {}
+        created: dict[str, Any] = {}
         self._node[self._container] = created
         return created
 
@@ -271,17 +275,17 @@ class V2NestedProps:
 
 
 # What a property is read from and written to: the node itself, or the nested object it lives in.
-V2Props = dict | V2NestedProps
+V2Props = dict[str, Any] | V2NestedProps
 
 
-def v2_prop_dict(node: dict, prop: V2Prop) -> V2Props:
+def v2_prop_dict(node: dict[str, Any], prop: V2Prop) -> V2Props:
     """What to read and write this property on: the node itself, or the nested object it
     lives in.  The one call the inspector needs to make to stop caring where a property sits.
     """
     return V2NestedProps(node, prop.container) if prop.container else node
 
 
-def _v2_other_props(node: dict, claimed: tuple[tuple[str, tuple[V2Prop, ...]], ...]) -> list[V2Prop]:
+def _v2_other_props(node: dict[str, Any], claimed: tuple[tuple[str, tuple[V2Prop, ...]], ...]) -> list[V2Prop]:
     """Scalar keys the categories don't account for -- on the node and inside the containers
     they name -- as plain fields, so nothing a Scene holds is invisible.
     """
@@ -295,8 +299,8 @@ def _v2_other_props(node: dict, claimed: tuple[tuple[str, tuple[V2Prop, ...]], .
         if isinstance(value, (str, int, float, bool)):
             others.append(V2Prop(key, key))
     for container in sorted(containers):
-        held = node.get(container)
-        if not isinstance(held, dict):
+        held = as_json_object(node.get(container))
+        if held is None:
             continue
         others += [
             V2Prop(key, f"{container}.{key}", container=container)
@@ -306,7 +310,7 @@ def _v2_other_props(node: dict, claimed: tuple[tuple[str, tuple[V2Prop, ...]], .
     return others
 
 
-def v2_property_groups(node: dict) -> list[tuple[str, list[V2Prop]]]:
+def v2_property_groups(node: dict[str, Any]) -> list[tuple[str, list[V2Prop]]]:
     """This component's editable properties, as the named sections the inspector draws.
 
     A type with a category table (Text, and so far only Text) gets its sections in the table's

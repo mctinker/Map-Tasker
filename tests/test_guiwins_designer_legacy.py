@@ -831,7 +831,7 @@ async def test_opening_the_scene_properties_form_rebuilds_the_panel_when_it_clos
     opened: list = []
     monkeypatch.setattr(
         guiwins_designer_legacy,
-        "_build_scene_properties_dialog",
+        "build_scene_properties_dialog",
         lambda gui, edited, refs, on_closed=None: opened.append(on_closed),
     )
     async with _open() as user:

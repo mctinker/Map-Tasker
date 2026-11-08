@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import collections
 import copy
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 
 from nicegui import ui
 
@@ -31,7 +31,7 @@ from maptasker.src.edit import (
 )
 from maptasker.src.gui import sceneview_v2, sceneview_v2base
 from maptasker.src.gui.guiwins_canvas import (
-    _DESIGNER_SEQUENCE,
+    DESIGNER_SEQUENCE,
     emit_v2_dragging,
     register_canvas,
     register_canvas_events,
@@ -45,7 +45,7 @@ if TYPE_CHECKING:
     from maptasker.src.gui.userintr import MyGui
 
 
-def _build_add_element_dialog(layout: dict, path: tuple, on_pick: Callable[[str], None]) -> None:
+def _build_add_element_dialog(layout: dict[str, Any], path: tuple[Any, ...], on_pick: Callable[[str], None]) -> None:
     """Tasker's own "Add Element" sheet, as a dialog: a search box, then every element the
     palette offers as a chip, grouped and named the way the Screen Builder groups and names
     them (see sceneedit_v2nodes.V2_PALETTE -- "Vertical Column", not "Column").
@@ -69,7 +69,7 @@ def _build_add_element_dialog(layout: dict, path: tuple, on_pick: Callable[[str]
 class _AddElementDialog:
     """The Add Element sheet: a search box and the palette's chips, filtered as the search is typed."""
 
-    def __init__(self, layout: dict, path: tuple, on_pick: Callable[[str], None]) -> None:
+    def __init__(self, layout: dict[str, Any], path: tuple[Any, ...], on_pick: Callable[[str], None]) -> None:
         """
         Args:
             layout: The Scene's Version 2 layout.
@@ -249,9 +249,12 @@ async def _caret_position(field: ui.input | ui.color_input) -> int | None:
     declines) means "the end", which is what v2_insert_show_when does with it.
     """
     with suppress_logged("Reading the caret position"):
-        return await ui.run_javascript(
-            f"(() => {{ {_native_input_script(field.id)} return el ? el.selectionStart : null; }})()",
-            timeout=3.0,
+        return await cast(
+            "Any",
+            ui.run_javascript(
+                f"(() => {{ {_native_input_script(field.id)} return el ? el.selectionStart : null; }})()",
+                timeout=3.0,
+            ),
         )
     return None
 
@@ -746,8 +749,8 @@ def _build_state_field(item: sceneedit_v2props.V2Props, field: sceneedit_v2.V2St
 
 def _build_v2_designer(
     edited_scene: sceneedit.EditableScene,
-    field_refs: dict,
-    layout: dict,
+    field_refs: dict[str, Any],
+    layout: dict[str, Any],
     state: RunState,
 ) -> None:
     """The Version 2 Scene designer -- phase 1: pick a component out of the tree on the
@@ -792,7 +795,9 @@ class _V2Designer:
     to outlive a rebuild: the layout, the selection, the undo stack and the panes themselves.
     """
 
-    def __init__(self, edited_scene: sceneedit.EditableScene, field_refs: dict, layout: dict, state: RunState) -> None:
+    def __init__(
+        self, edited_scene: sceneedit.EditableScene, field_refs: dict[str, Any], layout: dict[str, Any], state: RunState
+    ) -> None:
         self.state = state
         self.field_refs = field_refs
         self.layout = layout
@@ -804,11 +809,11 @@ class _V2Designer:
         # run shares a parent and a slot, and their indices are consecutive.  That is what makes
         # a run something a single splice can move, and a selection reaching across two parents
         # something no drag could carry out -- so one is never allowed to exist.
-        self.selection: dict = {"path": (), "count": 1}
+        self.selection: dict[str, Any] = {"path": (), "count": 1}
         # Snapshots taken before each structural edit. Deep copies of the whole tree, which is
         # affordable at this size (the largest Scene in this repo's backup is 13 components)
         # and far simpler than modelling an inverse for every operation.
-        self.history: list[dict] = []
+        self.history: list[dict[str, Any]] = []
         self.scene_name = edited_scene.scene_name
         # Whether the Modifiers / Event handlers sections are open, kept on the designer because the
         # inspector is rebuilt on every edit -- without this, adding a modifier would collapse
@@ -817,14 +822,14 @@ class _V2Designer:
         self.expanded = {"modifiers": False, "handlers": False}
         # The tree's rendered rows, path -> (label widget, depth), rebuilt by render_tree.  Held
         # so retitle_node_labels can reach the selected row's label without a full re-render.
-        self.tree_rows: dict[tuple, tuple] = {}
+        self.tree_rows: dict[tuple[Any, ...], tuple[Any, ...]] = {}
         # The inspector's own heading for the selected component, held for the same reason.
-        self.inspector_heading: dict = {"label": None}
+        self.inspector_heading: dict[str, Any] = {"label": None}
 
         register_canvas_events()
         # This designer's own reorder surface -- unique for the reason _ACTIVE_CANVASES gives:
         # ui.on subscribes app-wide, and the Preview is a second surface over this same layout.
-        self.tree_root = f"mt-v2-tree-{next(_DESIGNER_SEQUENCE)}"
+        self.tree_root = f"mt-v2-tree-{next(DESIGNER_SEQUENCE)}"
 
         self.header = ui.row().classes("w-full items-center gap-2 mt-2")
         with ui.row().classes("w-full gap-3 items-start no-wrap mt-1"):
@@ -849,16 +854,16 @@ class _V2Designer:
             self.select_only(())
         self.render()
 
-    def select_only(self, path: tuple, count: int = 1) -> None:
+    def select_only(self, path: tuple[Any, ...], count: int = 1) -> None:
         """Set the selection without re-rendering -- for the callers that render anyway."""
         self.selection["path"] = path
         self.selection["count"] = max(1, count)
 
-    def select(self, path: tuple, count: int = 1) -> None:
+    def select(self, path: tuple[Any, ...], count: int = 1) -> None:
         self.select_only(path, count)
         self.render()
 
-    def select_from_surface(self, payload: dict) -> None:
+    def select_from_surface(self, payload: dict[str, Any]) -> None:
         """A click on a tree row or on a component in the Preview.
 
         Shift extends the selection into a run, but only where a run is a thing that could
@@ -876,7 +881,7 @@ class _V2Designer:
                 return
         self.select(path)
 
-    def reorder_from_surface(self, payload: dict) -> None:
+    def reorder_from_surface(self, payload: dict[str, Any]) -> None:
         """A run dropped in one of the gaps between its siblings, from either surface."""
         path = sceneview_v2.v2_decode_path(str(payload.get("path", "")))
         count = max(1, int(payload.get("count", 1) or 1))
@@ -904,7 +909,7 @@ class _V2Designer:
             return
         self.select(new_path)
 
-    def structural(self, operation: Callable[[], tuple | None], failure: str, count: int = 1) -> None:
+    def structural(self, operation: Callable[[], tuple[Any, ...] | None], failure: str, count: int = 1) -> None:
         """Run a move/duplicate that returns a new path, keeping the moved component
         selected -- so a run of Move Up clicks walks one component up the tree instead of
         losing it after the first.
@@ -979,7 +984,7 @@ class _V2Designer:
             select_on_click=False,
         )
 
-    def retitle_node_labels(self, node: dict) -> None:
+    def retitle_node_labels(self, node: dict[str, Any]) -> None:
         """Keep both places a component is named by -- its tree row and the inspector's own
         heading -- reading correctly as its Tree label is typed.  Both, because they show the
         same v2_node_label and would otherwise disagree with each other until the next
@@ -998,7 +1003,7 @@ class _V2Designer:
         if self.inspector_heading.get("label") is not None:
             self.inspector_heading["label"].set_text(text)
 
-    def prop_input(self, item: dict, prop: sceneedit_v2.V2Prop) -> None:
+    def prop_input(self, item: dict[str, Any], prop: sceneedit_v2.V2Prop) -> None:
         """One editable field for any dict the designer edits -- a component, a modifier,
         an event or an action.  They all store scalars under named keys, so they all get
         the same handful of widget kinds and the same write-through to sceneedit_v2props.v2_set_prop.
@@ -1088,7 +1093,7 @@ class _V2Designer:
         mutate()
         self.render()
 
-    def render_binding(self, node: dict) -> None:
+    def render_binding(self, node: dict[str, Any]) -> None:
         slot = sceneedit_v2events.v2_binding_slot(node)
         if slot is None:
             return
@@ -1107,7 +1112,7 @@ class _V2Designer:
             ),
         )
 
-    def render_modifiers(self, node: dict) -> None:
+    def render_modifiers(self, node: dict[str, Any]) -> None:
         modifiers = sceneedit_v2events.v2_modifiers(node)
         with ui.expansion(
             f"{translate_string('Modifiers')} ({len(modifiers)})",
@@ -1157,7 +1162,7 @@ class _V2Designer:
                         ),
                     ).props("dense")
 
-    def render_handlers(self, node: dict) -> None:
+    def render_handlers(self, node: dict[str, Any]) -> None:
         handlers = sceneedit_v2events.v2_handlers(node)
         with ui.expansion(
             f"{translate_string('Event handlers')} ({len(handlers)})",
@@ -1166,7 +1171,7 @@ class _V2Designer:
             on_value_change=lambda e: self.expanded.__setitem__("handlers", bool(e.value)),
         ).classes("w-full mt-1"):
             for index, handler in enumerate(handlers):
-                events = handler.get("events") or []
+                events: list[dict[str, Any]] = handler.get("events") or []
                 with ui.card().classes("w-full p-2 gap-1"):
                     with ui.row().classes("w-full items-center gap-1"):
                         ui.label(
@@ -1192,7 +1197,7 @@ class _V2Designer:
                         ),
                     ).props("dense").classes("w-full")
 
-                    actions = handler.get("actions") or []
+                    actions: list[dict[str, Any]] = handler.get("actions") or []
                     ui.label(f"{translate_string('Actions')} ({len(actions)})").classes(
                         "text-xs uppercase text-gray-500 mt-1",
                     )
@@ -1241,7 +1246,7 @@ class _V2Designer:
                         ),
                     ).props("dense")
 
-    def render_prop(self, node: dict, prop: sceneedit_v2.V2Prop) -> None:
+    def render_prop(self, node: dict[str, Any], prop: sceneedit_v2.V2Prop) -> None:
         """One property of the selected component.
 
         Everything goes through prop_input except the component's own id, which is applied by
@@ -1262,7 +1267,7 @@ class _V2Designer:
                 f"{translate_string('Addressed by id from')}: {', '.join(references)}",
             ).classes("text-xs text-orange-600 italic")
 
-    def render_category(self, node: dict, name: str, props: list) -> None:
+    def render_category(self, node: dict[str, Any], name: str, props: list[Any]) -> None:
         """One named section of the property sheet, for the types that have them.
 
         Open/closed is remembered in `expanded` for the same reason the Modifiers section's is:
@@ -1330,7 +1335,7 @@ class _V2Designer:
         self.render_modifiers(node)
         self.render_handlers(node)
 
-    def rename_id(self, path: tuple, widget: ui.input) -> None:
+    def rename_id(self, path: tuple[Any, ...], widget: ui.input) -> None:
         """Applies the id field on blur rather than on every keystroke -- a partially-typed
         id would otherwise be checked for uniqueness mid-word and rejected for colliding
         with itself.
@@ -1506,7 +1511,7 @@ class V2Designer:
         self,
         _gui: MyGui,
         edited_scene: sceneedit.EditableScene,
-        field_refs: dict,
+        field_refs: dict[str, Any],
         _dialog: ui.dialog | None,
         state: RunState,
         /,

@@ -1,7 +1,7 @@
 """The Task editor: the Edit/Add/Delete Task dialogs and the action editor behind them.
 
 Split out of guiwins.py, which had grown to 14,500 lines.  This is everything an Action is
-edited through -- _build_task_action_editor and the field widgets it dispatches to, the
+edited through -- build_task_action_editor and the field widgets it dispatches to, the
 Application and Tasker-icon pickers those fields open, and the condition/If-variant dialogs
 an Action's own logic is built with.
 
@@ -15,7 +15,7 @@ and the Properties button -- comes from guiwins_editor.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 
 from nicegui import ui
 
@@ -72,7 +72,7 @@ def _refresh_position_options(
     why that map is kept out-of-band.
     """
     position_labels.clear()
-    options = []
+    options: list[str] = []
     for action in edited_task.actions:
         before_label = f"Before {action.act_number}: {action.action_name}"
         after_label = f"After {action.act_number}: {action.action_name}"
@@ -82,7 +82,7 @@ def _refresh_position_options(
     options.append("At the End")
     position_labels["At the End"] = None
     previous = position_select.value
-    position_select.set_options(options, value=previous if previous in options else "At the End")
+    cast("Any", position_select).set_options(options, value=previous if previous in options else "At the End")
 
 
 def _action_indent_spaces(self: MyGui) -> int:
@@ -113,7 +113,7 @@ def _render_task_name_field(
     _action: taskedit_model.EditableAction,
     arg: taskedit_model.EditableArg,
     key: str,
-    field_refs: dict,
+    field_refs: dict[str, Any],
     state: RunState,
 ) -> None:
     """Renders the 'Perform Task' action's Name field: an ordinary text input
@@ -136,7 +136,7 @@ def _render_task_name_field(
     if not task_names:
         return
 
-    def fill_in_picked_task(e: ValueChangeEventArguments) -> None:
+    def fill_in_picked_task(e: ValueChangeEventArguments[Any]) -> None:
         if e.value:
             field_refs[key].value = e.value
 
@@ -226,7 +226,7 @@ def _render_action_condition_checkbox(
     checkbox = ui.checkbox(text, value=condition_count == 1).props("dense")
 
     def on_toggle(
-        e: ValueChangeEventArguments, act_number: int = action.act_number, cb: ui.checkbox = checkbox
+        e: ValueChangeEventArguments[Any], act_number: int = action.act_number, cb: ui.checkbox = checkbox
     ) -> None:
         if e.value:
             build_action_condition_dialog(self, edited_task, act_number, cb, condition_cache)
@@ -265,7 +265,7 @@ def _render_continue_after_error_checkbox(
     ).props("dense")
 
 
-def _render_plugin_configuration_warning(element: Element, name: str) -> None:
+def render_plugin_configuration_warning(element: Element, name: str) -> None:
     """Renders the standing "configure this in Tasker" warning on an action's or a
     condition's own panel, for a third-party plugin whose payload this tool can't
     edit -- nothing at all for anything else (see
@@ -415,7 +415,7 @@ class _ActionList:
     render_actions, and what an action's panel holds.
     """
 
-    def __init__(self, gui: MyGui, edited_task: taskedit_model.EditableTask, field_refs: dict) -> None:
+    def __init__(self, gui: MyGui, edited_task: taskedit_model.EditableTask, field_refs: dict[str, Any]) -> None:
         """
         Args:
             gui: The application window, which holds the event handlers and the run's state.
@@ -483,7 +483,7 @@ class _ActionList:
         if action.code != taskedit_model.IF_ACTION_CODE:
             _render_action_condition_checkbox(self.gui, self.edited_task, action, self.condition_cache)
         _render_continue_after_error_checkbox(self.gui, self.edited_task, action)
-        _render_plugin_configuration_warning(action.action_element, action.action_name)
+        render_plugin_configuration_warning(action.action_element, action.action_name)
 
     def _render_shared_argument(
         self,
@@ -613,7 +613,7 @@ class _EditTaskActionList(_ActionList):
         self,
         gui: MyGui,
         edited_task: taskedit_model.EditableTask,
-        field_refs: dict,
+        field_refs: dict[str, Any],
         list_classes: str,
     ) -> None:
         """
@@ -751,10 +751,10 @@ class _EditTaskActionList(_ActionList):
             self._render_readonly_argument(action, arg)
 
 
-def _build_task_action_editor(
+def build_task_action_editor(
     self: MyGui,
     edited_task: taskedit_model.EditableTask,
-    field_refs: dict,
+    field_refs: dict[str, Any],
     *,
     list_classes: str = "w-full h-96 border rounded p-2",
 ) -> Callable[[], None]:
@@ -790,7 +790,7 @@ def _build_task_action_editor(
 def _render_task_save_buttons(
     self: MyGui,
     edited_task: taskedit_model.EditableTask,
-    field_refs: dict,
+    field_refs: dict[str, Any],
     dialog: ui.dialog,
 ) -> None:
     """The Edit Task dialog's two ways of keeping the edits beyond the session: Save To Current File and Save To Android."""
@@ -844,7 +844,7 @@ def _render_task_save_buttons(
 def _render_edit_task_buttons(
     self: MyGui,
     edited_task: taskedit_model.EditableTask,
-    field_refs: dict,
+    field_refs: dict[str, Any],
     dialog: ui.dialog,
     title_label: ui.label,
     pending_changes: PendingChangesBanner,
@@ -934,7 +934,7 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit_model.EditableTask
     ad-hoc widget-ref pattern) and read at Save time rather than using NiceGUI bindings.
     """
     task_name = edited_task.task_element.findtext("nme", "")
-    field_refs: dict = {}
+    field_refs: dict[str, Any] = {}
 
     with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[500px] max-w-[900px] w-full p-6"):
         # Kept as a local (not in field_refs -- task_arg_values reads .value off
@@ -966,10 +966,10 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit_model.EditableTask
             # Beside it, on the same working copy: see the note above.
             build_taskernet_description_button(self, objprops.KIND_TASK, edited_task.task_element, task_name)
 
-        # The picker and the action list -- see _build_task_action_editor, which this
+        # The picker and the action list -- see build_task_action_editor, which this
         # dialog is where they came from.  Nothing here needs its render_actions back:
         # the editor redraws itself on everything that changes the list.
-        _build_task_action_editor(self, edited_task, field_refs)
+        build_task_action_editor(self, edited_task, field_refs)
 
         field_refs["save_path"] = ui.input(
             translate_string("Save as"),
@@ -1026,7 +1026,9 @@ def build_delete_task_dialog(
     confirm_dialog.open()
 
 
-def _make_save_path_sync(field_refs: dict, last_auto_path: dict, state: RunState) -> Callable[..., None]:
+def _make_save_path_sync(
+    field_refs: dict[str, Any], last_auto_path: dict[str, Any], state: RunState
+) -> Callable[..., None]:
     """The Task Name field's change handler for the Add Task dialog: keeps "Save as" in step with it.
 
     Args:
@@ -1053,7 +1055,7 @@ def _make_save_path_sync(field_refs: dict, last_auto_path: dict, state: RunState
 def _render_new_task_name_row(
     self: MyGui,
     edited_task: taskedit_model.EditableTask,
-    field_refs: dict,
+    field_refs: dict[str, Any],
     dialog: ui.dialog,
     sync_save_path: Callable[..., None],
 ) -> None:
@@ -1074,7 +1076,7 @@ def _render_new_task_name_row(
 def _render_new_task_buttons(
     self: MyGui,
     edited_task: taskedit_model.EditableTask,
-    field_refs: dict,
+    field_refs: dict[str, Any],
     dialog: ui.dialog,
     on_task_created: Callable[[str], None] | None,
 ) -> None:
@@ -1183,7 +1185,7 @@ def build_add_task_dialog(
     registered. Left "" for open_add_task_for_profile_link_event's nested
     dialog, which doesn't attach to a Project at all.
     """
-    field_refs: dict = {"target_project_name": target_project_name}
+    field_refs: dict[str, Any] = {"target_project_name": target_project_name}
 
     with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[500px] max-w-[900px] w-full p-6"):
         ui.label(translate_string("Add Task")).classes("text-xl font-bold text-blue-600")

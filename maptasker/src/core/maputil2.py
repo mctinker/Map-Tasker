@@ -963,6 +963,21 @@ def setup_logging() -> None:
     logger.info(sys.version_info)
 
 
+def as_json_object(value: object) -> dict[str, Any] | None:
+    """`value` as a dict with string keys when it is a dict, else None.
+
+    For what comes out of json.loads, a Scene's decoded layout or a table that holds more than one kind of value:
+    `isinstance(value, dict)` alone leaves the type checker with dict[Unknown, Unknown], and every .get() after it
+    unknown too.  JSON object keys are always strings, which is what the cast says.
+    """
+    return cast("dict[str, Any]", value) if isinstance(value, dict) else None
+
+
+def as_json_list(value: object) -> list[Any] | None:
+    """`value` as a list when it is a list, else None -- the companion of as_json_object."""
+    return cast("list[Any]", value) if isinstance(value, list) else None
+
+
 def translate_string(text: str, set_language: bool = False) -> str:
     """
     Translates a given string using PrimeItems._ if available. and sets the language if requested.

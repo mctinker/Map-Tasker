@@ -18,12 +18,12 @@ from typing import TYPE_CHECKING, Any, cast
 
 from nicegui import ui
 
-from maptasker.src.core.maputil2 import translate_string
+from maptasker.src.core.maputil2 import as_json_object, translate_string
 from maptasker.src.edit import sceneedit, sceneedit_legacy, taskedit, taskedit_addable, taskedit_model
 from maptasker.src.gui import sceneview_legacy
 from maptasker.src.gui.guiwins_canvas import FIELD_COMMIT_DEBOUNCE_MS
 from maptasker.src.gui.guiwins_legacyarg import render_legacy_arg
-from maptasker.src.gui.guiwins_taskedit import _build_task_action_editor
+from maptasker.src.gui.guiwins_taskedit import build_task_action_editor
 from maptasker.src.gui.guiwins_taskpickers import build_tasker_icon_picker_dialog, render_addability_reason
 
 if TYPE_CHECKING:
@@ -97,7 +97,7 @@ _SCENE_TABS = (_SCENE_TAB_UI, _SCENE_TAB_ACTIONS, _SCENE_TAB_EVENT)
 _SCENE_EVENT_ACTION_LIST_CLASSES = "w-full h-64 border rounded p-2"
 
 
-def _scene_properties_summary(scene_element: Element) -> str:
+def scene_properties_summary(scene_element: Element) -> str:
     """A one-line "this is what is set" for the designer's Scene Properties panel, which is
     a signpost to the form rather than the form (see render_scene_properties).
 
@@ -123,10 +123,10 @@ def _scene_properties_summary(scene_element: Element) -> str:
     return ", ".join(rows) if rows else translate_string("Nothing set.")
 
 
-def _build_scene_properties_dialog(
+def build_scene_properties_dialog(
     self: MyGui,
     edited_scene: sceneedit.EditableScene,
-    field_refs: dict,
+    field_refs: dict[str, Any],
     on_closed: Callable[[], None] | None = None,
 ) -> None:
     """The Scene's own Properties -- its <PropertiesElement> -- laid out the way Tasker's
@@ -178,7 +178,7 @@ class _ScenePropertiesDialog:
         self,
         gui: MyGui,
         edited_scene: sceneedit.EditableScene,
-        field_refs: dict,
+        field_refs: dict[str, Any],
         on_closed: Callable[[], None] | None,
     ) -> None:
         """
@@ -218,8 +218,8 @@ class _ScenePropertiesDialog:
         # Both dicts are keyed so that the right copy is found again on the next render, and both
         # hold (EditableTask, field_refs): the copy carries the actions, the widgets carry the
         # argument values until flush_event_task_edits snapshots them onto it.
-        self.pending_tasks: dict[str, tuple] = {}  # events with nothing bound: Tasks not created yet
-        self.bound_tasks: dict[str, tuple] = {}  # events with a Task bound: working copies of it
+        self.pending_tasks: dict[str, tuple[Any, ...]] = {}  # events with nothing bound: Tasks not created yet
+        self.bound_tasks: dict[str, tuple[Any, ...]] = {}  # events with a Task bound: working copies of it
         # Snapshot callables for the editors CURRENTLY on screen, refilled by every render.
         self.flushers: list[Callable[[], None]] = []
         self.dialog: ui.dialog
@@ -255,7 +255,7 @@ class _ScenePropertiesDialog:
             flush()
         self.flushers.clear()
 
-    def scene_task_state(self) -> dict:
+    def scene_task_state(self) -> dict[str, Any]:
         """What the Event panels are handed so they can find their held copies and register
         their own flusher -- one bundle rather than four parameters threaded three deep.
         """
@@ -391,10 +391,10 @@ class _ScenePropertiesDialog:
 
 
 def _render_scene_ui_tab(
-    args: dict,
+    args: dict[str, Any],
     property_type: taskedit_model.EditableArg | None,
     scene_element: Element,
-    field_refs: dict,
+    field_refs: dict[str, Any],
     rerender: Callable[[], None],
     state: RunState,
 ) -> None:
@@ -452,7 +452,7 @@ def _render_scene_ui_tab(
 
 def _render_scene_geometry(
     scene_element: Element,
-    field_refs: dict,
+    field_refs: dict[str, Any],
 ) -> None:
     """Geometry: the pixel size the Scene is laid out at, in the Portrait/Landscape pairs
     Tasker asks for.
@@ -687,23 +687,23 @@ def _render_scene_action_item_picker(
 def _render_scene_event_tab(
     self: MyGui,
     properties: Element,
-    showing: dict,
+    showing: dict[str, Any],
     rerender: Callable[[], None],
-    task_state: dict,
+    task_state: dict[str, Any],
     scene_name: str,
 ) -> None:
     """The Event tab: Key, Home Tap and Tab Tap, as Tasker's own sub-tabs.
 
     ONE SUB-TAB IS BUILT AT A TIME, into a container this refills, rather than three
     ui.tab_panels.  Each one carries the bound Task's whole action editor
-    (_build_task_action_editor -- a picker over every addable action plus a row per
+    (build_task_action_editor -- a picker over every addable action plus a row per
     argument), and building three of those to show one of them would cost three times the
     widgets and put three "Add an action" pickers on the page at once.
 
     `showing` carries the selected sub-tab out to the caller so it survives the full-body
     rebuild that binding a Task triggers, and `task_state` carries the Task copies for the
     same reason: switching sub-tab destroys this panel, and everything edited in it would go
-    too.  See _build_scene_properties_dialog, which owns both.
+    too.  See build_scene_properties_dialog, which owns both.
     """
     for name, meaning in sceneedit_legacy.LEGACY_SCENE_EVENT_COMMON_VARIABLES:
         ui.label(f"{name} -- {translate_string(meaning)}").classes("text-xs text-gray-500 italic")
@@ -785,7 +785,7 @@ def _render_scene_event(
     properties: Element,
     event: sceneedit_legacy.LegacySceneEvent,
     rerender: Callable[[], None],
-    task_state: dict | None = None,
+    task_state: dict[str, Any] | None = None,
     scene_name: str = "",
 ) -> None:
     """One Event sub-tab: when it fires, the Task it fires, and what that Task can read.
@@ -815,9 +815,9 @@ def _render_scene_event(
     # blank name still reads as bound.  taskerd normally fills a made-up display name in for
     # an unnamed Task, but a caller that built the tables without that pass would otherwise
     # make a real binding read as "Nothing".
-    all_tasks = self.state.tasker_root_elements.get("all_tasks", {})
-    entry = all_tasks.get(task_id)
-    task_name = ((entry or {}).get("name") or f"Task {task_id}") if task_id else ""
+    all_tasks: dict[str, Any] = self.state.tasker_root_elements.get("all_tasks") or {}
+    entry = as_json_object(all_tasks.get(task_id)) or {}
+    task_name = (entry.get("name") or f"Task {task_id}") if task_id else ""
 
     def set_binding(picked: str) -> None:
         if not picked:
@@ -959,7 +959,7 @@ def _render_scene_event_task_actions(
     self: MyGui,
     properties: Element,
     event: sceneedit_legacy.LegacySceneEvent,
-    task_state: dict,
+    task_state: dict[str, Any],
     scene_name: str,
     rerender: Callable[[], None],
 ) -> None:
@@ -1015,13 +1015,13 @@ def _render_scene_event_task_actions(
     else:
         edited_task = held[0]
 
-    field_refs: dict = {}
+    field_refs: dict[str, Any] = {}
     task_state["bound"][held_key] = (edited_task, field_refs)
     task_state["flushers"].append(
         lambda: self.event_handlers.editors.stash_scene_event_task_edits(edited_task, field_refs),
     )
 
-    _build_task_action_editor(self, edited_task, field_refs, list_classes=_SCENE_EVENT_ACTION_LIST_CLASSES)
+    build_task_action_editor(self, edited_task, field_refs, list_classes=_SCENE_EVENT_ACTION_LIST_CLASSES)
 
     apply_button = (
         ui.button(
@@ -1048,9 +1048,9 @@ def _render_scene_event_task_actions(
 def _event_task_in_progress(
     self: MyGui,
     event: sceneedit_legacy.LegacySceneEvent,
-    task_state: dict,
+    task_state: dict[str, Any],
     scene_name: str,
-) -> tuple[taskedit_model.EditableTask, tuple | None] | None:
+) -> tuple[taskedit_model.EditableTask, tuple[Any, ...] | None] | None:
     """The Task being composed for this event: the one the dialog already holds, or a fresh one.
 
     Returns (the Task, what the dialog held for it or None), or None -- with the reason already
@@ -1080,8 +1080,8 @@ def _render_create_event_task_button(
     properties: Element,
     event: sceneedit_legacy.LegacySceneEvent,
     edited_task: taskedit_model.EditableTask,
-    field_refs: dict,
-    pending: dict,
+    field_refs: dict[str, Any],
+    pending: dict[str, Any],
     rerender: Callable[[], None],
 ) -> None:
     """The Create Task button: register the composed Task, point the event at it, and redraw."""
@@ -1123,7 +1123,7 @@ def _render_scene_event_new_task(
     self: MyGui,
     properties: Element,
     event: sceneedit_legacy.LegacySceneEvent,
-    task_state: dict,
+    task_state: dict[str, Any],
     scene_name: str,
     rerender: Callable[[], None],
 ) -> None:
@@ -1147,7 +1147,7 @@ def _render_scene_event_new_task(
     what this Task is.  It is a plain field: a name another Task already has is refused by
     create_scene_event_task_event rather than quietly given a suffix.
     """
-    if self.state.xml_root is None:
+    if not self.state.backup_loaded:
         ui.label(
             translate_string("Load a Tasker configuration first -- a new Task needs one to get an id."),
         ).classes("text-xs text-gray-500 italic")
@@ -1166,7 +1166,7 @@ def _render_scene_event_new_task(
         ),
     ).classes("text-xs text-gray-500 italic")
 
-    field_refs: dict = {
+    field_refs: dict[str, Any] = {
         "name": ui.input(
             translate_string("New Task Name"),
             value=(held[1]["name"].value if held else edited_task.task_element.findtext("nme", "")),
@@ -1186,6 +1186,6 @@ def _render_scene_event_new_task(
         lambda: self.event_handlers.editors.stash_scene_event_task_edits(edited_task, field_refs),
     )
 
-    _build_task_action_editor(self, edited_task, field_refs, list_classes=_SCENE_EVENT_ACTION_LIST_CLASSES)
+    build_task_action_editor(self, edited_task, field_refs, list_classes=_SCENE_EVENT_ACTION_LIST_CLASSES)
 
     _render_create_event_task_button(self, properties, event, edited_task, field_refs, pending, rerender)

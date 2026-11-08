@@ -525,9 +525,7 @@ def test_the_screen_has_taskers_own_three_tabs(sample_backup, stub_gui):
     original_open = ui.dialog.open
     ui.dialog.open = lambda self: opened.append(self)
     try:
-        _render(
-            stub_gui, edited, lambda gui, target: guiwins_sceneprops._build_scene_properties_dialog(gui, target, {})
-        )
+        _render(stub_gui, edited, lambda gui, target: guiwins_sceneprops.build_scene_properties_dialog(gui, target, {}))
     finally:
         ui.dialog.open = original_open
 
@@ -587,7 +585,7 @@ def test_the_bound_tasks_actions_are_listed_below_it(key_event_tab):
 
 
 def test_the_action_picker_comes_with_it(key_event_tab):
-    """_build_task_action_editor renders the Edit Task dialog's own "Add an action" search,
+    """build_task_action_editor renders the Edit Task dialog's own "Add an action" search,
     which is what "added in the same fashion" means here.
     """
     container, _properties, ui = key_event_tab
@@ -805,7 +803,7 @@ def test_a_rejected_value_is_reported_and_nothing_is_applied(monkeypatch, loaded
 # 7. THE EDITOR THE TWO SURFACES SHARE
 # ==========================================
 def test_the_edit_task_dialog_still_builds_after_the_editor_was_lifted_out_of_it(monkeypatch):
-    """_build_task_action_editor was cut out of build_edit_task_dialog so the KEY tab could
+    """build_task_action_editor was cut out of build_edit_task_dialog so the KEY tab could
     render the same thing.  This is the guard on that surgery: the dialog it came from has
     to still build, over real Tasks, with every action listed.
     """
@@ -1439,14 +1437,14 @@ def unbound_event(sample_backup, stub_gui, monkeypatch):
     monkeypatch.setattr(guiwins.ui, "notify", lambda m, **k: notified.append((m, k.get("type"))))
     stub_gui.event_handlers = userintr.MapTaskerEventHandlers(stub_gui)
 
-    # The bundle _build_scene_properties_dialog owns: the Task copies that outlive the panel,
+    # The bundle build_scene_properties_dialog owns: the Task copies that outlive the panel,
     # and the snapshot callables for whichever panel is currently on screen.
     task_state: dict = {"pending": {}, "bound": {}, "flushers": []}
     rerenders: list = []
 
     def render_event(event):
         # What the dialog does before it destroys the panel's widgets -- see
-        # _build_scene_properties_dialog.flush_event_task_edits.
+        # build_scene_properties_dialog.flush_event_task_edits.
         for flush in task_state["flushers"]:
             flush()
         task_state["flushers"].clear()
@@ -1756,7 +1754,7 @@ def scene_properties_dialog(sample_backup, stub_gui, monkeypatch):
         with Client(page("/")):
             container = ui.column()
             with container:
-                guiwins_sceneprops._build_scene_properties_dialog(
+                guiwins_sceneprops.build_scene_properties_dialog(
                     stub_gui, edited, {} if field_refs is None else field_refs
                 )
         return opened[-1]

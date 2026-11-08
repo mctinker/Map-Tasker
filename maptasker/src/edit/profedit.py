@@ -40,7 +40,7 @@ import re
 import time
 import xml.etree.ElementTree as ETW  # stdlib "ET Write" -- used only to build/serialize
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, cast
 
 if TYPE_CHECKING:
     from xml.etree.ElementTree import Element
@@ -122,7 +122,7 @@ class EditableCondition:
     cond_index: int
     cond_type: str
     condition_element: Element
-    args: list[taskedit_model.EditableArg] = field(default_factory=list)
+    args: list[taskedit_model.EditableArg] = field(default_factory=list[taskedit_model.EditableArg])
 
 
 @dataclass
@@ -133,7 +133,7 @@ class EditableProfile:
 
     profile_id: str
     profile_element: Element
-    conditions: list[EditableCondition] = field(default_factory=list)
+    conditions: list[EditableCondition] = field(default_factory=list[EditableCondition])
     entry_task_id: str = ""
     exit_task_id: str = ""
 
@@ -201,7 +201,7 @@ def create_new_profile(name: str, state: RunState) -> EditableProfile | str:
     alphabetical (cdate, edate, flags, id, limit, mid0, nme) before the
     condition elements -- same convention as create_new_project's.
     """
-    if state.xml_root is None:
+    if not state.backup_loaded:
         return "Load a Tasker backup file first (Add Profile needs it to generate a unique Profile ID)."
     if problem := name_problem(name, "Profile"):
         return problem
@@ -233,7 +233,7 @@ def _build_editable_conditions(profile_copy: Element, state: RunState) -> list[E
     here rather than reusing that function's own iteration, whose "AND"-joining
     isn't quite what a structured per-condition list needs).
     """
-    conditions = []
+    conditions: list[EditableCondition] = []
     cond_index = 0
     for child in profile_copy:
         if child.tag in _PROFILE_METADATA_TAGS or "mid" in child.tag or child.tag not in _CONDITION_TAGS:
@@ -400,10 +400,12 @@ def add_condition_to_profile(edited_profile: EditableProfile, cond_type: str) ->
 
 # {suffix: rows}, for one app-inventory generation (see _list_addable_condition_codes), and
 # cleared with every other cache when a configuration is loaded (see caches).
-_addable_condition_codes: caches.KeyedCache[dict[str, list[dict]]] = caches.KeyedCache("profedit.addable_conditions")
+_addable_condition_codes: caches.KeyedCache[dict[str, list[dict[str, Any]]]] = caches.KeyedCache(
+    "profedit.addable_conditions"
+)
 
 
-def _list_addable_condition_codes(suffix: str, state: RunState) -> list[dict]:
+def _list_addable_condition_codes(suffix: str, state: RunState) -> list[dict[str, Any]]:
     """All real numeric Profile-condition entries for a given actionc.py key
     suffix -- "e" for Event (e.g. "1000e"), "s" for State (e.g. "100s") --
     matching condition.py's condition_event/condition_state, whose own
@@ -428,7 +430,7 @@ def _list_addable_condition_codes(suffix: str, state: RunState) -> list[dict]:
     if cached is not None:
         return cached
 
-    rows = []
+    rows: list[dict[str, Any]] = []
     for key, action_code in action_codes.items():
         if not (key.endswith(suffix) and key[:-1].isdigit()):
             continue  # Not a real numeric code for this condition type (e.g. a Task-action entry).
@@ -452,14 +454,14 @@ def _list_addable_condition_codes(suffix: str, state: RunState) -> list[dict]:
     return rows
 
 
-def list_addable_events(state: RunState) -> list[dict]:
+def list_addable_events(state: RunState) -> list[dict[str, Any]]:
     """All real numeric Profile-Event condition entries (actionc.py keys ending
     in "e") with their addability -- see _list_addable_condition_codes.
     """
     return _list_addable_condition_codes("e", state=state)
 
 
-def list_addable_states(state: RunState) -> list[dict]:
+def list_addable_states(state: RunState) -> list[dict[str, Any]]:
     """All real numeric Profile-State condition entries (actionc.py keys ending
     in "s") with their addability -- see _list_addable_condition_codes.
     """
@@ -652,7 +654,7 @@ def apply_edits_to_profile(
     condition's field *values*, keyed condition_field_key(cond_index, ...) (or,
     for State/Event, condition_arg_key(cond_index, arg_id)).
     """
-    errors = []
+    errors: list[str] = []
 
     name_value = name_value.strip()
     if not name_value:
@@ -763,7 +765,7 @@ def _write_pending_condition_edit(
     elif cond_type == "Loc":
         _write_loc_field_values(condition, cast("dict[str, str]", payload))
     elif cond_type == "Day":
-        weekdays, months, month_days = cast("tuple[list, list, list]", payload)
+        weekdays, months, month_days = cast("tuple[list[Any], list[Any], list[Any]]", payload)
         _write_day_selected_weekdays(condition, weekdays)
         _write_day_selected_months(condition, months)
         _write_day_selected_month_days(condition, month_days)
@@ -861,7 +863,7 @@ def get_time_field_values(condition: EditableCondition) -> dict[str, str]:
 
 
 def _validate_time_field_values(values: dict[str, str]) -> list[str]:
-    errors = []
+    errors: list[str] = []
     for key, label in (("start_time", "Start Time"), ("end_time", "End Time")):
         if _classify_time_or_var(values.get(key, "")) is None:
             errors.append(f"'{label}' must be a valid time of day (hh:mm AM/PM) or a %variable.")
@@ -933,7 +935,7 @@ def get_loc_field_values(condition: EditableCondition) -> dict[str, str]:
 
 def _validate_loc_field_values(values: dict[str, str]) -> list[str]:
     labels = {"lat": "Latitude", "long": "Longitude", "rad": "Radius"}
-    errors = []
+    errors: list[str] = []
     for key, label in labels.items():
         raw = values.get(key, "").strip()
         if not raw:
@@ -963,7 +965,7 @@ def _write_loc_field_values(condition: EditableCondition, values: dict[str, str]
 # its value -- see the real "18"/"21" example this mirrors) whose text holds the
 # actual selected value, so a single generic helper pair backs all three.
 def _get_day_selected_values(condition: EditableCondition, tag_prefix: str) -> list[int]:
-    selected = []
+    selected: list[int] = []
     for child in condition.condition_element:
         if child.tag.startswith(tag_prefix) and child.text:
             try:
@@ -1117,7 +1119,7 @@ def render_standalone_profile_xml(edited_profile: EditableProfile, state: RunSta
     writing a comment above the file saying what went -- what "Redact secrets" on the
     export button does.  Off by default, so nothing that already calls this changes.
     """
-    tv = state.xml_root.attrib.get("tv", "") if state.xml_root is not None else ""
+    tv = state.xml_root.attrib.get("tv", "") if state.backup_loaded else ""
     profile_copy = copy.deepcopy(edited_profile.profile_element)
     # The parsed tree's Element class isn't necessarily xml.etree.ElementTree's own
     # C-accelerated Element (defusedxml's hardened XMLParser forces the pure-Python
@@ -1268,7 +1270,7 @@ def add_profile_to_project(edited_profile: EditableProfile, project_name: str, s
 
         project_element = project_entry["xml"]
         pids_element = project_element.find("pids")
-        existing_ids = pids_element.text.split(",") if pids_element is not None and pids_element.text else []
+        existing_ids: list[str] = pids_element.text.split(",") if pids_element is not None and pids_element.text else []
         if edited_profile.profile_id not in existing_ids:
             existing_ids.append(edited_profile.profile_id)
         _set_child_text(project_element, "pids", ",".join(existing_ids))
@@ -1310,7 +1312,7 @@ def add_task_to_project(task_id: str, project_name: str, state: RunState) -> Non
 
         project_element = project_entry["xml"]
         tids_element = project_element.find("tids")
-        existing_ids = tids_element.text.split(",") if tids_element is not None and tids_element.text else []
+        existing_ids: list[str] = tids_element.text.split(",") if tids_element is not None and tids_element.text else []
         if task_id not in existing_ids:
             existing_ids.append(task_id)
         _set_child_text(project_element, "tids", ",".join(existing_ids))
@@ -1354,7 +1356,9 @@ def delete_profile(profile_name: str, state: RunState) -> list[str]:
         for project_entry in state.tasker_root_elements.get("all_projects", {}).values():
             project_element = project_entry["xml"]
             pids_element = project_element.find("pids")
-            existing_ids = pids_element.text.split(",") if pids_element is not None and pids_element.text else []
+            existing_ids: list[str] = (
+                pids_element.text.split(",") if pids_element is not None and pids_element.text else []
+            )
             if profile_id not in existing_ids:
                 continue
             _set_child_text(project_element, "pids", ",".join(i for i in existing_ids if i != profile_id))
@@ -1376,7 +1380,7 @@ def validate_new_profile_requirements(edited_profile: EditableProfile) -> list[s
     existing one (build_edit_profile_dialog), since an already-saved Profile
     that happens to be missing one of these should still be freely editable.
     """
-    errors = []
+    errors: list[str] = []
     if not edited_profile.entry_task_id:
         errors.append("Add an Entry Task before saving -- a Profile needs one to run anything.")
     if not edited_profile.conditions:
@@ -1434,7 +1438,7 @@ def apply_profile_rename(edited_profile: EditableProfile, new_name: str, state: 
     new_name = new_name.strip()
     current_name = edited_profile.profile_element.findtext("nme", "")
 
-    errors = []
+    errors: list[str] = []
     if not new_name:
         errors.append("Profile name cannot be empty.")
     elif problem := name_problem(new_name, "Profile"):

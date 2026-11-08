@@ -166,11 +166,11 @@ def refresh_tasker_object_pulldowns(self: "MyGui") -> bool:
 
 def display_object_pulldowns(
     self: "MyGui",
-    projects_to_display: list,
-    profiles_to_display: list,
-    tasks_to_display: list,
-    scenes_to_display: list,
-) -> tuple:
+    projects_to_display: list[Any],
+    profiles_to_display: list[Any],
+    tasks_to_display: list[Any],
+    scenes_to_display: list[Any],
+) -> tuple[Any, ...]:
     """
     Updates the pulldown menus for selecting projects, profiles, tasks and Scenes.
     """
@@ -240,7 +240,7 @@ def _task_names_to_display(self: "MyGui") -> list[str]:
     return tasks_to_display
 
 
-def get_tasker_objects(self: "MyGui") -> tuple:
+def get_tasker_objects(self: "MyGui") -> tuple[Any, ...]:
     """
     Retrieves the projects, profiles, tasks and Scenes available in the XML file.
 
@@ -275,7 +275,7 @@ def get_tasker_objects(self: "MyGui") -> tuple:
     return True, projects_to_display, profiles_to_display, tasks_to_display, scenes_to_display
 
 
-def _render_analyze_tab(self: "MyGui", key_to_display: str, model_to_display: str, to_display: dict) -> None:
+def _render_analyze_tab(self: "MyGui", key_to_display: str, model_to_display: str, to_display: dict[str, Any]) -> None:
     """Redraw the "Analyze" tab: the model and key, the targets chosen for analysis, and the prompt."""
     # 2. Render the "Analyze" Tab panel context natively
     with self.tab_analyze:
@@ -512,7 +512,7 @@ def build_profiles(
         # Get the Profile's Tasks
         state.task_count_unnamed = 0  # Avoid an error in get_profile_tasks
         if the_tasks := _get_profile_tasks(profiles[profile]["xml"], [], [], config, state=state):
-            task_list = []
+            task_list: list[str] = []
             # Process each Task.  Tasks are simply a flat list of names.
             for task in the_tasks:
                 if task["name"] == "":
@@ -570,7 +570,8 @@ def select_pulldown_option(optionmenu: ui.select, name: str) -> None:
     No-op if nothing matches -- better to leave the previous selection showing
     than to blank the pulldown with a value it can't render.
     """
-    options = list(optionmenu.options or [])
+    raw_options: Any = cast("Any", optionmenu).options
+    options: list[str] = [str(option) for option in raw_options or ()]
     if name in options:
         optionmenu.value = name
         return
@@ -819,8 +820,8 @@ def single_item_export_selection(file_path: str, state: RunState) -> tuple[str, 
     name the pulldowns (and every filter downstream) go by is the one inside the XML,
     and a file can always have been renamed since Tasker wrote it.
     """
-    file_path = getattr(file_path, "name", file_path) if file_path else ""
-    basename = os.path.basename(file_path) if isinstance(file_path, str) else ""
+    named: object = getattr(file_path, "name", file_path) if file_path else ""
+    basename = os.path.basename(named) if isinstance(named, str) else ""
     lowered = basename.lower()
 
     # The earliest tag wins, so a Project exported into a directory whose own name
@@ -879,7 +880,7 @@ def set_tasker_object_names(self: "MyGui") -> None:
     _set_default_names(self, defaults)
 
 
-def _set_single_item_name(self: "MyGui", label: str, name: str, defaults: dict) -> None:
+def _set_single_item_name(self: "MyGui", label: str, name: str, defaults: dict[str, Any]) -> None:
     """Select `name` in its own pulldown and put every other one back to its default.
 
     Args:
@@ -910,7 +911,7 @@ def _set_single_item_name(self: "MyGui", label: str, name: str, defaults: dict) 
             optionmenu.value = defaults[other.lower()]
 
 
-def _set_default_names(self: "MyGui", defaults: dict) -> None:
+def _set_default_names(self: "MyGui", defaults: dict[str, Any]) -> None:
     """Handles setting names when no specific name is available."""
     self.specific_name_msg = ""
     try:
@@ -1326,11 +1327,11 @@ def check_new_version(self: "MyGui") -> None:
 
     # Kept on the view so the task is not garbage-collected mid-check, and given a done
     # callback because a bare create_task drops whatever the coroutine raises.
-    self._version_check = asyncio.create_task(_show_upgrade_if_newer(self))
-    self._version_check.add_done_callback(_report_version_check_failure)
+    self.version_check = asyncio.create_task(_show_upgrade_if_newer(self))
+    self.version_check.add_done_callback(_report_version_check_failure)
 
 
-def _report_version_check_failure(task: asyncio.Task) -> None:
+def _report_version_check_failure(task: asyncio.Task[None]) -> None:
     """Log whatever the version check raised, instead of losing it (as guiwins_nav.report_view_failure does).
 
     Cancellation is ordinary -- a page that went away mid-check -- and says nothing.

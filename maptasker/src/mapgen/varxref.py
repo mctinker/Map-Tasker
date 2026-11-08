@@ -32,7 +32,7 @@ from __future__ import annotations
 import re
 from collections import defaultdict
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from maptasker.src.core import clock
 from maptasker.src.core.actionc import action_codes
@@ -228,9 +228,9 @@ _RELEVANT_VARIABLE = re.compile(r"&gt;%([A-Za-z][A-Za-z0-9_]*)")
 
 def _relevant_variable_blobs(node: object) -> list[str]:
     """Every RELEVANT_VARIABLES value inside one bundle entry, at whatever depth it sits."""
-    found = []
+    found: list[str] = []
     if isinstance(node, dict):
-        for key, value in node.items():
+        for key, value in cast("dict[str, object]", node).items():
             if key.endswith("RELEVANT_VARIABLES") and isinstance(value, str):
                 found.append(value)
             else:
@@ -250,12 +250,12 @@ def _implicit_writes() -> dict[str, set[str]]:
     Without this, every one of those names reads as "used but nothing sets it", and the
     problem list is 499 entries of Tasker working exactly as intended.  With it, 18.
     """
-    table = {}
+    table: dict[str, set[str]] = {}
     for key, entry in bundles.items():
         # 'e'/'s' keys are Profile events and states, which set nothing.
         if not key.endswith("t"):
             continue
-        names = set()
+        names: set[str] = set()
         for blob in _relevant_variable_blobs(entry):
             names.update(f"%{match.group(1)}" for match in _RELEVANT_VARIABLE.finditer(blob))
         if names:
@@ -328,20 +328,20 @@ class Variable:
     owner: str = ""  # locals only; "" for everything else
     value: str = ""  # from a top-level <Variable>, when the file declares one
     declared: bool = False
-    sets: list[Reference] = field(default_factory=list)
-    reads: list[Reference] = field(default_factory=list)
+    sets: list[Reference] = field(default_factory=list[Reference])
+    reads: list[Reference] = field(default_factory=list[Reference])
 
 
 @dataclass
 class VariableIndex:
     """Every variable in the file, keyed by scope-aware identity."""
 
-    variables: dict[tuple[str, str], Variable] = field(default_factory=dict)
+    variables: dict[tuple[str, str], Variable] = field(default_factory=dict[tuple[str, str], Variable])
     # Names carrying a top-level <Variable>.  Tasker's Variables tab holds globals and
     # nothing else, so a declared name is global whatever its spelling -- and it has to be
     # known before the scan starts, or a lower case one would be keyed as a local by the
     # first Task that touched it and split into a separate entry per Task.
-    declared_names: set[str] = field(default_factory=set)
+    declared_names: set[str] = field(default_factory=set[str])
     # Actions naming their target through a variable ("Variable Set %(%which)") or
     # building a name at run time.  Any of them could be setting any variable in the
     # file, so a non-zero count qualifies every "never set" answer -- the same way
@@ -355,7 +355,7 @@ class VariableIndex:
     # Task id -> the place it is, so the locals section can be grouped by Task without
     # re-deriving the phrase per variable.  Targets rather than phrases since it is both:
     # .label is the phrase, and the Target is what makes the group heading clickable.
-    scope_locations: dict[str, Target] = field(default_factory=dict)
+    scope_locations: dict[str, Target] = field(default_factory=dict[str, Target])
     # What the scan was limited to.  Named `scope` to match mapfind.FindIndex; not to be
     # confused with scope_locations or with a VARIABLE's scope (global/local), which is a
     # different thing entirely and older -- this one is "which objects were looked at".
@@ -445,7 +445,7 @@ def _project_membership(tag: str, state: RunState) -> dict[str, str]:
     and "".split(",") is [""], which would otherwise claim a Project owns an object whose
     id is the empty string.
     """
-    owners = {}
+    owners: dict[str, str] = {}
     for project_name, project in state.tasker_root_elements["all_projects"].items():
         text = _element_text(project["xml"], tag)
         for member in (item.strip() for item in text.split(",") if item.strip()):
@@ -590,7 +590,7 @@ def _scan_action_arguments(
     # An in-place action writes back into the variable it reads, but only in one
     # configuration of its own arguments -- so the deciding argument has to be looked at
     # before its source can be called a write.
-    writes_back = set()
+    writes_back: set[str] = set()
     if code in _WRITES_BACK_WHEN_EMPTY:
         source, decider = _WRITES_BACK_WHEN_EMPTY[code]
         if not arguments.get(decider, "").strip():
@@ -826,7 +826,7 @@ def _scan_projects(index: VariableIndex, scope: Scope, state: RunState) -> None:
 
 def _scan_scene_text(
     index: VariableIndex,
-    scene: dict,
+    scene: dict[str, Any],
     place: Target,
     scope_id: str,
 ) -> None:
@@ -861,7 +861,11 @@ def _scan_scene_text(
 
 
 def _scan_scenes(
-    index: VariableIndex, write_arguments: dict, implicit_writes: dict, scope: Scope, state: RunState
+    index: VariableIndex,
+    write_arguments: dict[str, Any],
+    implicit_writes: dict[str, Any],
+    scope: Scope,
+    state: RunState,
 ) -> None:
     """Walk every Scene: its elements, and the anonymous Tasks living inside it."""
 
@@ -899,10 +903,9 @@ def _scan_declarations(index: VariableIndex, state: RunState) -> None:
     it, which is why a global that nothing in the file sets is still not necessarily a
     mistake -- it may simply have been given its value by hand in Tasker's Variables tab.
     """
-    root = state.xml_root
-    if root is None:
+    if not state.backup_loaded:
         return
-    for element in root.findall("Variable"):
+    for element in state.xml_root.findall("Variable"):
         children = list(element)
         if not children:
             continue
@@ -1011,11 +1014,11 @@ class Suspect:
     sentence: str = ""  # the whole finding on one line, for a caller with no room for a block
     # Every variable this finding is about, in subject order -- one for most classes, two
     # for a near-duplicate.  What a click on the subject line goes to.
-    variables: list[Target] = field(default_factory=list)
+    variables: list[Target] = field(default_factory=list[Target])
     # Where the "first at" evidence lines point, one per line of `detail` that names a
     # place (None for a line that is prose).  Kept parallel to `detail` so the renderer
     # can pair them off without parsing the text back.
-    places: list[Target | None] = field(default_factory=list)
+    places: list[Target | None] = field(default_factory=list[Target | None])
     # What the phone says about this variable, when it was asked (see livevars) -- "" when it
     # was not, which is every report built without a device.  One line, kept apart from
     # `summary` so a finding reads the same with or without it.
@@ -1038,8 +1041,8 @@ class _Totals:
     sets: int = 0
     reads: int = 0
     declared: bool = False
-    read_tasks: set[str] = field(default_factory=set)
-    set_tasks: set[str] = field(default_factory=set)
+    read_tasks: set[str] = field(default_factory=set[str])
+    set_tasks: set[str] = field(default_factory=set[str])
     first_set: str = ""
     first_read: str = ""
     # The same two places, in the form the Map view can find (mapjump), so a report line
@@ -1117,13 +1120,13 @@ def _near_duplicates(totals: dict[str, _Totals]) -> list[Suspect]:
         if total.scope in (GLOBAL, LOCAL):
             clusters[_fold(name)].append(name)
 
-    suspects = []
+    suspects: list[Suspect] = []
     for names in clusters.values():
         globals_here = sorted(name for name in names if totals[name].scope == GLOBAL)
         if len(globals_here) < 2:
             continue
 
-        detail = []
+        detail: list[str] = []
         # One entry per line of detail, so the renderer can pair them off: the Target the
         # line points at, or None where the line is prose or a count.
         places: list[Target | None] = []
@@ -1180,7 +1183,7 @@ def _never_set(totals: dict[str, _Totals], live: LiveValues | None = None) -> li
     A declared name is excluded too: it exists in Tasker's Variables tab holding a value
     somebody typed, which is a perfectly good way for a variable to get one.
     """
-    suspects = []
+    suspects: list[Suspect] = []
     for name, total in sorted(totals.items()):
         if total.scope != GLOBAL or total.declared or total.sets or not total.reads:
             continue
@@ -1211,7 +1214,7 @@ def _never_read(totals: dict[str, _Totals], live: LiveValues | None = None) -> l
     the device.  Saying those are unused would be wrong.  The 42 that remain exist only
     because an action creates them, and nothing consumes them.
     """
-    suspects = []
+    suspects: list[Suspect] = []
     for name, total in sorted(totals.items()):
         if total.scope != GLOBAL or total.declared or total.reads or not total.sets:
             continue
@@ -1298,11 +1301,11 @@ def _reference_lines(references: list[Reference], role: str) -> list[Row]:
     Sorted and de-duplicated: an action that names a variable in three of its arguments is
     one place the user has to go and look, not three.
     """
-    seen = {}
+    seen: dict[tuple[str, str], Target | None] = {}
     for reference in references:
         seen.setdefault((reference.where, reference.detail), reference.target)
 
-    rows = []
+    rows: list[Row] = []
     for position, (where, detail) in enumerate(sorted(seen)):
         label = f"    {role:<7}" if position == 0 else " " * 11
         # The place is the clickable half; the argument that named the variable is not a
@@ -1569,7 +1572,7 @@ def _local_section(index: VariableIndex, thin_rule: str) -> list[Row]:
     of them twenty times over says nothing.  Scenes and Profiles group here too -- their
     lower case names are no more Task locals than they are each other's.
     """
-    by_scope = defaultdict(list)
+    by_scope: defaultdict[str, list[Variable]] = defaultdict(list)
     for variable in index.variables.values():
         if variable.scope == LOCAL:
             by_scope[variable.owner].append(variable)

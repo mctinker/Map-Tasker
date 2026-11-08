@@ -89,6 +89,7 @@ import tempfile
 import zlib
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
+from http import HTTPStatus
 from itertools import count
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, NamedTuple
@@ -101,6 +102,7 @@ import httpx
 from maptasker.src.analysis import diffload, xmldiff
 from maptasker.src.analysis.xmldiff import Configuration
 from maptasker.src.core import clock, timeline
+from maptasker.src.core.maputil2 import as_json_object
 from maptasker.src.core.sysconst import MY_VERSION, logger
 from maptasker.src.edit import sessundo
 from maptasker.src.mapops import maprestore
@@ -231,7 +233,7 @@ def _endpoint(what: str, ref: ShareRef) -> str:
     return f"{_API_ROOT}{what}/{quote(ref.user, safe='')}/{quote(ref.share_id, safe='')}?a=0"
 
 
-def _get_json(url: str, limit: int) -> dict:
+def _get_json(url: str, limit: int) -> dict[str, Any]:
     """GET `url` and return its JSON object.  The single place this module touches the network.
 
     No redirects are followed: the answer is either on taskernet.com or it is not an answer.
@@ -256,10 +258,10 @@ def _get_json(url: str, limit: int) -> dict:
         message = f"Could not reach TaskerNet ({type(error).__name__}).  Check the connection and try again."
         raise TaskerNetOfflineError(message) from error
 
-    if status == httpx.codes.NOT_FOUND:
+    if status == HTTPStatus.NOT_FOUND:
         message = "TaskerNet has no share at that link.  It may have been deleted, made private, or renamed."
         raise TaskerNetError(message)
-    if status != httpx.codes.OK:
+    if status != HTTPStatus.OK:
         message = f"TaskerNet answered with an error (HTTP {status})."
         raise TaskerNetOfflineError(message)
     try:
@@ -267,10 +269,11 @@ def _get_json(url: str, limit: int) -> dict:
     except ValueError as error:
         message = "TaskerNet answered with something other than a share."
         raise TaskerNetOfflineError(message) from error
-    if not isinstance(answer, dict):
+    shares = as_json_object(answer)
+    if shares is None:
         message = "TaskerNet answered with something other than a share."
         raise TaskerNetOfflineError(message)
-    return answer
+    return shares
 
 
 def fetch_public_page(token: str = "") -> dict[str, Any]:
@@ -285,10 +288,8 @@ def fetch_public_page(token: str = "") -> dict[str, Any]:
 def fetch_info(ref: ShareRef) -> ShareInfo:
     """What is published at `ref` -- its publish date above all.  One small request; no XML."""
     answer = _get_json(_endpoint("shares", ref), _INFO_LIMIT)
-    info = answer.get("info")
-    info = info if isinstance(info, dict) else {}
-    stats = info.get("stats")
-    stats = stats if isinstance(stats, dict) else {}
+    info = as_json_object(answer.get("info")) or {}
+    stats = as_json_object(info.get("stats")) or {}
     try:
         published = int(info.get("date") or 0)
     except (TypeError, ValueError):
@@ -584,10 +585,9 @@ def describe_checked(checked: str) -> str:
 _TASK_LINK_TAG = re.compile(r"^mid\d+$")
 
 
-def _entry_of(table: dict, key: str) -> dict | None:
+def _entry_of(table: dict[str, Any], key: str) -> dict[str, Any] | None:
     """One table's entry for `key`, or None."""
-    entry = table.get(key)
-    return entry if isinstance(entry, dict) else None
+    return as_json_object(table.get(key))
 
 
 def _id_list(element: Element, tag: str) -> list[str]:
@@ -595,7 +595,7 @@ def _id_list(element: Element, tag: str) -> list[str]:
     return [item.strip() for item in (element.findtext(tag) or "").split(",") if item.strip()]
 
 
-def _scope_tables(link: Link, tables: dict) -> dict | None:
+def _scope_tables(link: Link, tables: dict[str, Any]) -> dict[str, Any] | None:
     """The slice of the loaded configuration this link is about, shaped like the tables it comes from.
 
     A Project is itself, its Profiles, its Tasks and its Scenes.  A Profile is itself and the
@@ -604,11 +604,11 @@ def _scope_tables(link: Link, tables: dict) -> dict | None:
     what it is compared with is the share, so every other Project's objects must not be in it
     or they would all read as "yours only".  None when the linked object is not in the configuration.
     """
-    scope: dict = {"all_projects": {}, "all_profiles": {}, "all_tasks": {}, "all_scenes": {}}
+    scope: dict[str, Any] = {"all_projects": {}, "all_profiles": {}, "all_tasks": {}, "all_scenes": {}}
     projects, profiles = tables.get("all_projects", {}), tables.get("all_profiles", {})
     tasks, scenes = tables.get("all_tasks", {}), tables.get("all_scenes", {})
 
-    def take(into: str, table: dict, keys: list[str]) -> None:
+    def take(into: str, table: dict[str, Any], keys: list[str]) -> None:
         for key in keys:
             entry = _entry_of(table, key)
             if entry is not None:
@@ -643,7 +643,7 @@ def _scope_tables(link: Link, tables: dict) -> dict | None:
     return scope
 
 
-def _run_by(profiles: dict) -> list[str]:
+def _run_by(profiles: dict[str, Any]) -> list[str]:
     """The ids of the Tasks these Profiles run -- their Entry and Exit links."""
     return [
         child.text.strip()
@@ -653,9 +653,9 @@ def _run_by(profiles: dict) -> list[str]:
     ]
 
 
-def _id_by_name(table: dict, name: str) -> str | None:
+def _id_by_name(table: dict[str, Any], name: str) -> str | None:
     """The key of the entry called `name` in an id-keyed table, or None.  The first, should two share a name."""
-    return next((key for key, entry in table.items() if isinstance(entry, dict) and entry.get("name") == name), None)
+    return next((key for key, entry in table.items() if (as_json_object(entry) or {}).get("name") == name), None)
 
 
 def scope_of(kind: str, name: str, tables: dict[str, Any]) -> dict[str, Any] | None:
@@ -670,9 +670,8 @@ def local_names(kind: str, state: RunState) -> list[str]:
     )
     if kind in (PROJECT, SCENE):
         return sorted(table, key=str.lower)
-    return sorted(
-        {entry["name"] for entry in table.values() if isinstance(entry, dict) and entry.get("name")}, key=str.lower
-    )
+    entries = (as_json_object(entry) for entry in table.values())
+    return sorted({entry["name"] for entry in entries if entry is not None and entry.get("name")}, key=str.lower)
 
 
 def local_scope(link: Link, state: RunState) -> Configuration | None:
@@ -706,8 +705,8 @@ class Aligned:
     """
 
     xml: str
-    profiles: dict[str, str] = field(default_factory=dict)
-    tasks: dict[str, str] = field(default_factory=dict)
+    profiles: dict[str, str] = field(default_factory=dict[str, str])
+    tasks: dict[str, str] = field(default_factory=dict[str, str])
 
     def yours(self, kind: str, key: str) -> str:
         """The id (or, for a Scene, the name) of `kind` in your configuration that the share's `key` is."""
@@ -734,11 +733,12 @@ def _rename_top(root: Element, link: Link, share_name: str) -> None:
     name.text = link.name
 
 
-def _names_to_ids(table: dict) -> dict[str, str]:
+def _names_to_ids(table: dict[str, Any]) -> dict[str, str]:
     """name -> id for an id-keyed table, the first of any two that share a name."""
     names: dict[str, str] = {}
-    for key, entry in table.items():
-        if isinstance(entry, dict) and entry.get("name"):
+    for key, raw_entry in table.items():
+        entry = as_json_object(raw_entry)
+        if entry is not None and entry.get("name"):
             names.setdefault(entry["name"], key)
     return names
 
@@ -1012,7 +1012,7 @@ class AuthorChanges:
     """
 
     report: str
-    counts: dict
+    counts: dict[str, Any]
     keys: frozenset[tuple[str, str]]
     removed: tuple[str, ...] = ()
 
@@ -1036,12 +1036,12 @@ class Review:
     offer: maprestore.Offer
     xml_text: str = ""
     report: str = ""
-    counts: dict = field(default_factory=dict)
+    counts: dict[str, Any] = field(default_factory=dict[str, Any])
     author: AuthorChanges | None = None
     # Every object that differs from your copy, whoever made the difference.  `offer` holds only
     # the author's changes when there is an accepted version to tell them by; this keeps the rest
     # reachable, since what Tasker rewrote on import and what you edited are differences too.
-    everything: list[maprestore.Candidate] = field(default_factory=list)
+    everything: list[maprestore.Candidate] = field(default_factory=list[maprestore.Candidate])
 
     @property
     def from_when(self) -> str:
@@ -1115,7 +1115,8 @@ def _author_changes(
         return None, problem
     then, now = then._replace(path="the version you accepted"), now._replace(path="the version published now")
     report, counts = xmldiff.compare(then, now)
-    keys, removed = set(), []
+    keys: set[tuple[str, str]] = set()
+    removed: list[str] = []
     for entry in xmldiff.differences(then, now):
         if entry.kind not in _AUTHOR_KINDS:
             continue
@@ -1157,7 +1158,7 @@ class Taken:
     """What accepting a version did: how many changes went in, and which could not be made, with why."""
 
     done: int = 0
-    skipped: list[str] = field(default_factory=list)
+    skipped: list[str] = field(default_factory=list[str])
 
 
 def accept_changes(candidates: list[maprestore.Candidate], held: Review, state: RunState) -> Taken:

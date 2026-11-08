@@ -520,41 +520,23 @@ ignore_names = [
 # not, a MagicMock for a window -- sits in scripts/pyright_baseline.json like any other and only NEW ones fail.
 include = ["maptasker/main.py", "maptasker/src", "scripts", "tests", "tools"]
 typeCheckingMode = "basic"
-# Strict mode, file by file.  Basic mode is what the baseline ratchets (see above); these files are
-# clean under strict as well, and tests/test_strict_typing.py keeps it that way for new ones: every
-# module in maptasker/src is either listed here or in scripts/strict_exempt.json, and a new module
-# may not be added to the second list -- it has to be written clean enough to be listed here.
-# Moving a module out of the exempt list into this one is the whole of paying one off.  (A module
-# whose dicts others index stays out, servicec for one: strict infers them more narrowly than basic.)
+# Strict mode, for every module in maptasker/src.  Basic mode is what the baseline ratchets (see above); these
+# files are clean under strict as well, and tests/test_strict_typing.py keeps it that way: a module that is not
+# listed here fails, so a new one is written clean enough to be listed.  (A module whose dicts others index stays
+# a risk, servicec for one: strict infers them more narrowly than basic.)  The list was built up layer by layer,
+# lowest first, because what a lower layer leaves unknown is unknown in every module that calls it.
 #
-# The plan for the rest, by layer, lowest first because what a lower layer leaves unknown is unknown
-# in every module that calls it -- cleaning primitem and actionc alone removed dozens of errors
-# elsewhere.  Counts are strict-mode errors in the modules still on the exempt list:
-#   core       0 modules     0   done.
-#   device     0 modules     0   done.
-#   mapgen     6 modules   605   the Map builder.  What is left is the Diagram (diagintr, diagprint, diagram: the
-#                                call table's types are in diagcnst), outline, mapexport and varxref; the errors are
-#                                bare dict/list annotations and json.load results (type them, or cast at the one
-#                                place the data comes in), and unannotated `x = []` (annotate it).
-#   edit       8 modules   666   the editors: taskedit_addable, scenemodel and the Scene editors (sceneedit_legacy,
-#                                sceneedit_v2*), which are mostly the parsed layout's dicts.
-#   analysis   2 modules   224   taskstep and xmldiff (xmldiff is 181 of it).
-#   mapops     6 modules   492   bulk operations: mapswap_action and mapswap_condition, maprefac_extract, tnupdate,
-#                                maprestore and mapdraft.
-#   entry      0 modules     0   done.
-#   gui       13 modules  1915   last, and the largest: NiceGUI hands handlers untyped events and takes
-#                                untyped lambdas, so the errors are mostly at its boundary.  The patterns that
-#                                cleared the small ones: a handler's event is ValueChangeEventArguments[Any],
-#                                a dialog's field_refs is dict[str, Any], a registrar nicegui declares with
-#                                bare callbacks (app.on_*, a select's set_options) is called through
-#                                cast("Any", ...), and a helper two modules share is public, not _private.
-#                                A field(default_factory=list) needs list[X] -- and X importable at run time.
-#                                guiwins_designer_v2 and guiwins_designer_legacy are 635 of it.
-# Two things that are not errors in the module and clear whole families: `state.xml_root is None` is written
-# `not state.backup_loaded` (xml_root is typed as the Element it is once a backup is loaded), and a bare
-# `x: list` / `dict` in an annotation is `list[str]` / `dict[str, Any]`.
-# A module comes off the exempt list in the same change that makes it clean, never before: the ratchet
-# counts strict errors in the listed files as it counts basic ones, so a half-done module fails.
+# What cleared the errors, for the next module that needs it:
+#   * `x: list` / `dict` in an annotation is `list[str]` / `dict[str, Any]`, and an empty `x = []` is annotated.
+#   * A field(default_factory=list) needs list[X] -- and X importable at run time (list["X"] for the class itself).
+#   * What comes out of json.loads, a decoded Scene layout or a table of mixed entries is narrowed through
+#     maputil2.as_json_object / as_json_list: `isinstance(value, dict)` alone leaves dict[Unknown, Unknown].
+#   * `state.xml_root is None` is written `not state.backup_loaded` (xml_root is typed as the Element it is once a
+#     backup is loaded).
+#   * NiceGUI: a handler's event is ValueChangeEventArguments[Any], a dialog's field_refs is dict[str, Any], a
+#     registrar nicegui declares with bare callbacks (app.on_*, a select's set_options and options, run_javascript)
+#     is called through cast("Any", ...), and a helper two modules share is public, not _private.
+# The ratchet counts strict errors in the listed files as it counts basic ones, so a half-done module fails.
 strict = [
     "maptasker/src/__init__.py",
     "maptasker/src/analysis/__init__.py",
@@ -577,7 +559,9 @@ strict = [
     "maptasker/src/analysis/scopecheck.py",
     "maptasker/src/analysis/taskcases.py",
     "maptasker/src/analysis/taskflow.py",
+    "maptasker/src/analysis/taskstep.py",
     "maptasker/src/analysis/timecomp.py",
+    "maptasker/src/analysis/xmldiff.py",
     "maptasker/src/clireports.py",
     "maptasker/src/core/__init__.py",
     "maptasker/src/core/action.py",
@@ -652,13 +636,21 @@ strict = [
     "maptasker/src/device/devicetask.py",
     "maptasker/src/device/deviceverify.py",
     "maptasker/src/edit/__init__.py",
+    "maptasker/src/edit/profedit.py",
     "maptasker/src/edit/projedit.py",
     "maptasker/src/edit/roundtrip.py",
     "maptasker/src/edit/sceneedit.py",
+    "maptasker/src/edit/sceneedit_legacy.py",
     "maptasker/src/edit/sceneedit_v2.py",
+    "maptasker/src/edit/sceneedit_v2events.py",
+    "maptasker/src/edit/sceneedit_v2nodes.py",
+    "maptasker/src/edit/sceneedit_v2props.py",
     "maptasker/src/edit/sceneedit_v2state.py",
+    "maptasker/src/edit/sceneedit_v2tree.py",
+    "maptasker/src/edit/scenemodel.py",
     "maptasker/src/edit/sessundo.py",
     "maptasker/src/edit/taskedit.py",
+    "maptasker/src/edit/taskedit_addable.py",
     "maptasker/src/edit/taskedit_apply.py",
     "maptasker/src/edit/taskedit_args.py",
     "maptasker/src/edit/taskedit_model.py",
@@ -667,6 +659,7 @@ strict = [
     "maptasker/src/gui/getfile.py",
     "maptasker/src/gui/guistate.py",
     "maptasker/src/gui/guiutil2.py",
+    "maptasker/src/gui/guiutils.py",
     "maptasker/src/gui/guiutils_ai.py",
     "maptasker/src/gui/guiutils_android.py",
     "maptasker/src/gui/guiwins.py",
@@ -674,6 +667,8 @@ strict = [
     "maptasker/src/gui/guiwins_canvas.py",
     "maptasker/src/gui/guiwins_carry.py",
     "maptasker/src/gui/guiwins_describe.py",
+    "maptasker/src/gui/guiwins_designer_legacy.py",
+    "maptasker/src/gui/guiwins_designer_v2.py",
     "maptasker/src/gui/guiwins_designers.py",
     "maptasker/src/gui/guiwins_diagram.py",
     "maptasker/src/gui/guiwins_dialogs.py",
@@ -687,16 +682,23 @@ strict = [
     "maptasker/src/gui/guiwins_mapstream.py",
     "maptasker/src/gui/guiwins_monitor.py",
     "maptasker/src/gui/guiwins_nav.py",
+    "maptasker/src/gui/guiwins_profedit.py",
     "maptasker/src/gui/guiwins_project.py",
     "maptasker/src/gui/guiwins_props.py",
     "maptasker/src/gui/guiwins_readiness.py",
+    "maptasker/src/gui/guiwins_refactor.py",
     "maptasker/src/gui/guiwins_resources.py",
     "maptasker/src/gui/guiwins_restore.py",
     "maptasker/src/gui/guiwins_scene.py",
+    "maptasker/src/gui/guiwins_sceneprops.py",
+    "maptasker/src/gui/guiwins_sceneview.py",
+    "maptasker/src/gui/guiwins_search.py",
     "maptasker/src/gui/guiwins_tabs.py",
     "maptasker/src/gui/guiwins_taskcases.py",
+    "maptasker/src/gui/guiwins_taskedit.py",
     "maptasker/src/gui/guiwins_taskpickers.py",
     "maptasker/src/gui/guiwins_taskstep.py",
+    "maptasker/src/gui/guiwins_textview.py",
     "maptasker/src/gui/guiwins_tndesc.py",
     "maptasker/src/gui/guiwins_tnfind.py",
     "maptasker/src/gui/guiwins_tnupdate.py",
@@ -707,7 +709,10 @@ strict = [
     "maptasker/src/gui/mapai.py",
     "maptasker/src/gui/sceneview.py",
     "maptasker/src/gui/sceneview_legacy.py",
+    "maptasker/src/gui/sceneview_v2.py",
     "maptasker/src/gui/sceneview_v2base.py",
+    "maptasker/src/gui/sceneview_v2style.py",
+    "maptasker/src/gui/sceneview_v2text.py",
     "maptasker/src/gui/userhelp.py",
     "maptasker/src/gui/userintr.py",
     "maptasker/src/gui/userintr_ai.py",
@@ -745,6 +750,9 @@ strict = [
     "maptasker/src/mapgen/diagarrows.py",
     "maptasker/src/mapgen/diagclean.py",
     "maptasker/src/mapgen/diagcnst.py",
+    "maptasker/src/mapgen/diagintr.py",
+    "maptasker/src/mapgen/diagprint.py",
+    "maptasker/src/mapgen/diagram.py",
     "maptasker/src/mapgen/diagrecord.py",
     "maptasker/src/mapgen/diagutil.py",
     "maptasker/src/mapgen/frontmtr.py",
@@ -752,7 +760,9 @@ strict = [
     "maptasker/src/mapgen/globalvr.py",
     "maptasker/src/mapgen/lineout.py",
     "maptasker/src/mapgen/mapcache.py",
+    "maptasker/src/mapgen/mapexport.py",
     "maptasker/src/mapgen/mappdf.py",
+    "maptasker/src/mapgen/outline.py",
     "maptasker/src/mapgen/proclist.py",
     "maptasker/src/mapgen/profiles.py",
     "maptasker/src/mapgen/proginit.py",
@@ -764,20 +774,26 @@ strict = [
     "maptasker/src/mapgen/tasks.py",
     "maptasker/src/mapgen/taskuniq.py",
     "maptasker/src/mapgen/twisty.py",
+    "maptasker/src/mapgen/varxref.py",
     "maptasker/src/mapit.py",
     "maptasker/src/mapops/__init__.py",
     "maptasker/src/mapops/mapcards.py",
     "maptasker/src/mapops/mapcarry.py",
     "maptasker/src/mapops/mapdescribe.py",
+    "maptasker/src/mapops/mapdraft.py",
     "maptasker/src/mapops/mapfix.py",
     "maptasker/src/mapops/maprefac.py",
     "maptasker/src/mapops/maprefac_duplicate.py",
+    "maptasker/src/mapops/maprefac_extract.py",
     "maptasker/src/mapops/maprefac_model.py",
     "maptasker/src/mapops/maprefac_move.py",
     "maptasker/src/mapops/maprefac_variable.py",
+    "maptasker/src/mapops/maprestore.py",
     "maptasker/src/mapops/mapscope.py",
     "maptasker/src/mapops/mapswap.py",
+    "maptasker/src/mapops/mapswap_action.py",
     "maptasker/src/mapops/mapswap_argument.py",
+    "maptasker/src/mapops/mapswap_condition.py",
     "maptasker/src/mapops/mapswap_model.py",
     "maptasker/src/mapops/mapswap_rename.py",
     "maptasker/src/mapops/mapswap_sites.py",
@@ -785,6 +801,7 @@ strict = [
     "maptasker/src/mapops/mapvars.py",
     "maptasker/src/mapops/readiness.py",
     "maptasker/src/mapops/tnfind.py",
+    "maptasker/src/mapops/tnupdate.py",
     "maptasker/src/mapops/trend.py",
     "maptasker/src/progargs.py",
     "maptasker/src/runcli.py",

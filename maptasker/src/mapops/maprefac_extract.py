@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import copy
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from maptasker.src.core.editcommon import set_child_text as _set_child_text
 from maptasker.src.core.mapjump import PROJECT, TASK, Target
@@ -73,7 +73,7 @@ _PERFORM_TASK_TEMPLATE = (
 )
 
 
-def _new_perform_task(element_cls: type, task_name: str) -> Element:
+def _new_perform_task(element_cls: type[Element[str]], task_name: str) -> Element:
     """A Perform Task action calling `task_name`, built from nothing.
 
     Built here rather than through taskedit.add_action_to_task because that route refuses:
@@ -133,7 +133,7 @@ def plan_extract(task_id: str, action_numbers: list[int], new_task_name: str, st
     if entry is None:
         return blocked(EXTRACT, "Extract actions into a new Task", Block("NO-TASK", "That Task is not in this file."))
 
-    task_element = entry["xml"]
+    task_element: Element = entry["xml"]
     task_name = entry.get("name", "") or task_id
     where = task_target(task_id, state=state)
     all_actions = actions_of(task_element)
@@ -203,7 +203,9 @@ def plan_extract(task_id: str, action_numbers: list[int], new_task_name: str, st
     return plan
 
 
-def _extract_block(all_actions: list, wanted: list[int], new_name: str, where: Target, state: RunState) -> Block | None:
+def _extract_block(
+    all_actions: list[Any], wanted: list[int], new_name: str, where: Target, state: RunState
+) -> Block | None:
     """The one reason this extract will not be done, or None.
 
     One rather than all of them: the checks are ordered from the user's mistake outwards,
@@ -262,7 +264,7 @@ def _extract_block(all_actions: list, wanted: list[int], new_name: str, where: T
 
 
 def _extract_steps(
-    moving: list,
+    moving: list[Any],
     wanted: list[int],
     new_name: str,
     task_name: str,
@@ -294,9 +296,9 @@ def _extract_steps(
     return steps
 
 
-def _extract_warnings(moving: list, kept: list, task_name: str, owners: list[str]) -> list[str]:
+def _extract_warnings(moving: list[Any], kept: list[Any], task_name: str, owners: list[str]) -> list[str]:
     """What is true of this extract that the user should read before doing it."""
-    warnings = []
+    warnings: list[str] = []
 
     shared = shared_locals_warning(moving, kept, "in a Task of their own")
     if shared:
@@ -405,7 +407,7 @@ def plan_inline(task_id: str, action_number: int, state: RunState) -> Plan:
     if entry is None:
         return blocked(INLINE, "Inline a Perform Task", Block("NO-TASK", "That Task is not in this file."))
 
-    task_element = entry["xml"]
+    task_element: Element = entry["xml"]
     task_name = entry.get("name", "") or task_id
     where = task_target(task_id, state=state)
     all_actions = actions_of(task_element)
@@ -461,7 +463,7 @@ def plan_inline(task_id: str, action_number: int, state: RunState) -> Plan:
 def _inline_block(
     call: Element,
     called_name: str,
-    called: dict | None,
+    called: dict[str, Any] | None,
     task_id: str,
     where: Target,
 ) -> Block | None:
@@ -536,7 +538,7 @@ def _inline_block(
 
 def _inline_steps(
     called_name: str,
-    called_actions: list,
+    called_actions: list[Any],
     task_name: str,
     action_number: int,
     where: Target,
@@ -572,12 +574,12 @@ def _inline_steps(
 def _inline_warnings(
     call: Element,
     called_name: str,
-    called_actions: list,
-    kept: list,
+    called_actions: list[Any],
+    kept: list[Any],
     state: RunState,
 ) -> list[str]:
     """What is true of this inline that the user should read before doing it."""
-    warnings = []
+    warnings: list[str] = []
 
     if not called_actions:
         warnings.append(

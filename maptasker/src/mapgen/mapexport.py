@@ -36,7 +36,7 @@ import os
 import re
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from maptasker.src.core import mapfonts
 from maptasker.src.core.mapjump import PROFILE, PROJECT, SCENE, TASK
@@ -143,12 +143,12 @@ class Block:
     """
 
     kind: str
-    lines: list[str] = field(default_factory=list)
+    lines: list[str] = field(default_factory=list[str])
     name: str = ""  # The object's name, for a Project, Profile, Task or Scene.
     number: int = 0  # An action's number within its Task.
-    rows: list[list[str]] = field(default_factory=list)  # A table's cells.
+    rows: list[list[str]] = field(default_factory=list[list[str]])  # A table's cells.
     style: str = ""  # The color class text is drawn in, which says what a heading is.
-    children: list[Block] = field(default_factory=list)
+    children: list[Block] = field(default_factory=list["Block"])
 
 
 # ##################################################################################
@@ -213,7 +213,7 @@ def map_blocks(document: str) -> list[Block]:
     blocks: list[Block] = []
     for line in document.split("\n"):
         position = 0
-        pieces = []
+        pieces: list[tuple[bool, str]] = []
         for table in _TABLE.finditer(line):
             pieces.extend([(False, line[position : table.start()]), (True, table.group(0))])
             position = table.end()
@@ -329,7 +329,7 @@ def _dedent(lines: list[str]) -> list[str]:
 # ##################################################################################
 # Shared
 # ##################################################################################
-def metadata(view: str, state: RunState) -> dict:
+def metadata(view: str, state: RunState) -> dict[str, Any]:
     """What every export says about itself: which view, which MapTasker, when, and from what.
 
     The source is the backup file's name without its folder.  An export is made to be passed
@@ -345,7 +345,7 @@ def metadata(view: str, state: RunState) -> dict:
     }
 
 
-def _details(meta: dict) -> list[str]:
+def _details(meta: dict[str, Any]) -> list[str]:
     """The metadata as lines a person reads."""
     details = [
         f"{translate_string('Generator')}: {meta['generator']}",
@@ -390,7 +390,7 @@ def _paragraphs(lines: list[str], out: list[str]) -> None:
             paragraph = []
 
 
-def _markdown_document(title: str, meta: dict) -> list[str]:
+def _markdown_document(title: str, meta: dict[str, Any]) -> list[str]:
     """The top of a Markdown export: its title and what it was made from."""
     return [f"# {title}", "", *(f"- {_escape(detail)}" for detail in _details(meta)), ""]
 
@@ -403,7 +403,7 @@ def _finish(out: list[str]) -> str:
 # ##################################################################################
 # The Map, written out
 # ##################################################################################
-def map_markdown(blocks: list[Block], meta: dict) -> str:
+def map_markdown(blocks: list[Block], meta: dict[str, Any]) -> str:
     """The Map as Markdown: a heading per object, each Task's actions in a code block."""
     out = _markdown_document(translate_string("MapTasker Map"), meta)
     _markdown_children(map_tree(blocks), out, 2)
@@ -444,7 +444,7 @@ def _markdown_table(rows: list[list[str]], out: list[str]) -> None:
     out.append("")
 
 
-def map_json(blocks: list[Block], meta: dict) -> str:
+def map_json(blocks: list[Block], meta: dict[str, Any]) -> str:
     """The Map as JSON: the metadata, and the Map's entries as a tree under "entries".
 
     Every entry has a "kind" -- project, profile, task, action, scene, section, text or
@@ -459,9 +459,9 @@ def map_json(blocks: list[Block], meta: dict) -> str:
     )
 
 
-def _json_entry(block: Block) -> dict:
+def _json_entry(block: Block) -> dict[str, Any]:
     """One entry of the Map, and everything under it, as JSON-ready data."""
-    entry: dict = {"kind": block.kind}
+    entry: dict[str, Any] = {"kind": block.kind}
     if block.kind in (PROJECT, PROFILE, TASK, SCENE, SECTION):
         entry["name"] = block.name
     if block.kind == ACTION:
@@ -475,7 +475,7 @@ def _json_entry(block: Block) -> dict:
     return entry
 
 
-def map_pdf(blocks: list[Block], meta: dict, state: RunState) -> bytes:
+def map_pdf(blocks: list[Block], meta: dict[str, Any], state: RunState) -> bytes:
     """The Map as a PDF: indented by depth, headings in color, a bookmark for every object."""
     title = translate_string("MapTasker Map")
     lines = [mappdf.Line(title, _COLORS[PROJECT]), *(mappdf.Line(detail) for detail in _details(meta))]
@@ -530,7 +530,7 @@ def _table_rows(rows: list[list[str]], columns: int) -> list[str]:
 # ##################################################################################
 # The Diagram, written out
 # ##################################################################################
-def diagram_contents(model: dict) -> dict:
+def diagram_contents(model: dict[str, Any]) -> dict[str, Any]:
     """What the Diagram draws, by name: its Projects, every drawing of an object, every call.
 
     Lines count from 0 and columns in characters, both into the Diagram's lines -- the same
@@ -538,15 +538,15 @@ def diagram_contents(model: dict) -> dict:
     Task run by several Profiles is drawn under each, and its calls with it) is listed once.
     """
     nodes = model.get("nodes", [])
-    by_anchor: dict[str, dict] = {}
+    by_anchor: dict[str, dict[str, Any]] = {}
     for node in nodes:
         by_anchor.setdefault(node["anchor"], node)
-    calls: list[dict] = []
+    calls: list[dict[str, Any]] = []
     for edge in model.get("edges", []):
         caller, called = by_anchor.get(edge["caller"]), by_anchor.get(edge["called"])
         if caller is None or called is None:
             continue
-        call = {
+        call: dict[str, Any] = {
             "caller": caller["name"],
             "caller_project": caller["project"],
             "called": called["name"],
@@ -574,7 +574,7 @@ def diagram_contents(model: dict) -> dict:
     }
 
 
-def diagram_markdown(lines: list[str], model: dict, meta: dict) -> str:
+def diagram_markdown(lines: list[str], model: dict[str, Any], meta: dict[str, Any]) -> str:
     """The Diagram as Markdown: its Projects and calls as lists, the drawing in a code block."""
     contents = diagram_contents(model)
     out = _markdown_document(translate_string("MapTasker Diagram"), meta)
@@ -591,12 +591,12 @@ def diagram_markdown(lines: list[str], model: dict, meta: dict) -> str:
     return _finish(out)
 
 
-def diagram_json(lines: list[str], model: dict, meta: dict) -> str:
+def diagram_json(lines: list[str], model: dict[str, Any], meta: dict[str, Any]) -> str:
     """The Diagram as JSON: the metadata, what it draws (see diagram_contents), and its lines."""
     return json.dumps({**meta, **diagram_contents(model), "lines": lines}, ensure_ascii=False, indent=2) + "\n"
 
 
-def diagram_pdf(lines: list[str], model: dict, meta: dict, state: RunState) -> bytes:
+def diagram_pdf(lines: list[str], model: dict[str, Any], meta: dict[str, Any], state: RunState) -> bytes:
     """The Diagram as a PDF: pages as wide as its widest line, and a bookmark for each Project."""
     return mappdf.render(
         [mappdf.Line(line) for line in lines],
@@ -617,7 +617,7 @@ _MAP_WRITERS = {MARKDOWN: map_markdown, JSON: map_json, PDF: map_pdf}
 _DIAGRAM_WRITERS = {MARKDOWN: diagram_markdown, JSON: diagram_json, PDF: diagram_pdf}
 
 
-def _writer(writers: dict, fmt: str, state: RunState) -> Callable[..., str | bytes]:
+def _writer(writers: dict[str, Any], fmt: str, state: RunState) -> Callable[..., str | bytes]:
     """The function that writes `fmt`.  Only a PDF is drawn in a font -- the run's -- so only
     its writer is handed the run state."""
     return functools.partial(writers[fmt], state=state) if fmt == PDF else writers[fmt]

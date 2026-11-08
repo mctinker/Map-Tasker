@@ -47,7 +47,7 @@ def _check(view: SimpleNamespace) -> None:
 
     async def page_build() -> None:
         guiutils.check_new_version(view)
-        await view._version_check
+        await view.version_check
 
     asyncio.run(page_build())
 
@@ -76,7 +76,7 @@ def test_starting_the_check_returns_before_pypi_is_asked(
     async def page_build() -> None:
         guiutils.check_new_version(view)
         assert asked == []
-        await view._version_check
+        await view.version_check
         assert asked == [True]
 
     asyncio.run(page_build())
@@ -104,7 +104,7 @@ def test_after_the_first_run_today_nothing_is_scheduled(view: SimpleNamespace, m
 
     guiutils.check_new_version(view)
 
-    assert not hasattr(view, "_version_check")
+    assert not hasattr(view, "version_check")
 
 
 def test_a_check_that_raises_is_logged_not_lost(

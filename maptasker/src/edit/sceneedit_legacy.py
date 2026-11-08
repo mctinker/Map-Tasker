@@ -18,7 +18,7 @@ from __future__ import annotations
 import copy
 import xml.etree.ElementTree as ETW  # stdlib "ET Write" -- used only to build/serialize
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from xml.etree.ElementTree import Element
@@ -102,7 +102,7 @@ def legacy_element_label(element: Element) -> str:
     return f"{element_type} '{name}'" if name else element_type
 
 
-def legacy_element_args(element: Element, state: RunState) -> list:
+def legacy_element_args(element: Element, state: RunState) -> list[Any]:
     """The element's editable arguments, as taskedit_model.EditableArg records.
 
     Empty for an element type actionc.py has no entry for -- a type from a newer Tasker.
@@ -440,7 +440,7 @@ def find_element_name_references(scene_name: str, element_name: str, state: RunS
     wanted_scene = scene_name.strip().casefold()
     wanted_element = element_name.strip().casefold()
 
-    references = []
+    references: list[str] = []
     for entry in state.tasker_root_elements.get("all_tasks", {}).values():
         task_element = entry["xml"]
         task_name = task_element.findtext("nme") or f"Task {task_element.findtext('id', '?')}"
@@ -467,7 +467,7 @@ def find_element_match_references(scene_name: str, state: RunState) -> list[str]
         return []
 
     wanted_scene = scene_name.strip().casefold()
-    references = []
+    references: list[str] = []
     for entry in state.tasker_root_elements.get("all_tasks", {}).values():
         task_element = entry["xml"]
         task_name = task_element.findtext("nme") or f"Task {task_element.findtext('id', '?')}"
@@ -498,7 +498,7 @@ def legacy_can_add(element_type: str) -> str:
     )
 
 
-def _legacy_effective_args(element_type: str) -> list:
+def _legacy_effective_args(element_type: str) -> list[Any]:
     """The argument definitions to build this element type from.
 
     An entry's `redirect` names another entry to borrow arguments from, and is followed when
@@ -515,7 +515,7 @@ def _legacy_effective_args(element_type: str) -> list:
 
 def legacy_element_names(scene_element: Element) -> set[str]:
     """Every element name currently in the Scene -- what uniqueness is checked against."""
-    names = set()
+    names: set[str] = set()
     for child in scene_element:
         if not child.tag.endswith("Element") or child.tag == "PropertiesElement":
             continue
@@ -541,7 +541,7 @@ def legacy_next_element_name(scene_element: Element, element_type: str) -> str:
     return f"{stem}{index}"
 
 
-def legacy_drawable_elements(scene_element: Element) -> list:
+def legacy_drawable_elements(scene_element: Element) -> list[Any]:
     """The Scene's elements in paint order, bottom first -- the same rule and the same order
     sceneview.paint_order draws them in, kept here so the model can reorder them without the
     editing half having to import the drawing half.
@@ -560,7 +560,7 @@ def legacy_drawable_elements(scene_element: Element) -> list:
     return sorted(drawable, key=order)
 
 
-def _legacy_reindex(ordered: list) -> None:
+def _legacy_reindex(ordered: list[Any]) -> None:
     """Renumber this list of elements elements0..N-1, in place.
 
     Renumbering only.  The elements are deliberately NOT moved to match their new order in
@@ -894,7 +894,7 @@ def legacy_task_bindings(element: Element, state: RunState) -> list[LegacyBindin
     section disagree with the file.
     """
     all_tasks = state.tasker_root_elements.get("all_tasks", {})
-    bindings = []
+    bindings: list[LegacyBinding] = []
     for child in element:
         if child.tag not in SCENE_TASK_TYPES:
             continue
@@ -1449,7 +1449,7 @@ def legacy_action_items(properties: Element) -> list[LegacyActionItem]:
     every reorder (which is what legacy_move_action_item does here), so document order is
     the display order and the sr is only an identity to hold a selection by.
     """
-    items = []
+    items: list[LegacyActionItem] = []
     for index, element in enumerate(properties.findall(LEGACY_ACTION_ITEM_TAG)):
         action_element = element.find(f"Action[@sr='{LEGACY_ACTION_ITEM_ACTION_SR}']")
         if action_element is None:
@@ -1471,7 +1471,7 @@ def legacy_action_items(properties: Element) -> list[LegacyActionItem]:
     return items
 
 
-def legacy_action_item_args(item: LegacyActionItem, state: RunState) -> list:
+def legacy_action_item_args(item: LegacyActionItem, state: RunState) -> list[Any]:
     """The item's action's editable arguments, as taskedit_model.EditableArg records.
 
     Its <Action> is an ordinary Task action -- same <code> and <Int/Str sr="argN"> shape --
@@ -1649,7 +1649,7 @@ def find_element_name_actions(scene_name: str, element_name: str, state: RunStat
     wanted_scene = scene_name.strip().casefold()
     wanted_element = element_name.strip().casefold()
 
-    found = []
+    found: list[tuple[str, Element]] = []
     for entry in state.tasker_root_elements.get("all_tasks", {}).values():
         task_element = entry["xml"]
         task_name = task_element.findtext("nme") or f"Task {task_element.findtext('id', '?')}"

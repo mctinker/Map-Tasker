@@ -12,20 +12,20 @@ stands on too, and on guiwins_sceneprops for the Scene Properties dialog and its
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from nicegui import ui
 
 from maptasker.src.core import objprops
 from maptasker.src.core.editcommon import restore_element
-from maptasker.src.core.maputil2 import translate_string
+from maptasker.src.core.maputil2 import as_json_list, as_json_object, translate_string
 from maptasker.src.core.sysconst import SCENE_TASK_TYPES
 from maptasker.src.edit import sceneedit, sceneedit_legacy
 from maptasker.src.gui import sceneview, sceneview_legacy
 from maptasker.src.gui.guiwins_canvas import (
-    _DESIGNER_SEQUENCE,
     CANVAS_DESIGNER_ROOT,
     DESIGNER_CANVAS_HEIGHT,
+    DESIGNER_SEQUENCE,
     FIELD_COMMIT_DEBOUNCE_MS,
     emit_canvas_editing,
     emit_canvas_fit,
@@ -34,7 +34,7 @@ from maptasker.src.gui.guiwins_canvas import (
 )
 from maptasker.src.gui.guiwins_editor import build_properties_button
 from maptasker.src.gui.guiwins_legacyarg import render_legacy_arg
-from maptasker.src.gui.guiwins_sceneprops import _build_scene_properties_dialog, _scene_properties_summary
+from maptasker.src.gui.guiwins_sceneprops import build_scene_properties_dialog, scene_properties_summary
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -282,7 +282,7 @@ class _AddLegacyElementDialog:
 
 def legacy_canvas_size(
     edited_scene: sceneedit.EditableScene,
-    field_refs: dict,
+    field_refs: dict[str, Any],
     landscape: bool,
 ) -> tuple[int, int] | None:
     """The canvas size to draw a Legacy Scene at: what the dialog's size fields currently
@@ -316,7 +316,7 @@ def legacy_canvas_size(
 def _build_legacy_designer(
     self: MyGui,
     edited_scene: sceneedit.EditableScene,
-    field_refs: dict,
+    field_refs: dict[str, Any],
 ) -> None:
     """The Legacy Scene designer: pick an element off the canvas, inspect its properties,
     move and resize it, and add, duplicate, restack or delete it.
@@ -368,7 +368,7 @@ class _LegacyDesigner:
     to outlive a rebuild: the Scene, the selection, the undo stack and the panes themselves.
     """
 
-    def __init__(self, gui: MyGui, edited_scene: sceneedit.EditableScene, field_refs: dict) -> None:
+    def __init__(self, gui: MyGui, edited_scene: sceneedit.EditableScene, field_refs: dict[str, Any]) -> None:
         self.gui = gui
         self.edited_scene = edited_scene
         self.field_refs = field_refs
@@ -383,9 +383,9 @@ class _LegacyDesigner:
         # An anchor rather than a set for those, because they are the operations a set has no
         # single answer for -- what "Bring to Front" means for six elements at once depends on
         # what order they end up in, and this designer would be inventing that order.
-        self.selection: dict = {"sr": "", "srs": ()}
-        self.orientation: dict = {"landscape": False}
-        self.history: list = []
+        self.selection: dict[str, Any] = {"sr": "", "srs": ()}
+        self.orientation: dict[str, Any] = {"landscape": False}
+        self.history: list[Any] = []
         # Whole-Scene snapshots, as the V2 designer keeps whole-tree ones -- see
         # sceneedit_legacy.legacy_snapshot on why an inverse per operation is not worth modelling.
         self.snap = {"grid": 1}
@@ -399,12 +399,12 @@ class _LegacyDesigner:
         # Tasker writes: every <clickTask> in the sample data holds a real id, and an empty one
         # would be a Scene that says it fires something and names nothing.  The row exists so
         # there is somewhere to pick a Task; the child element appears when one is picked.
-        self.pending_events: dict = {"sr": "", "tags": set()}
+        self.pending_events: dict[str, Any] = {"sr": "", "tags": set[str]()}
 
         register_canvas_events()
         self.has_landscape = sceneview.has_landscape_layout(self.scene_element)
         # This designer's own canvas identity -- see _ACTIVE_CANVASES on why it cannot be shared.
-        self.root_class = f"{CANVAS_DESIGNER_ROOT}-{next(_DESIGNER_SEQUENCE)}"
+        self.root_class = f"{CANVAS_DESIGNER_ROOT}-{next(DESIGNER_SEQUENCE)}"
 
         self.header = ui.row().classes("w-full items-center gap-2 mt-2")
         self.canvas_pane = (
@@ -477,7 +477,7 @@ class _LegacyDesigner:
             return
         self.select(*(key for key in self.selection["srs"] if key != sr), sr)
 
-    def select_from_canvas(self, payload: dict) -> None:
+    def select_from_canvas(self, payload: dict[str, Any]) -> None:
         """A click or a rubber band on the canvas.
 
         Two payloads through one event, because they are one gesture until the pointer comes
@@ -486,8 +486,8 @@ class _LegacyDesigner:
         background (a list of everything it enclosed, added to the selection with a modifier
         held and replacing it without).
         """
-        caught = payload.get("srs")
-        if isinstance(caught, list):
+        caught = as_json_list(payload.get("srs"))
+        if caught is not None:
             # Nothing caught and no modifier is a band drawn round empty canvas, which
             # clears -- the same answer the plain click it grew out of would have given.
             picked = [
@@ -612,7 +612,7 @@ class _LegacyDesigner:
         self.set_selection(new_sr)
         self.render()
 
-    def set_geometry(self, payload: dict) -> None:
+    def set_geometry(self, payload: dict[str, Any]) -> None:
         """Apply a finished drag or resize.
 
         ONE SNAPSHOT PER GESTURE -- not per pixel, and not per element.  The browser sends
@@ -621,7 +621,7 @@ class _LegacyDesigner:
         back.  Everything is worked out before the snapshot is taken so that a payload naming
         nothing this Scene has leaves no empty entry on the stack.
         """
-        moves = []
+        moves: list[tuple[Element, str, tuple[int, int, int, int]]] = []
         for move in payload.get("moves") or ():
             sr = str(move.get("sr", ""))
             element = sceneedit_legacy.legacy_element_at(self.scene_element, sr)
@@ -644,12 +644,12 @@ class _LegacyDesigner:
         self.set_selection(*(sr for _element, sr, _box in moves))
         self.render()
 
-    def nudge(self, payload: dict) -> None:
+    def nudge(self, payload: dict[str, Any]) -> None:
         """Arrow-key move, applied to everything selected -- one snapshot for the whole
         nudge, exactly as one drag of that same group is one snapshot.
         """
         delta_x, delta_y = int(payload.get("dx", 0)), int(payload.get("dy", 0))
-        moves = []
+        moves: list[tuple[Element, tuple[int, int, int, int]]] = []
         for sr in self.selection["srs"]:
             element = sceneedit_legacy.legacy_element_at(self.scene_element, sr)
             if element is None:
@@ -732,7 +732,7 @@ class _LegacyDesigner:
         is a plane where the elements between two others are whichever ones happen to lie
         between them, which is not something anyone selects on purpose.
         """
-        modifiers = event.args if isinstance(event.args, dict) else {}
+        modifiers = as_json_object(event.args) or {}
         if modifiers.get("shiftKey"):
             self.select_range(sr)
             return
@@ -772,7 +772,7 @@ class _LegacyDesigner:
         re-render on the first of them would take the box being typed into with it.
         """
 
-        def commit(event: ValueChangeEventArguments, position: int = index) -> None:
+        def commit(event: ValueChangeEventArguments[Any], position: int = index) -> None:
             # float() before int(): ui.number hands back a float, and "900.0" is not something
             # int() will parse.  Every typed geometry edit used to be dropped right here, in
             # silence -- the box showed the number, the element never moved, and selecting
@@ -933,8 +933,9 @@ class _LegacyDesigner:
         available = sceneedit_legacy.legacy_task_tags_for(element)
         if self.pending_events["sr"] != self.selection["sr"]:
             # The pending rows belong to the element they were opened on.
-            self.pending_events["sr"], self.pending_events["tags"] = self.selection["sr"], set()
-        waiting = sorted(tag for tag in self.pending_events["tags"] if element.find(tag) is None)
+            self.pending_events["sr"], self.pending_events["tags"] = self.selection["sr"], set[str]()
+        pending_tags: set[str] = self.pending_events["tags"]
+        waiting = sorted(tag for tag in pending_tags if element.find(tag) is None)
         unused = [tag for tag in available if element.find(tag) is None and tag not in waiting]
         if not bindings and not unused and not waiting:
             return
@@ -1087,7 +1088,7 @@ class _LegacyDesigner:
         panes rather than in the element inspector.
 
         A SIGNPOST RATHER THAN THE FORM ITSELF.  The form moved into
-        _build_scene_properties_dialog when it grew Tasker's UI/KEY tabs and the
+        build_scene_properties_dialog when it grew Tasker's UI/KEY tabs and the
         Property-Type gating that decides which fields even apply, and it is reached from the
         "Edit Properties" button at the top of this dialog.  Rendering it here as well would
         mean two forms over one <PropertiesElement>: edit either and the other is stale until
@@ -1108,7 +1109,7 @@ class _LegacyDesigner:
                     ),
                 ).classes("text-xs text-gray-500 italic")
             else:
-                ui.label(_scene_properties_summary(self.scene_element)).classes("text-xs text-gray-500 italic")
+                ui.label(scene_properties_summary(self.scene_element)).classes("text-xs text-gray-500 italic")
             ui.button(
                 translate_string("Add scene properties" if properties is None else "Edit scene properties"),
                 icon="add" if properties is None else "tune",
@@ -1119,7 +1120,7 @@ class _LegacyDesigner:
         """Open the Properties form, and rebuild this panel when it closes so the summary
         line agrees with what was just changed.
         """
-        _build_scene_properties_dialog(self.gui, self.edited_scene, self.field_refs, on_closed=self.render)
+        build_scene_properties_dialog(self.gui, self.edited_scene, self.field_refs, on_closed=self.render)
 
     def repaint(self) -> None:
         """Redraw the canvas, and leave every form on screen exactly as it is.
@@ -1284,12 +1285,13 @@ class _LegacyDesigner:
         element = sceneedit_legacy.legacy_element_at(self.scene_element, self.selection["sr"])
         single = element is not None and len(self.selection["srs"]) == 1
         count = len(sceneedit_legacy.legacy_drawable_elements(self.scene_element))
-        for label, icon, position, failure in (
+        placements: tuple[tuple[str, str, Callable[[int, int], int], str], ...] = (
             ("Front", "flip_to_front", lambda _index, total: total - 1, "Already at the front."),
             ("Forward", "arrow_upward", lambda index, _total: index + 1, "Already at the front."),
             ("Backward", "arrow_downward", lambda index, _total: index - 1, "Already at the back."),
             ("Back", "flip_to_back", lambda _index, _total: 0, "Already at the back."),
-        ):
+        )
+        for label, icon, position, failure in placements:
             ui.button(
                 translate_string(label),
                 icon=icon,
@@ -1338,7 +1340,7 @@ def _build_item_layout_dialog(self: MyGui, holder: Element, on_closed: Callable[
     # what makes find_element_name_actions correctly find nothing.  The dialog explains it
     # rather than leaving the user to read "no Task addresses this" as a fact about Tasker.
     nested = sceneedit.EditableScene(scene_name="", scene_element=layout)
-    field_refs: dict = {}
+    field_refs: dict[str, Any] = {}
 
     with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[560px] max-w-[900px] w-full p-6"):
         ui.label(
@@ -1382,7 +1384,7 @@ def _build_item_layout_dialog(self: MyGui, holder: Element, on_closed: Callable[
 
 def _apply_item_layout_size(
     nested: sceneedit.EditableScene,
-    field_refs: dict,
+    field_refs: dict[str, Any],
     key: str,
 ) -> None:
     """Write one of the item layout's two size fields through, on blur.
@@ -1427,7 +1429,7 @@ class LegacyDesigner:
         self,
         gui: MyGui,
         edited_scene: sceneedit.EditableScene,
-        field_refs: dict,
+        field_refs: dict[str, Any],
         dialog: ui.dialog | None,
         _state: RunState,
         /,
@@ -1454,7 +1456,7 @@ class LegacyDesigner:
         )
 
         # The same button Project/Profile/Task grow, opening the Scene's own form -- see
-        # _build_scene_properties_dialog for why the form could not be shared even though the
+        # build_scene_properties_dialog for why the form could not be shared even though the
         # button is.  Legacy only: a V2 Scene has no <PropertiesElement>.
         #
         # No on_applied: every Scene save path calls sceneedit.apply_edited_scene_to_live_tree
@@ -1466,7 +1468,7 @@ class LegacyDesigner:
             objprops.KIND_SCENE,
             scene_element,
             dialog,
-            opener=lambda: _build_scene_properties_dialog(gui, edited_scene, field_refs),
+            opener=lambda: build_scene_properties_dialog(gui, edited_scene, field_refs),
         )
 
         _build_legacy_designer(gui, edited_scene, field_refs)

@@ -76,6 +76,7 @@ from maptasker.src.analysis import taskflow
 from maptasker.src.core.actionc import action_codes
 from maptasker.src.core.condjoin import boolean_operators
 from maptasker.src.core.mapjump import actions_in_map_order
+from maptasker.src.core.maputil2 import as_json_object
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -213,8 +214,8 @@ class Step:
     text: str
     status: str
     detail: str = ""
-    changes: list[Change] = field(default_factory=list)
-    variables: dict[str, str] = field(default_factory=dict)
+    changes: list[Change] = field(default_factory=list[Change])
+    variables: dict[str, str] = field(default_factory=dict[str, str])
     # The block depth the action sits at, for indenting the display.  A step of a Task performed from this one is
     # indented a level further than the Perform Task that called it.
     depth: int = 0
@@ -228,11 +229,11 @@ class Step:
 class Options:
     """What a walk starts from and how it behaves."""
 
-    variables: dict[str, str] = field(default_factory=dict)
+    variables: dict[str, str] = field(default_factory=dict[str, str])
     policy: str = POLICY_STOP
     max_steps: int = DEFAULT_MAX_STEPS
     # What an action that is not simulated leaves behind, by the action's number: {5: {"http_data": "ok"}}.
-    assumed: dict[int, dict[str, str]] = field(default_factory=dict)
+    assumed: dict[int, dict[str, str]] = field(default_factory=dict[int, dict[str, str]])
     # Whether a Perform Task is walked into, and how many Tasks deep.
     follow_calls: bool = True
     max_call_depth: int = DEFAULT_MAX_CALL_DEPTH
@@ -243,18 +244,18 @@ class Trace:
     """A whole walk: every step, how it ended, and what it did and did not touch."""
 
     task: str
-    steps: list[Step] = field(default_factory=list)
+    steps: list[Step] = field(default_factory=list[Step])
     # Where the Task is in the Map, for a line to link to its actions.  None when the walk was not made on a loaded Task.
     target: Target | None = None
     outcome: str = FINISHED
     message: str = ""
-    variables: dict[str, str] = field(default_factory=dict)
+    variables: dict[str, str] = field(default_factory=dict[str, str])
     # Variables the walk needed and did not have, in the order it first needed them.
-    needed: list[str] = field(default_factory=list)
+    needed: list[str] = field(default_factory=list[str])
     # The numbers of the actions that were never reached -- the branches that did not run.
-    not_reached: list[int] = field(default_factory=list)
+    not_reached: list[int] = field(default_factory=list[int])
     # The same for each Task that was performed along the way, by name: what none of its calls reached.
-    callee_not_reached: dict[str, list[int]] = field(default_factory=dict)
+    callee_not_reached: dict[str, list[int]] = field(default_factory=dict[str, list[int]])
 
     def as_text(self) -> str:
         """The walk as plain text, for a forum post or a bug report."""
@@ -373,7 +374,7 @@ class Variables:
         """
         needed: list[str] = []
 
-        def replace(match: re.Match) -> str:
+        def replace(match: re.Match[str]) -> str:
             name, index = match["name"], match["index"]
             if index is None:
                 if self.has(name):
@@ -412,11 +413,11 @@ def _format(value: float, digits: int = _DEFAULT_ROUNDING) -> str:
     return str(int(rounded)) if rounded == int(rounded) else f"{rounded:.{digits}f}".rstrip("0").rstrip(".")
 
 
-_BINARY = {
+_BINARY: dict[type[ast.operator], Callable[[float, float], float]] = {
     ast.Add: operator.add,
     ast.Sub: operator.sub,
     ast.Mult: operator.mul,
-    ast.Div: operator.truediv,
+    ast.Div: lambda left, right: left / right,
     ast.Mod: operator.mod,
 }
 _FUNCTIONS: dict[str, Callable[..., Any]] = {
@@ -493,7 +494,7 @@ class Verdict:
 
     value: bool | None
     text: str = ""
-    needed: list[str] = field(default_factory=list)
+    needed: list[str] = field(default_factory=list[str])
 
 
 def _compare(code: str, left: str, right: str) -> bool | None:
@@ -573,7 +574,7 @@ class _Result:
     next: int | None = FALL  # an action index, FALL, or None for the end of the Task
     halt: str = ""  # an outcome, when the walk is over
     message: str = ""
-    after: list[Step] = field(default_factory=list)
+    after: list[Step] = field(default_factory=list[Step])
 
 
 @dataclass
@@ -582,7 +583,7 @@ class _Answer:
 
     value: bool | None
     why: str
-    needed: list[str] = field(default_factory=list)
+    needed: list[str] = field(default_factory=list[str])
 
 
 @dataclass
@@ -603,9 +604,11 @@ class _Shared:
     """
 
     used: int = 0
-    chain: list[str] = field(default_factory=list)  # the keys of the Tasks being performed now, outermost first
-    reached: dict[str, set[int]] = field(default_factory=dict)  # per Task, the positions any walk of it reached
-    flows: dict[str, taskflow.Flow] = field(default_factory=dict)
+    chain: list[str] = field(default_factory=list[str])  # the keys of the Tasks being performed now, outermost first
+    reached: dict[str, set[int]] = field(
+        default_factory=dict[str, set[int]]
+    )  # per Task, the positions any walk of it reached
+    flows: dict[str, taskflow.Flow] = field(default_factory=dict[str, taskflow.Flow])
 
 
 @dataclass
@@ -872,7 +875,7 @@ class _Walk:
     def _arguments(self, step: taskflow.Step, action: Element) -> list[tuple[str, str]]:
         """The arguments the action has filled in, as (name, value with variables substituted)."""
         entry = action_codes.get(f"{step.code}t")
-        found = []
+        found: list[tuple[str, str]] = []
         for argument in entry.args if entry is not None else []:
             raw = taskflow.action_argument(action, argument.arg_id)
             if raw:
@@ -1271,10 +1274,12 @@ class _Walk:
 def find_task(name_or_id: str, state: RunState) -> tuple[str, Element] | None:
     """(id, element) of the Task with this name or id, or None.  A name wins over an id that happens to match."""
     tables = state.tasker_root_elements
-    by_name = tables.get("all_tasks_by_name", {}).get(name_or_id)
-    task_id = by_name["id"] if isinstance(by_name, dict) and "id" in by_name else name_or_id
-    entry = tables.get("all_tasks", {}).get(task_id)
-    return (task_id, entry["xml"]) if isinstance(entry, dict) else None
+    names: dict[str, Any] = tables.get("all_tasks_by_name") or {}
+    all_tasks: dict[str, Any] = tables.get("all_tasks") or {}
+    by_name = as_json_object(names.get(name_or_id))
+    task_id = str(by_name["id"]) if by_name is not None and "id" in by_name else name_or_id
+    entry = as_json_object(all_tasks.get(task_id))
+    return (task_id, entry["xml"]) if entry is not None else None
 
 
 def step_task(name_or_id: str, state: RunState, options: Options | None = None) -> Trace | None:
@@ -1335,11 +1340,9 @@ def _outputs(code: str, action: Element) -> list[str]:
 
 def named_tasks(state: RunState) -> list[str]:
     """The names of the Tasks that have one -- what a person can pick from -- in alphabetical order."""
-    names = {
-        entry["name"]
-        for entry in state.tasker_root_elements.get("all_tasks", {}).values()
-        if isinstance(entry, dict) and entry.get("name")
-    }
+    all_tasks: dict[str, Any] = state.tasker_root_elements.get("all_tasks") or {}
+    entries = (as_json_object(entry) for entry in all_tasks.values())
+    names: set[str] = {entry["name"] for entry in entries if entry is not None and entry.get("name")}
     return sorted(names, key=str.casefold)
 
 
@@ -1352,7 +1355,7 @@ def global_values(state: RunState) -> dict[str, str]:
     root = getattr(state, "xml_root", None)
     if root is None:
         return {}
-    found = {}
+    found: dict[str, str] = {}
     for item in root.findall("Variable"):
         name = (item.findtext("n") or "").strip().lstrip("%")
         if name:

@@ -9,7 +9,7 @@ import html
 from dataclasses import dataclass
 from typing import Any
 
-from maptasker.src.core.maputil2 import strip_html_tags, tasker_icon_name
+from maptasker.src.core.maputil2 import as_json_list, as_json_object, strip_html_tags, tasker_icon_name
 from maptasker.src.core.scenelayout import V2_ROOT_KEY
 from maptasker.src.edit.sceneedit_v2 import (
     V2_BELOW_SHOW_WHEN_PROPS,
@@ -42,7 +42,7 @@ class V2TreeRow:
     label: str
 
 
-def v2_child_slots(node: dict) -> list[tuple[str, list]]:
+def v2_child_slots(node: dict[str, Any]) -> list[tuple[str, list[Any]]]:
     """The (slot key, child list) pairs hanging off this node.
 
     A container's children live under a type-specific key -- "children" for Column/Row,
@@ -51,12 +51,13 @@ def v2_child_slots(node: dict) -> list[tuple[str, list]]:
     no fixed list, and a Tasker update would quietly add to it), this treats any list of
     component-shaped dicts as a slot -- the same rule v2_component_summary walks by.
     """
-    slots = []
+    slots: list[tuple[str, list[Any]]] = []
     for key, value in node.items():
-        if key in V2_STRUCTURAL_KEYS or not isinstance(value, list):
+        children = as_json_list(value)
+        if key in V2_STRUCTURAL_KEYS or children is None:
             continue
-        if any(isinstance(item, dict) and "type" in item for item in value):
-            slots.append((key, value))
+        if any(item is not None and "type" in item for item in map(as_json_object, children)):
+            slots.append((key, children))
     return slots
 
 
@@ -99,7 +100,7 @@ def _v2_label_text(value: str) -> str:
     return single_line if len(single_line) <= _V2_LABEL_MAX else f"{single_line[:_V2_LABEL_MAX]}..."
 
 
-def v2_reads_as_html(node: dict) -> bool:
+def v2_reads_as_html(node: dict[str, Any]) -> bool:
     """Whether this component's text is markup rather than the words themselves -- its
     Content format settles on Html.
 
@@ -111,7 +112,7 @@ def v2_reads_as_html(node: dict) -> bool:
     return field is not None and v2_state_of(field, node.get(field.key, "")) == "Html"
 
 
-def v2_node_name(node: dict) -> str:
+def v2_node_name(node: dict[str, Any]) -> str:
     """What a component is called in the designer: its treeLabel, else the property named for
     its type in V2_LABEL_FALLBACK, else its id.
 
@@ -144,7 +145,7 @@ def v2_node_name(node: dict) -> str:
     return _v2_label_text(own_value) or str(node.get("id", ""))
 
 
-def v2_node_label(node: dict) -> str:
+def v2_node_label(node: dict[str, Any]) -> str:
     """ "Text 'Empty Scene'" -- how a node reads in the designer's tree and at the head of its
     inspector.  See v2_node_name for which of the component's names is used.
     """
@@ -167,34 +168,35 @@ def v2_flatten(layout: dict[str, Any]) -> list[V2TreeRow]:
     def walk(node: dict[str, Any], depth: int, path: tuple[Any, ...], slot: str) -> None:
         rows.append(V2TreeRow(path=path, depth=depth, node=node, slot=slot, label=v2_node_label(node)))
         for slot_key, children in v2_child_slots(node):
-            for index, child in enumerate(children):
-                if isinstance(child, dict):
+            for index, raw_child in enumerate(children):
+                child = as_json_object(raw_child)
+                if child is not None:
                     walk(child, depth + 1, (*path, slot_key, index), slot_key)
 
-    root = layout.get(V2_ROOT_KEY)
-    if isinstance(root, dict):
+    root = as_json_object(layout.get(V2_ROOT_KEY))
+    if root is not None:
         walk(root, 0, (), V2_ROOT_KEY)
     return rows
 
 
-def v2_node_at(layout: dict, path: tuple) -> dict | None:
+def v2_node_at(layout: dict[str, Any], path: tuple[Any, ...]) -> dict[str, Any] | None:
     """The node a v2_flatten path points at, or None if the path no longer resolves
     (defence in depth -- phase 1 can't restructure the tree, so it always should).
     """
-    node = layout.get(V2_ROOT_KEY)
-    if not isinstance(node, dict):
+    node = as_json_object(layout.get(V2_ROOT_KEY))
+    if node is None:
         return None
     for slot_key, index in zip(path[::2], path[1::2], strict=False):
-        children = node.get(slot_key)
-        if not isinstance(children, list) or not (0 <= index < len(children)):
+        children = as_json_list(node.get(slot_key))
+        if children is None or not (0 <= index < len(children)):
             return None
-        node = children[index]
-        if not isinstance(node, dict):
+        node = as_json_object(children[index])
+        if node is None:
             return None
     return node
 
 
-def _v2_universal_props(node: dict) -> list[V2Prop]:
+def _v2_universal_props(node: dict[str, Any]) -> list[V2Prop]:
     """The properties every component can carry, with the state fields and then
     V2_BELOW_SHOW_WHEN_PROPS spliced in directly below Show when, for the types that have
     them.
@@ -223,7 +225,7 @@ def _v2_universal_props(node: dict) -> list[V2Prop]:
     return props
 
 
-def v2_editable_props(node: dict) -> list[V2Prop]:
+def v2_editable_props(node: dict[str, Any]) -> list[V2Prop]:
     """What the inspector puts up for this node: its schema properties first, then any
     other scalar key it happens to carry.
 

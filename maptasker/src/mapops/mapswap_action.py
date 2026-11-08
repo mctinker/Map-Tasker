@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import copy
 from collections import Counter
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from maptasker.src.analysis import mapfind
 from maptasker.src.core.actionc import action_codes
@@ -168,7 +168,7 @@ def fidelity_choices(old_key: str, state: RunState) -> list[tuple[str, str, str]
     nothing, and one who sees why learns the answer to the question they were about to ask.
     """
     rank = {EXACT: 0, MAPPED: 1, RESET: 2, BLOCKED: 3}
-    choices = []
+    choices: list[tuple[str, str, str]] = []
     carried_count: dict[str, int] = {}
 
     for key, action_code in action_codes.items():
@@ -217,7 +217,7 @@ def source_choices(index: mapfind.FindIndex) -> list[tuple[str, str, int]]:
     in actionc.py are both called 'Calendar Task' -- while a swap has to know which code it
     is rewriting.
     """
-    counts: Counter = Counter()
+    counts: Counter[str] = Counter()
     for record in index.objects:
         if record.kind != TASK:
             continue
@@ -231,7 +231,7 @@ def source_choices(index: mapfind.FindIndex) -> list[tuple[str, str, int]]:
             if action.code and f"{action.code}t" not in _STRUCTURAL:
                 counts[f"{action.code}t"] += 1
 
-    choices = []
+    choices: list[tuple[str, str, int]] = []
     for key, count in counts.items():
         name = action_codes[key].name if key in action_codes else f"code {key[:-1]}"
         choices.append((key, f"{name}  ({count})", count))
@@ -345,7 +345,7 @@ def plan_action_swap(old_key: str, new_key: str, project: str = "", *, state: Ru
     return plan
 
 
-def _elements_of(plan: Plan) -> list:
+def _elements_of(plan: Plan) -> list[Any]:
     """Every element a plan would change."""
     return [change.site.element for change in plan.changes]
 

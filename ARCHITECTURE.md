@@ -94,7 +94,7 @@ increase shows up in review with its reason.
 | dead code | any unused function, method, attribute or constant vulture finds.  What it reports wrongly (an `HTMLParser` callback, a `@ui.page` route, a widget looked up by name) or what is kept on purpose is named under `[tool.vulture]` in `pyproject.toml`, with the reason; there is no list of allowed findings | none | `python scripts/dead_code_check.py` |
 | translation ratchet | the drift `tools/language_support/check_catalogs.py` finds: a string the program translates that a catalog lacks or holds blank, a lost placeholder, a stale `messages.mo`, a README block a translation does not follow.  Keyed by the string and the languages, so fixing one cannot cover for a new one | `scripts/translation_baseline.json` | `python scripts/translation_ratchet.py` |
 | typecheck ratchet | pyright (basic mode) errors per file and rule, for the source, `scripts`, `tests` and `tools` | `scripts/pyright_baseline.json` | `python scripts/typecheck_ratchet.py` |
-| strict typing | the modules in `[tool.pyright] strict` are clean under pyright's strict mode; `scripts/strict_exempt.json` lists those not yet, and may only shrink.  A new module is written strict-clean (`tests/test_strict_typing.py`).  The plan for the rest, by layer, is in `pyproject.toml` above the list | `scripts/strict_exempt.json` | `pyright` |
+| strict typing | every module in `maptasker/src` is in `[tool.pyright] strict` and clean under pyright's strict mode.  A new module is written strict-clean and listed (`tests/test_strict_typing.py`).  The patterns that clear the usual errors are in `pyproject.toml` above the list | `pyproject.toml` | `pyright` |
 | coverage | `fail_under` for the whole program, and a floor per layer (a well-tested layer cannot cover for a neglected one) | `scripts/coverage_baseline.json` | `pytest --cov=maptasker` then `python scripts/coverage_ratchet.py` |
 | build speed | the Map and Diagram build times, against a copy of `tests/data` scaled up, in units of a fixed piece of Python work so the machine does not matter; more than 25% slower fails | `scripts/perf_baseline.json` | `python scripts/perf_check.py` |
 | import layers | the table above | `[tool.importlinter]` | `lint-imports` |
@@ -142,6 +142,6 @@ found is pinned in `REGRESSIONS`.  `MAPTASKER_FUZZ_SCALE=20` runs twenty times a
 | --- | --- |
 | What may import what | `[tool.importlinter]` in `pyproject.toml` |
 | Lint, complexity and typing settings, with the reasoning for each | `pyproject.toml` (`[tool.ruff]`, `[tool.complexity-ratchet]`, `[tool.pyright]`) |
-| Which modules are strict-typed and the plan for the rest | `pyproject.toml` (`[tool.pyright] strict`), `scripts/strict_exempt.json` |
+| Which modules are strict-typed (all of them) and how to keep a new one clean | `pyproject.toml` (`[tool.pyright] strict`) |
 | What a user-visible change looks like in the changelog | `CLAUDE.md`, `Changelog.md` |
 | The maintainer tools (language support, TaskerNet collection) | `tools/README.md` |

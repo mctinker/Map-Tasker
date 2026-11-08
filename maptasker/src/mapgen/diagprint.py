@@ -6,7 +6,7 @@ functions walk the Tasks and Scenes of a Project and write each with its call ar
 from __future__ import annotations
 
 import contextlib
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from maptasker.src.core.elemvals import get_ids
 from maptasker.src.core.mapjump import SCENE, TASK, Target
@@ -22,7 +22,7 @@ if TYPE_CHECKING:
     from maptasker.src.core.runcfg import RunConfig
 
 
-def flatten_with_quotes(string_list: list) -> str:
+def flatten_with_quotes(string_list: list[Any]) -> str:
     """
     Given a list of strings, return a single string with all strings
     quoted and separated by commas.
@@ -52,7 +52,9 @@ def _real_task_name(task_name: str) -> str:
     return real_task_name
 
 
-def _add_blank_lines_for_calls(output_task_lines: list, prime_task: dict | None, state: RunState) -> None:
+def _add_blank_lines_for_calls(
+    output_task_lines: list[Any], prime_task: dict[str, Any] | None, state: RunState
+) -> None:
     """Add a blank line afterwards for each called Task (one per task name) for yet-to-be-populated connectors."""
     if prime_task is None:
         return
@@ -77,7 +79,7 @@ def _add_blank_lines_for_calls(output_task_lines: list, prime_task: dict | None,
                 }
 
 
-def _interject_upward_bars(output_task_lines: list, last_upward_bar: list) -> None:
+def _interject_upward_bars(output_task_lines: list[Any], last_upward_bar: list[Any]) -> None:
     """Interject the "|" for previous Tasks under Profile."""
     for bar_char in last_upward_bar:
         for line_num, line in enumerate(output_task_lines):
@@ -88,15 +90,15 @@ def _interject_upward_bars(output_task_lines: list, last_upward_bar: list) -> No
 
 
 def add_quotes(
-    output_task_lines: list,
-    last_upward_bar: list,
-    task: dict,
+    output_task_lines: list[Any],
+    last_upward_bar: list[Any],
+    task: dict[str, Any],
     task_type: str,
     called_by_tasks: str,
     position_for_anchor: int,
-    found_tasks: list,
+    found_tasks: list[Any],
     state: RunState,
-) -> tuple[list, list, list]:
+) -> tuple[list[Any], list[Any], list[Any]]:
     """
     Add quotes to called Tasks.
 
@@ -164,14 +166,14 @@ def add_quotes(
 # Print the specific Task.
 def output_the_task(
     print_tasks: bool,
-    found_tasks: list,
-    task: dict,
-    output_task_lines: list,
-    last_upward_bar: list,
+    found_tasks: list[Any],
+    task: dict[str, Any],
+    output_task_lines: list[Any],
+    last_upward_bar: list[Any],
     task_labels: tuple[str, str],
     position_for_anchor: int,
     state: RunState,
-) -> tuple[list, list, list]:
+) -> tuple[list[Any], list[Any], list[Any]]:
     """
     Add the Task to the output list.
         Args:
@@ -211,13 +213,13 @@ def output_the_task(
 
 # Process all Tasks in the Profile
 def print_all_tasks(
-    tasks: list[dict],
+    tasks: list[dict[str, Any]],
     position_for_anchor: int,
-    output_task_lines: list,
+    output_task_lines: list[Any],
     print_tasks: bool,
-    found_tasks: list,
+    found_tasks: list[Any],
     state: RunState,
-) -> list:
+) -> list[Any]:
     """
     Process all Tasks in the Profile.
 
@@ -283,9 +285,9 @@ def print_all_tasks(
 def process_scene_tasks(
     scene: str,
     position_for_anchor: int,
-    task_list: list,
+    task_list: list[Any],
     state: RunState,
-) -> tuple:
+) -> tuple[Any, ...]:
     """
     Process a Scene's Tasks.
 
@@ -297,7 +299,7 @@ def process_scene_tasks(
     Returns:
         tuple: (task_list, output_task_lines)
     """
-    output_task_lines = []
+    output_task_lines: list[Any] = []
 
     # Retrieve XML elements inside the scene
     scene_xml = state.tasker_root_elements["all_scenes"].get(scene, {}).get("xml", [])
@@ -350,7 +352,7 @@ def process_scene_tasks(
 
 
 # Process all Scenes in the Project, 8 Scenes to a row.
-def print_all_scenes(scenes: list, config: RunConfig, state: RunState) -> None:
+def print_all_scenes(scenes: list[Any], config: RunConfig, state: RunState) -> None:
     """
         Prints all scenes in a project, 8 Scenes to a row.
 
@@ -371,7 +373,8 @@ def print_all_scenes(scenes: list, config: RunConfig, state: RunState) -> None:
     scene_counter = 0
     output_scene_lines = [filler, filler, filler]
     scenes_translated = translate_string("Scenes:")
-    task_list = []
+    task_list: list[Any] = []
+    output_task_lines: list[Any] = []
     # Empty line to start
     add_output_line(" ", state=state)
 
@@ -411,13 +414,13 @@ def print_all_scenes(scenes: list, config: RunConfig, state: RunState) -> None:
 # Process Tasks not in any Profile
 def do_tasks_with_no_profile(
     project_name: str,
-    output_profile_lines: list,
-    output_task_lines: list,
-    found_tasks: list,
+    output_profile_lines: list[Any],
+    output_task_lines: list[Any],
+    found_tasks: list[Any],
     profile_counter: int,
     config: RunConfig,
     state: RunState,
-) -> tuple[list, list]:
+) -> tuple[list[Any], list[Any]]:
     """
     Process Tasks not in any Profile
     Args:
@@ -439,7 +442,9 @@ def do_tasks_with_no_profile(
         return output_profile_lines, output_task_lines
 
     project_root = state.tasker_root_elements["all_projects"][project_name]["xml"]
-    tasks_not_in_profile = []
+    tasks_not_in_profile: list[Any] = []
+    profile = "No Profile"
+    print_tasks = False
 
     # Get all task IDs for this Project.
     project_task_ids = get_ids(False, project_root, project_name, [])
@@ -450,8 +455,6 @@ def do_tasks_with_no_profile(
         if task not in state.tasker_root_elements["all_tasks"]:
             continue
         if state.tasker_root_elements["all_tasks"][task]["name"] not in found_tasks:
-            profile = "No Profile"
-            print_tasks = False
             the_task = state.tasker_root_elements["all_tasks"][task]
             if the_task not in tasks_not_in_profile:
                 tasks_not_in_profile.append(the_task)
@@ -483,12 +486,12 @@ def do_tasks_with_no_profile(
 def build_profile_box(
     profile: str,
     profile_counter: int,
-    output_profile_lines: list,
-    output_task_lines: list,
+    output_profile_lines: list[Any],
+    output_task_lines: list[Any],
     print_tasks: bool,
     config: RunConfig,
     state: RunState,
-) -> tuple[list, list, int, bool, int]:
+) -> tuple[list[Any], list[Any], int, bool, int]:
     """
     Builds a profile box for a given profile
     Args:

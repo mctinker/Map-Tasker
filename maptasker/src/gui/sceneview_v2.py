@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any
 
 from nicegui import ui
 
-from maptasker.src.core.maputil2 import translate_string
+from maptasker.src.core.maputil2 import as_json_list, as_json_object, translate_string
 from maptasker.src.core.sysconst import V2_MATERIAL_PALETTE
 from maptasker.src.gui.sceneview import PLACEHOLDER_EDGE, PLACEHOLDER_FILL, VARIABLE_FILL, PreviewOptions, V2Editing
 from maptasker.src.gui.sceneview_legacy import corner_badge, html_frame, is_inline_html, placeholder_box
@@ -37,7 +37,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
 
-def v2_layout_summary(layout: dict) -> list[tuple[str, str]]:
+def v2_layout_summary(layout: dict[str, Any]) -> list[tuple[str, str]]:
     """The layout's own settings, for the caption under the frame -- the V2 counterpart of
     scene_properties.  defaultDisplayMode is the one that changes what is drawn (see
     draw_v2_layout); the rest are reported because they describe the Scene and appear
@@ -69,7 +69,7 @@ def v2_layout_summary(layout: dict) -> list[tuple[str, str]]:
 #
 # Keyed by id() because these dicts are the layout's own and stay alive throughout the draw;
 # see _v2_alias for the two drawers that hand _v2_draw_node something else.
-_V2_PATHS: dict[int, tuple[tuple, int]] = {}
+_V2_PATHS: dict[int, tuple[tuple[Any, ...], int]] = {}
 
 
 # The two classes the hull is measured with: every component drawn carries the first, and the
@@ -91,7 +91,7 @@ V2_HULL_PADDING = 6
 
 # The editing surface for this draw, or None when it is the read-only Preview.  Module-level
 # for the same reason as _V2_PATHS: it is the drawer funnel that needs it, not the drawers.
-_V2_EDITING: V2Editing | None = None
+_v2_editing: V2Editing | None = None
 
 
 def v2_encode_path(path: tuple[Any, ...]) -> str:
@@ -106,7 +106,7 @@ def v2_encode_path(path: tuple[Any, ...]) -> str:
     return "|".join(str(part) for part in path)
 
 
-def v2_decode_path(encoded: str) -> tuple:
+def v2_decode_path(encoded: str) -> tuple[Any, ...]:
     """The tuple a v2_encode_path string names.  Index segments come back as ints, slot keys
     as strings, which is what sceneedit_v2tree.v2_node_at indexes with.
 
@@ -118,21 +118,22 @@ def v2_decode_path(encoded: str) -> tuple:
     return tuple(int(part) if part.lstrip("-").isdigit() else part for part in encoded.split("|"))
 
 
-def _v2_index_paths(root: dict) -> None:
+def _v2_index_paths(root: dict[str, Any]) -> None:
     """Record where every component in this layout sits, before a line of it is drawn."""
     _V2_PATHS.clear()
 
-    def walk(node: dict, path: tuple, siblings: int) -> None:
+    def walk(node: dict[str, Any], path: tuple[Any, ...], siblings: int) -> None:
         _V2_PATHS[id(node)] = (path, siblings)
         for slot, children in _v2_slots(node):
-            for index, child in enumerate(children):
-                if isinstance(child, dict):
+            for index, raw_child in enumerate(children):
+                child = as_json_object(raw_child)
+                if child is not None:
                     walk(child, (*path, slot, index), len(children))
 
     walk(root, (), 0)
 
 
-def _v2_alias(drawn: dict, original: dict) -> dict:
+def _v2_alias(drawn: dict[str, Any], original: dict[str, Any]) -> dict[str, Any]:
     """Give a stand-in dict the identity of the component it stands in for.
 
     Two drawers do not draw the component the tree holds: a NavigationBar and a
@@ -148,7 +149,7 @@ def _v2_alias(drawn: dict, original: dict) -> dict:
 
 
 def draw_v2_layout(
-    layout: dict,
+    layout: dict[str, Any],
     width: int,
     height: int,
     options: PreviewOptions,
@@ -175,11 +176,11 @@ def draw_v2_layout(
     within the screen.  It is drawn empty here and sized in the browser, for the reason
     _v2_hull gives.
     """
-    global _V2_EDITING  # noqa: PLW0603 -- see _V2_PATHS on why this is not a parameter.
-    root = layout.get("root")
+    global _v2_editing  # noqa: PLW0603 -- see _V2_PATHS on why this is not a parameter.
+    root = as_json_object(layout.get("root"))
     is_dialog = "dialog" in str(layout.get("defaultDisplayMode", "")).lower()
-    _V2_EDITING = editing
-    if editing is not None and isinstance(root, dict):
+    _v2_editing = editing
+    if editing is not None and root is not None:
         _v2_index_paths(root)
 
     frame = (
@@ -201,7 +202,7 @@ def draw_v2_layout(
             f'data-mt-v2-count="{max(1, len(editing.selected))}"',
         )
     with frame:
-        if not isinstance(root, dict):
+        if root is None:
             placeholder_box("layers_clear", "This layout has no root component")
             return
         _v2_hull()
@@ -254,18 +255,19 @@ def _v2_hull() -> None:
     )
 
 
-def v2_component_count(layout: dict) -> int:
+def v2_component_count(layout: dict[str, Any]) -> int:
     """How many components the tree holds -- the V2 counterpart of len(paint_order)."""
 
-    def count(node: object) -> int:
-        if not isinstance(node, dict):
+    def count(raw: object) -> int:
+        node = as_json_object(raw)
+        if node is None:
             return 0
         return 1 + sum(count(child) for _, children in _v2_slots(node) for child in children)
 
     return count(layout.get("root"))
 
 
-def _v2_slots(node: dict) -> list[tuple[str, list]]:
+def _v2_slots(node: dict[str, Any]) -> list[tuple[str, list[Any]]]:
     """The (slot name, children) pairs under this node.
 
     Deliberately the same rule sceneedit_v2tree.v2_child_slots uses -- any list of component-shaped
@@ -274,36 +276,37 @@ def _v2_slots(node: dict) -> list[tuple[str, list]]:
     re-implemented would be better still, but sceneedit imports the whole GUI-editing stack;
     this is the one rule worth repeating to keep the preview importable on its own.
     """
-    slots = []
+    slots: list[tuple[str, list[Any]]] = []
     for key, value in node.items():
-        if key in ("modifiers", "eventHandlers") or not isinstance(value, list):
+        children = as_json_list(value)
+        if key in ("modifiers", "eventHandlers") or children is None:
             continue
-        if any(isinstance(item, dict) and "type" in item for item in value):
-            slots.append((key, value))
+        if any(item is not None and "type" in item for item in map(as_json_object, children)):
+            slots.append((key, children))
     return slots
 
 
-def _v2_children(node: dict, *slots: str) -> list[dict]:
+def _v2_children(node: dict[str, Any], *slots: str) -> list[dict[str, Any]]:
     """The child components in the named slots, in order.  Missing slots contribute
     nothing, which is what makes a Scaffold with no bottomBar draw without a gap.
     """
-    found: list[dict] = []
+    found: list[dict[str, Any]] = []
     for slot in slots:
-        value = node.get(slot)
-        if isinstance(value, list):
-            found.extend(child for child in value if isinstance(child, dict))
+        value = as_json_list(node.get(slot))
+        if value is not None:
+            found.extend(child for child in map(as_json_object, value) if child is not None)
     return found
 
 
-def _v2_all_children(node: dict) -> list[dict]:
+def _v2_all_children(node: dict[str, Any]) -> list[dict[str, Any]]:
     """Every child, whatever slot it is in -- for the generic containers and the fallback."""
-    return [child for _, children in _v2_slots(node) for child in children if isinstance(child, dict)]
+    return [child for _, children in _v2_slots(node) for child in map(as_json_object, children) if child is not None]
 
 
 # ------------------------------------------------------------------
 # The recursive draw
 # ------------------------------------------------------------------
-def _v2_draw_node(node: dict, options: PreviewOptions, depth: int, *, fill: bool = False) -> None:
+def _v2_draw_node(node: dict[str, Any], options: PreviewOptions, depth: int, *, fill: bool = False) -> None:
     """Draw one component and, through its drawer, everything under it.
 
     `fill` is for the components whose job is to occupy what they are given rather than to
@@ -341,14 +344,14 @@ def _v2_draw_node(node: dict, options: PreviewOptions, depth: int, *, fill: bool
     # The selection outline goes on last so it wins over a Show when's dashed one: which
     # components are about to be dragged is the more urgent of the two things to say, and the
     # amber outline is still there the moment the selection moves on.
-    path, siblings = _V2_PATHS.get(id(node), ((), 0)) if _V2_EDITING is not None else ((), 0)
-    if _V2_EDITING is not None and path in _V2_EDITING.selected:
+    path, siblings = _V2_PATHS.get(id(node), ((), 0)) if _v2_editing is not None else ((), 0)
+    if _v2_editing is not None and path in _v2_editing.selected:
         style += "outline: 2px solid #2563eb; outline-offset: -2px;"
 
     # The class is on every component, editing or not: it is what the hull is measured from,
     # and the hull is part of the picture rather than part of the editing surface.
     container = ui.element("div").classes(V2_COMPONENT_CLASS).style(style)
-    if _V2_EDITING is not None and path:
+    if _v2_editing is not None and path:
         # The root is deliberately left out: it has no siblings, so there is nothing it could
         # be dragged among, and marking it draggable would be an offer that cannot be kept.
         #
@@ -373,7 +376,7 @@ def _v2_draw_node(node: dict, options: PreviewOptions, depth: int, *, fill: bool
 # ------------------------------------------------------------------
 # One drawer per component type
 # ------------------------------------------------------------------
-def _v2_draw_column(node: dict, options: PreviewOptions, depth: int) -> None:
+def _v2_draw_column(node: dict[str, Any], options: PreviewOptions, depth: int) -> None:
     """Column: children one above the other.  horizontalAlignment is align-items (across the
     column), verticalArrangement is justify-content (along it).
     """
@@ -387,7 +390,7 @@ def _v2_draw_column(node: dict, options: PreviewOptions, depth: int) -> None:
     )
 
 
-def _v2_draw_row(node: dict, options: PreviewOptions, depth: int) -> None:
+def _v2_draw_row(node: dict[str, Any], options: PreviewOptions, depth: int) -> None:
     """Row: children side by side.  The two properties swap roles against a Column's."""
     _v2_draw_stack(
         node,
@@ -399,7 +402,7 @@ def _v2_draw_row(node: dict, options: PreviewOptions, depth: int) -> None:
     )
 
 
-def _v2_draw_flow_row(node: dict, options: PreviewOptions, depth: int) -> None:
+def _v2_draw_flow_row(node: dict[str, Any], options: PreviewOptions, depth: int) -> None:
     """FlowRow: a Row that wraps onto a new line when it runs out of width -- which is why
     the frame size on the toolbar changes what this draws, and is meant to.
     """
@@ -419,7 +422,7 @@ def _v2_draw_flow_row(node: dict, options: PreviewOptions, depth: int) -> None:
     )
 
 
-def _v2_draw_flow_column(node: dict, options: PreviewOptions, depth: int) -> None:
+def _v2_draw_flow_column(node: dict[str, Any], options: PreviewOptions, depth: int) -> None:
     """FlowColumn: stacks downwards, wrapping into a new column when it runs out of height."""
     _v2_draw_stack(
         node,
@@ -432,7 +435,7 @@ def _v2_draw_flow_column(node: dict, options: PreviewOptions, depth: int) -> Non
     )
 
 
-def _v2_draw_flex(node: dict, options: PreviewOptions, depth: int) -> None:
+def _v2_draw_flex(node: dict[str, Any], options: PreviewOptions, depth: int) -> None:
     """FlexBox -- Tasker marks it experimental itself.  It is the one component whose model
     is already CSS's, so its properties map across directly.
     """
@@ -460,7 +463,7 @@ def _v2_axis_gap(*, column: str, row: str) -> str:
 
 
 def _v2_draw_stack(
-    node: dict,
+    node: dict[str, Any],
     options: PreviewOptions,
     depth: int,
     *,
@@ -493,7 +496,7 @@ def _v2_draw_stack(
             _v2_draw_node(child, options, depth + 1)
 
 
-def _v2_draw_box(node: dict, options: PreviewOptions, depth: int) -> None:
+def _v2_draw_box(node: dict[str, Any], options: PreviewOptions, depth: int) -> None:
     """Box: a Z-stack -- children on top of one another rather than in a line.  A CSS grid
     with every child in the same cell is the flex-free way to say that.
     """
@@ -503,7 +506,7 @@ def _v2_draw_box(node: dict, options: PreviewOptions, depth: int) -> None:
                 _v2_draw_node(child, options, depth + 1)
 
 
-def _v2_draw_card(node: dict, options: PreviewOptions, depth: int) -> None:
+def _v2_draw_card(node: dict[str, Any], options: PreviewOptions, depth: int) -> None:
     """Card: a raised, rounded surface.  elevation is drawn as the shadow it is."""
     elevation = v2_number(node, "elevation") or "1px"
     with ui.element("div").style(
@@ -515,7 +518,7 @@ def _v2_draw_card(node: dict, options: PreviewOptions, depth: int) -> None:
             _v2_draw_node(child, options, depth + 1)
 
 
-def _v2_draw_scaffold(node: dict, options: PreviewOptions, depth: int) -> None:
+def _v2_draw_scaffold(node: dict[str, Any], options: PreviewOptions, depth: int) -> None:
     """Scaffold: the frame of a full-screen Scene -- topBar, content, bottomBar, and a
     floating action button over the content's bottom-right corner.
 
@@ -543,7 +546,7 @@ def _v2_draw_scaffold(node: dict, options: PreviewOptions, depth: int) -> None:
             _v2_draw_node(child, options, depth + 1)
 
 
-def _v2_draw_top_app_bar(node: dict, options: PreviewOptions, depth: int) -> None:
+def _v2_draw_top_app_bar(node: dict[str, Any], options: PreviewOptions, depth: int) -> None:
     """TopAppBar: the navigationIcon slot, then the title slot, across the top."""
     with ui.element("div").style(
         f"display: flex; align-items: center; gap: 8px; width: 100%; height: 64px; padding: 0 8px;"
@@ -556,7 +559,7 @@ def _v2_draw_top_app_bar(node: dict, options: PreviewOptions, depth: int) -> Non
             _v2_draw_node(child, options, depth + 1)
 
 
-def _v2_draw_bottom_app_bar(node: dict, options: PreviewOptions, depth: int) -> None:
+def _v2_draw_bottom_app_bar(node: dict[str, Any], options: PreviewOptions, depth: int) -> None:
     """BottomAppBar: the same bar, pinned to the bottom of a Scaffold."""
     with ui.element("div").style(
         f"display: flex; align-items: center; gap: 8px; width: 100%; height: 64px; padding: 0 8px;"
@@ -566,7 +569,7 @@ def _v2_draw_bottom_app_bar(node: dict, options: PreviewOptions, depth: int) -> 
             _v2_draw_node(child, options, depth + 1)
 
 
-def _v2_draw_navigation_bar(node: dict, options: PreviewOptions, depth: int) -> None:
+def _v2_draw_navigation_bar(node: dict[str, Any], options: PreviewOptions, depth: int) -> None:
     """NavigationBar: its Navigation Items spread evenly across the bottom.  selectedIndex
     picks the one drawn as current, which is a visible difference and worth honouring.
     """
@@ -584,7 +587,7 @@ def _v2_draw_navigation_bar(node: dict, options: PreviewOptions, depth: int) -> 
             _v2_draw_node(marked, options, depth + 1)
 
 
-def _v2_draw_navigation_item(node: dict, _options: PreviewOptions, _depth: int) -> None:
+def _v2_draw_navigation_item(node: dict[str, Any], _options: PreviewOptions, _depth: int) -> None:
     """NavigationItem: an icon over a label, tinted when it is the selected one."""
     is_selected = str(node.get("selected", "")).lower() == "true"
     colour = V2_MATERIAL_PALETTE["onSecondaryContainer" if is_selected else "onSurfaceVariant"]
@@ -597,7 +600,7 @@ def _v2_draw_navigation_item(node: dict, _options: PreviewOptions, _depth: int) 
         v2_text(node.get("label"), f"font-size: 12px; line-height: 1.2; color: {colour};")
 
 
-def _v2_draw_text(node: dict, _options: PreviewOptions, _depth: int) -> None:
+def _v2_draw_text(node: dict[str, Any], _options: PreviewOptions, _depth: int) -> None:
     """Text: the component real Scenes are mostly made of."""
     if v2_is_html(node):
         v2_html_text(node, v2_text_style(node))
@@ -605,7 +608,7 @@ def _v2_draw_text(node: dict, _options: PreviewOptions, _depth: int) -> None:
     v2_text(node.get("text"), v2_text_style(node))
 
 
-def _v2_draw_button(node: dict, _options: PreviewOptions, _depth: int) -> None:
+def _v2_draw_button(node: dict[str, Any], _options: PreviewOptions, _depth: int) -> None:
     """Button: text, buttonColor behind it, textColor on it -- Material's filled button when
     the Scene does not say otherwise.
     """
@@ -623,7 +626,7 @@ def _v2_draw_button(node: dict, _options: PreviewOptions, _depth: int) -> None:
         )
 
 
-def _v2_draw_icon_button(node: dict, _options: PreviewOptions, _depth: int) -> None:
+def _v2_draw_icon_button(node: dict[str, Any], _options: PreviewOptions, _depth: int) -> None:
     """IconButton: a 48dp target with the icon in the middle.  These draw as the real icon --
     "icon:Close" is Material's own name for it, so the browser has the same glyph Android does.
     """
@@ -634,7 +637,7 @@ def _v2_draw_icon_button(node: dict, _options: PreviewOptions, _depth: int) -> N
         _v2_icon_or_placeholder(node.get("icon"), 24, V2_MATERIAL_PALETTE["onSurfaceVariant"])
 
 
-def _v2_draw_fab(node: dict, options: PreviewOptions, depth: int) -> None:
+def _v2_draw_fab(node: dict[str, Any], options: PreviewOptions, depth: int) -> None:
     """FloatingActionButton: the round raised button over a Scaffold's content."""
     with ui.element("div").style(
         f"display: flex; align-items: center; justify-content: center; width: 56px; height: 56px;"
@@ -649,7 +652,7 @@ def _v2_draw_fab(node: dict, options: PreviewOptions, depth: int) -> None:
             _v2_icon_or_placeholder(node.get("icon") or "icon:Add", 24, V2_MATERIAL_PALETTE["onPrimaryContainer"])
 
 
-def _v2_draw_text_input(node: dict, _options: PreviewOptions, _depth: int) -> None:
+def _v2_draw_text_input(node: dict[str, Any], _options: PreviewOptions, _depth: int) -> None:
     """TextInput: an outlined field showing its label.  What it writes into is on its badge
     (see v2_binding_lines) -- for a text field that is the interesting half.
     """
@@ -663,17 +666,17 @@ def _v2_draw_text_input(node: dict, _options: PreviewOptions, _depth: int) -> No
         )
 
 
-def _v2_draw_switch(node: dict, _options: PreviewOptions, _depth: int) -> None:
+def _v2_draw_switch(node: dict[str, Any], _options: PreviewOptions, _depth: int) -> None:
     """Switch: on or off, from `checked`."""
     _v2_draw_toggle(node, "toggle_on", "toggle_off")
 
 
-def _v2_draw_checkbox(node: dict, _options: PreviewOptions, _depth: int) -> None:
+def _v2_draw_checkbox(node: dict[str, Any], _options: PreviewOptions, _depth: int) -> None:
     """Checkbox: ticked or not, from `checked`."""
     _v2_draw_toggle(node, "check_box", "check_box_outline_blank")
 
 
-def _v2_draw_toggle(node: dict, on_icon: str, off_icon: str) -> None:
+def _v2_draw_toggle(node: dict[str, Any], on_icon: str, off_icon: str) -> None:
     """The shared body of Switch and Checkbox.  A `checked` holding a %variable is neither
     on nor off here, so it draws unchecked and says why on its own marker.
     """
@@ -687,7 +690,7 @@ def _v2_draw_toggle(node: dict, on_icon: str, off_icon: str) -> None:
             v2_text(raw, "font-size: 11px; line-height: 1.2;")
 
 
-def _v2_draw_slider(node: dict, _options: PreviewOptions, _depth: int) -> None:
+def _v2_draw_slider(node: dict[str, Any], _options: PreviewOptions, _depth: int) -> None:
     """Slider: the thumb where `value` falls between min and max."""
     minimum = _v2_float(node.get("min"), 0.0)
     maximum = _v2_float(node.get("max"), 100.0)
@@ -697,7 +700,7 @@ def _v2_draw_slider(node: dict, _options: PreviewOptions, _depth: int) -> None:
     _v2_draw_track([fraction])
 
 
-def _v2_draw_range_slider(node: dict, _options: PreviewOptions, _depth: int) -> None:
+def _v2_draw_range_slider(node: dict[str, Any], _options: PreviewOptions, _depth: int) -> None:
     """RangeSlider: two thumbs, at `start` and `end`, on a 0-1 scale of its own."""
     _v2_draw_track(
         [
@@ -732,7 +735,7 @@ def _v2_draw_track(fractions: list[float]) -> None:
             )
 
 
-def _v2_draw_progress(node: dict, _options: PreviewOptions, _depth: int) -> None:
+def _v2_draw_progress(node: dict[str, Any], _options: PreviewOptions, _depth: int) -> None:
     """ProgressBar: minProgress is where it starts, and its colour is its own property."""
     colour = v2_colour(node.get("color"), fallback=V2_MATERIAL_PALETTE["primary"])
     fraction = max(0.0, min(1.0, _v2_float(node.get("minProgress"), 0.0)))
@@ -745,7 +748,7 @@ def _v2_draw_progress(node: dict, _options: PreviewOptions, _depth: int) -> None
         )
 
 
-def _v2_draw_segmented_row(node: dict, options: PreviewOptions, depth: int) -> None:
+def _v2_draw_segmented_row(node: dict[str, Any], options: PreviewOptions, depth: int) -> None:
     """SegmentedButtonRow: its items joined into one control, with selectedIndices marking
     which of them are on -- a comma-separated list, because the row can allow several.
     """
@@ -760,7 +763,7 @@ def _v2_draw_segmented_row(node: dict, options: PreviewOptions, depth: int) -> N
             _v2_draw_node(marked, options, depth + 1)
 
 
-def _v2_draw_segmented_item(node: dict, _options: PreviewOptions, _depth: int) -> None:
+def _v2_draw_segmented_item(node: dict[str, Any], _options: PreviewOptions, _depth: int) -> None:
     """SegmentedButtonItem: one segment of that control."""
     is_selected = str(node.get("selected", "")).lower() == "true"
     with ui.element("div").style(
@@ -777,7 +780,7 @@ def _v2_draw_segmented_item(node: dict, _options: PreviewOptions, _depth: int) -
         )
 
 
-def _v2_draw_dropdown(node: dict, options: PreviewOptions, depth: int) -> None:
+def _v2_draw_dropdown(node: dict[str, Any], options: PreviewOptions, depth: int) -> None:
     """Dropdown: the trigger, plus its menu drawn as the separate surface it becomes.
 
     The menu is shown rather than hidden -- a preview exists to show what is in the Scene,
@@ -800,7 +803,7 @@ def _v2_draw_dropdown(node: dict, options: PreviewOptions, depth: int) -> None:
                     _v2_draw_node(child, options, depth + 1)
 
 
-def _v2_draw_arrays_template(node: dict, options: PreviewOptions, depth: int) -> None:
+def _v2_draw_arrays_template(node: dict[str, Any], options: PreviewOptions, depth: int) -> None:
     """ArraysMergeTemplate: one block, repeated once per entry in a set of Tasker arrays.
 
     Drawn once, labelled.  How many times it really repeats is however many entries those
@@ -818,7 +821,7 @@ def _v2_draw_arrays_template(node: dict, options: PreviewOptions, depth: int) ->
             _v2_draw_node(child, options, depth + 1)
 
 
-def _v2_draw_variable(node: dict, _options: PreviewOptions, _depth: int) -> None:
+def _v2_draw_variable(node: dict[str, Any], _options: PreviewOptions, _depth: int) -> None:
     """Variable: declares a Scene variable and draws nothing at all in Tasker.
 
     Drawn here as a marker, because "nothing" and "not there" look identical on screen and
@@ -835,20 +838,20 @@ def _v2_draw_variable(node: dict, _options: PreviewOptions, _depth: int) -> None
         )
 
 
-def _v2_draw_spacer(node: dict, _options: PreviewOptions, _depth: int) -> None:
+def _v2_draw_spacer(node: dict[str, Any], _options: PreviewOptions, _depth: int) -> None:
     """Spacer: empty space of a fixed size."""
     height = v2_number(node, "height") or "16px"
     width = v2_number(node, "width")
     ui.element("div").style(f"height: {height};{f'width: {width};' if width else 'width: 100%;'} flex: none;")
 
 
-def _v2_draw_divider(node: dict, _options: PreviewOptions, _depth: int) -> None:
+def _v2_draw_divider(node: dict[str, Any], _options: PreviewOptions, _depth: int) -> None:
     """Divider: a rule across its container."""
     colour = v2_colour(node.get("color"), fallback=V2_MATERIAL_PALETTE["outlineVariant"])
     ui.element("div").style(f"width: 100%; height: 1px; background: {colour.css}; flex: none;")
 
 
-def _v2_draw_image(node: dict, _options: PreviewOptions, _depth: int) -> None:
+def _v2_draw_image(node: dict[str, Any], _options: PreviewOptions, _depth: int) -> None:
     """Image: a named icon, or a URL that is deliberately not fetched.
 
     An icon: reference draws as the real icon.  A URL does not: previewing a Scene should not
@@ -876,7 +879,7 @@ def _v2_draw_image(node: dict, _options: PreviewOptions, _depth: int) -> None:
         placeholder_box("image", "Image", url.rsplit("/", 1)[-1] if url else "")
 
 
-def _v2_draw_web_view(node: dict, _options: PreviewOptions, _depth: int) -> None:
+def _v2_draw_web_view(node: dict[str, Any], _options: PreviewOptions, _depth: int) -> None:
     """WebView: an embedded page, or HTML held in a variable.
 
     Inline HTML is drawn, in the same sandboxed frame the Legacy WebElement uses -- see
@@ -896,7 +899,7 @@ def _v2_draw_web_view(node: dict, _options: PreviewOptions, _depth: int) -> None
             placeholder_box("public", "WebView", content.splitlines()[0][:60] if content else "")
 
 
-def _v2_draw_video(node: dict, _options: PreviewOptions, _depth: int) -> None:
+def _v2_draw_video(node: dict[str, Any], _options: PreviewOptions, _depth: int) -> None:
     """Video: source, and whether it starts itself and loops."""
     flags = [name for name in ("autoPlay", "loop") if str(node.get(name, "")).lower() == "true"]
     caption = f"Video ({', '.join(flags)})" if flags else "Video"
@@ -905,19 +908,19 @@ def _v2_draw_video(node: dict, _options: PreviewOptions, _depth: int) -> None:
         placeholder_box("movie", caption, detail.rsplit("/", 1)[-1])
 
 
-def _v2_draw_camera(node: dict, _options: PreviewOptions, _depth: int) -> None:
+def _v2_draw_camera(node: dict[str, Any], _options: PreviewOptions, _depth: int) -> None:
     """Camera: a live preview from one of the device's lenses."""
     with ui.element("div").style("position: relative; width: 100%; height: 140px; flex: none;"):
         placeholder_box("photo_camera", "Camera", str(node.get("lens", "")))
 
 
-def _v2_draw_placeholder(_node: dict, _options: PreviewOptions, _depth: int) -> None:
+def _v2_draw_placeholder(_node: dict[str, Any], _options: PreviewOptions, _depth: int) -> None:
     """Placeholder: Tasker's own blank stand-in, for reserving space while building."""
     with ui.element("div").style("position: relative; width: 100%; height: 48px; flex: none;"):
         placeholder_box("crop_free", "Placeholder")
 
 
-def _v2_draw_unknown(node: dict, options: PreviewOptions, depth: int) -> None:
+def _v2_draw_unknown(node: dict[str, Any], options: PreviewOptions, depth: int) -> None:
     """A component type this app has no drawer for -- from a newer Tasker, most likely.
 
     Drawn as a labelled box that still renders its children, so a container this app has
@@ -968,7 +971,7 @@ def _v2_float(value: object, default: float) -> float:
         return default
 
 
-_V2_DRAWERS: dict[str, Callable[[dict, PreviewOptions, int], None]] = {
+_V2_DRAWERS: dict[str, Callable[[dict[str, Any], PreviewOptions, int], None]] = {
     "Column": _v2_draw_column,
     "Row": _v2_draw_row,
     "FlowRow": _v2_draw_flow_row,

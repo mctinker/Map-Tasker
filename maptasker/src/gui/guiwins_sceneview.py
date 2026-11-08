@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any
 from nicegui import ui
 
 from maptasker.src.core import scenelayout
-from maptasker.src.core.maputil2 import suppress_logged, translate_string
+from maptasker.src.core.maputil2 import as_json_object, suppress_logged, translate_string
 from maptasker.src.edit import sceneedit, sceneedit_v2nodes, scenemodel
 from maptasker.src.gui import sceneview, sceneview_legacy, sceneview_v2, sceneview_v2base
 from maptasker.src.gui.guiwins_canvas import (
@@ -191,7 +191,7 @@ class NiceGuiSceneView:
         self,
         master_gui: MyGui,
         edited_scene: sceneedit.EditableScene,
-        field_refs: dict,
+        field_refs: dict[str, Any],
         dialog: ui.dialog | None = None,
     ) -> None:
         """Build the preview and draw it."""
@@ -354,8 +354,8 @@ class NiceGuiSceneView:
         number of its own, so the two canvases cannot end up snapping to different grids --
         the same sharing that puts one selection on both of them.
         """
-        editor = self.field_refs.get("legacy_edit")
-        if not isinstance(editor, dict):
+        editor = as_json_object(self.field_refs.get("legacy_edit"))
+        if editor is None:
             return
         ui.select(
             [1, 2, 5, 10],
@@ -366,9 +366,9 @@ class NiceGuiSceneView:
             translate_string("Round dragged positions and sizes to this many pixels."),
         )
 
-    def _snap_selected(self, event: ValueChangeEventArguments) -> None:
-        editor = self.field_refs.get("legacy_edit")
-        if isinstance(editor, dict):
+    def _snap_selected(self, event: ValueChangeEventArguments[Any]) -> None:
+        editor = as_json_object(self.field_refs.get("legacy_edit"))
+        if editor is not None:
             editor["snap"]["grid"] = int(event.value or 1)
         self.render()
 
@@ -429,7 +429,7 @@ class NiceGuiSceneView:
         # A Scene is one kind or the other, so only one of these two is ever present.
         for key in ("v2_edit", "legacy_edit"):
             editor = self.field_refs.get(key)
-            if isinstance(editor, dict):
+            if editor is not None:
                 editor["rerender"]()
 
     def _set_option(self, name: str, value: object) -> None:
@@ -442,23 +442,23 @@ class NiceGuiSceneView:
             # silently, with the evidence on the other toggle.  Moving them together is also
             # the better behaviour on its own terms: going Back to Editor lands on the
             # orientation the user was just looking at.
-            editor = self.field_refs.get("legacy_edit")
-            if isinstance(editor, dict):
+            editor = as_json_object(self.field_refs.get("legacy_edit"))
+            if editor is not None:
                 editor["orientation"]["landscape"] = bool(value)
         self.render()
 
-    def _zoom_selected(self, event: ValueChangeEventArguments) -> None:
+    def _zoom_selected(self, event: ValueChangeEventArguments[Any]) -> None:
         self.zoom = str(event.value or "Fit")
         self.render()
 
-    def _density_selected(self, event: ValueChangeEventArguments) -> None:
+    def _density_selected(self, event: ValueChangeEventArguments[Any]) -> None:
         try:
             self.options.density = float(event.value)
         except (TypeError, ValueError):
             self.options.density = sceneview.DEFAULT_DENSITY
         self.render()
 
-    def _screen_selected(self, event: ValueChangeEventArguments) -> None:
+    def _screen_selected(self, event: ValueChangeEventArguments[Any]) -> None:
         self.screen = str(event.value or sceneview_v2base.V2_DEFAULT_SCREEN)
         self.render()
 
@@ -518,8 +518,8 @@ class NiceGuiSceneView:
         that really did change the Scene and that Undo cannot take back, which is the worse of
         the two failures rather than the milder one.
         """
-        editor = self.field_refs.get("legacy_edit")
-        if not isinstance(editor, dict):
+        editor = as_json_object(self.field_refs.get("legacy_edit"))
+        if editor is None:
             return None
         return sceneview.CanvasEditing(
             selected=tuple(editor["selection"]["srs"]),
@@ -539,8 +539,8 @@ class NiceGuiSceneView:
         by exactly the code the designer's own canvas goes through.  All that is left here is
         the half the designer cannot do, which is repainting this picture.
         """
-        editor = self.field_refs.get("legacy_edit")
-        if not isinstance(editor, dict):
+        editor = as_json_object(self.field_refs.get("legacy_edit"))
+        if editor is None:
             return
         handler = editor["handlers"].get(name)
         if handler is None:
@@ -556,10 +556,10 @@ class NiceGuiSceneView:
         without having been saved.  Decoding the Scene is the fallback for a preview opened
         from somewhere that never built a designer.
         """
-        layout = self.field_refs.get("v2_layout")
-        if not isinstance(layout, dict):
+        layout = as_json_object(self.field_refs.get("v2_layout"))
+        if layout is None:
             layout = scenelayout.decode_v2_layout(self.edited_scene.scene_element)
-        if not isinstance(layout, dict):
+        if layout is None:
             self._say(
                 "This Scene's Version 2 layout could not be read, so there is nothing to draw.",
                 "text-orange-600",
@@ -602,8 +602,8 @@ class NiceGuiSceneView:
         this view alone, which nothing would ever save; a drag on that would look like it
         worked and quietly lose the change.
         """
-        editor = self.field_refs.get("v2_edit")
-        if not isinstance(editor, dict) or self.field_refs.get("v2_layout") is None:
+        editor = as_json_object(self.field_refs.get("v2_edit"))
+        if editor is None or self.field_refs.get("v2_layout") is None:
             return None
         selection = editor["selection"]
         return sceneview.V2Editing(selected=sceneedit_v2nodes.v2_run_paths(selection["path"], selection["count"]))
@@ -616,8 +616,8 @@ class NiceGuiSceneView:
         in the tree by exactly the code the tree's own drag goes through.  All that is left
         here is the half the designer cannot do, which is repainting this picture.
         """
-        editor = self.field_refs.get("v2_edit")
-        if not isinstance(editor, dict):
+        editor = as_json_object(self.field_refs.get("v2_edit"))
+        if editor is None:
             return
         handler = editor["handlers"].get(name)
         if handler is None:
@@ -689,7 +689,7 @@ class NiceGuiSceneView:
                 ),
             ).classes("text-xs text-gray-500 italic")
 
-    def _draw_v2_caption(self, layout: dict, width: int, height: int) -> None:
+    def _draw_v2_caption(self, layout: dict[str, Any], width: int, height: int) -> None:
         """The V2 counterpart.  Says the screen the layout was drawn in, because unlike a
         Legacy canvas that number is this preview's choice rather than the Scene's -- and
         says where the colours came from, for the same reason.
