@@ -194,25 +194,25 @@ MapTasker द्वारा जनरेट किए गए आउटपुट
 
 मुख्य फ़ाइलों और उनके उद्देश्य का संक्षिप्त अवलोकन:
 
-- `maptasker/`: Contains the core application code.
+- `maptasker/`: एप्लिकेशन का मुख्य कोड।
   - `maptasker/src/`: मैप टास्कर के लॉजिक के लिए मुख्य पाइथन स्रोत फाइलें, जो उप-पैकेजों में परतों के अनुसार व्यवस्थित हैं।
     (एक परत केवल नीचे की परतों से डेटा आयात कर सकती है; `lint-imports` इसे लागू करता है):
     - `gui/`: NiceGUI विंडोज़, संवाद और उनके इवेंट हैंडलर।
-    - `device/`: what MapTasker does on the Android device, through Tasker's HTTP server.
-    - `mapops/`: bulk replace, refactor, repair, restore and draft; the TaskerNet and readiness tools.
-    - `analysis/`: read-only questions asked of a configuration.
+    - `device/`: MapTasker, Tasker के HTTP सर्वर के माध्यम से Android डिवाइस पर जो करता है।
+    - `mapops/`: थोक में बदलना, रीफ़ैक्टर, मरम्मत, पुनर्स्थापना और ड्राफ़्ट; साथ ही TaskerNet और तैयारी जाँच के उपकरण।
+    - `analysis/`: किसी कॉन्फ़िगरेशन से पूछे गए केवल-पढ़ने वाले प्रश्न।
     - `mapgen/` और `edit/`: बैकअप लोड करना, उसका उपयोग करके मैप बनाना, और साथ ही टास्क, प्रोफाइल, प्रोजेक्ट और सीन संपादकों का उपयोग करना।
-    - `core/`: run state, the Tasker action tables and shared utilities.
+    - `core/`: रन स्टेट, Tasker की क्रिया तालिकाएँ और साझा उपयोगिताएँ।
     - `mapit.py`, `progargs.py`, `runcli.py`, `rungui.py`, `clireports.py`: ये प्रवेश बिंदु हैं।
-  - `maptasker/assets/`: Static assets like icons, images, and JSON data used by the application.
+  - `maptasker/assets/`: आइकन, चित्र और JSON डेटा जैसी स्थिर संपत्तियाँ, जिनका उपयोग एप्लिकेशन करता है।
   - `maptasker/locale`: अनुवाद के लिए भाषा फाइलें।
 - `documentation_images/`: इस README और अन्य दस्तावेज़ों में उपयोग की गई छवियां।
-- `tools/`: utilities used during development. 
-- `tests/`: Contains test scripts and related files for ensuring code quality.
-- `maptasker/main.py`: The entry point behind the `maptasker` command.  From a cloned repository, run `python -m maptasker.main`.
+- `tools/`: विकास के दौरान उपयोग की जाने वाली उपयोगिताएँ।
+- `tests/`: कोड की गुणवत्ता सुनिश्चित करने के लिए परीक्षण स्क्रिप्ट और संबंधित फ़ाइलें।
+- `maptasker/main.py`: `maptasker` कमांड के पीछे का प्रवेश बिंदु। क्लोन किए गए रिपॉज़िटरी से `python -m maptasker.main` चलाएँ।
 - `LICENSE`: इस परियोजना के लिए MIT लाइसेंस फ़ाइल।
-- `README.md`: This file.
-- `Changelog.md`: A log of changes made in each version.
+- `README.md`: यह फ़ाइल।
+- `Changelog.md`: प्रत्येक संस्करण में किए गए परिवर्तनों का लॉग।
 - `pyproject.toml`: परियोजना का मेटाडेटा और बिल्ड सिस्टम कॉन्फ़िगरेशन।
 
 ## लाइसेंस (License)
