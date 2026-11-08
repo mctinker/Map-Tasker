@@ -117,6 +117,9 @@ async def test_the_panel_fetches_the_backup_the_user_typed_the_path_of(phone: Fa
         _fill(user, phone, "/Tasker/backup.xml")
 
         await click(user, "Click Here to Set XML Details")
+        await settled(
+            lambda: window.messages
+        )  # a request on a worker thread: slower than a tenth of a second on Windows
 
     assert (window.android_ipaddr, window.android_port, window.android_file) == (
         phone.address,
@@ -189,6 +192,7 @@ async def test_a_file_the_phone_does_not_have_is_reported_in_red(phone: FakeTask
         _fill(user, phone, "/Tasker/missing.xml")
 
         await click(user, "Click Here to Set XML Details")
+        await settled(lambda: window.messages)
 
     assert window.messages and window.messages[-1][1] == "Red"
     assert "not found" in window.messages[-1][0]
@@ -203,6 +207,7 @@ async def test_a_file_that_is_not_a_tasker_backup_is_reported_in_red(phone: Fake
         _fill(user, phone, "/Tasker/notes.xml")
 
         await click(user, "Click Here to Set XML Details")
+        await settled(lambda: window.messages)
 
     assert any("not valid Tasker XML" in message for message, _colour in window.messages)
     assert all(colour == "Red" for _message, colour in window.messages)

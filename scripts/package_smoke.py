@@ -65,7 +65,7 @@ def build_wheel(into: Path) -> Path:
 
 def wheel_in(dist: Path) -> Path:
     """The newest wheel in this folder."""
-    wheels = sorted(dist.glob("*.whl"))
+    wheels = sorted(dist.resolve().glob("*.whl"))  # absolute: the install runs from another folder
     if not wheels:
         message = f"no wheel in {dist}"
         raise SmokeError(message)
