@@ -1,0 +1,133 @@
+name: Release
+
+# Publishing MapTasker to PyPI.  Nothing here runs on an ordinary push: it runs when a version tag is pushed.
+#
+#     1. Change `version` in pyproject.toml, commit it, and push the branch.  Wait for CI to go green.
+#     2. git tag v15.2.0 && git push origin v15.2.0        (the tag is "v" + the version in pyproject.toml)
+#     3. This workflow checks the tag, builds, tests the built wheel, and publishes to TestPyPI.
+#     4. For a final version it then stops and waits for you to approve it, on the workflow run's page in GitHub
+#        (the "pypi" environment's required reviewer).  Approve, and it publishes to PyPI.
+#
+# A pre-release tag (v15.3.0rc1, v15.3.0a2, v15.3.0.dev1) goes to TestPyPI only, as publishtest-rc.sh did.
+#
+# No password or token is stored anywhere: PyPI is told, once, that this repository's release.yml may publish
+# MapTasker (trusted publishing), and GitHub then vouches for each run.  One-time setup, by the project owner:
+#
+#   * pypi.org -> maptasker -> Publishing -> add a GitHub publisher:
+#         owner mctinker, repository Map-Tasker, workflow release.yml, environment pypi
+#   * test.pypi.org -> the same, with environment testpypi
+#   * GitHub -> the repository's Settings -> Environments: create "pypi" and add yourself as a required reviewer
+#     (that is the pause before the real upload; a PyPI release cannot be taken back), and create "testpypi".
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: check the tag
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      version: ${{ steps.tag.outputs.version }}
+      final: ${{ steps.tag.outputs.final }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: The tag names the version in pyproject.toml
+        id: tag
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          declared=$(python3 -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])")
+          if [ "$version" != "$declared" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME says version $version, but pyproject.toml says $declared."
+            exit 1
+          fi
+          # A final version is digits and dots only; anything else (rc1, a2, dev1) is a pre-release.
+          if printf '%s' "$version" | grep -Eq '^[0-9]+(\.[0-9]+)*$'; then final=true; else final=false; fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "final=$final" >> "$GITHUB_OUTPUT"
+
+      - name: CI passed on this exact commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Pushing a tag does not run CI (it runs for branches); the branch push of this commit did.
+          result=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow ci.yml --commit "$GITHUB_SHA" \
+                     --status success --json conclusion --jq 'length')
+          if [ "$result" -lt 1 ]; then
+            echo "::error::No successful CI run for commit $GITHUB_SHA. Push the commit to a branch, wait for CI to pass, then tag it."
+            exit 1
+          fi
+
+  build:
+    name: build and test the package
+    needs: check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.13"
+          enable-cache: true
+
+      - name: Build sdist and wheel
+        run: uv build
+
+      - name: Check package metadata
+        run: uvx twine check dist/*
+
+      - name: Install the wheel and run it
+        run: python scripts/package_smoke.py --dist dist
+
+      - name: Upload distribution
+        uses: actions/upload-artifact@v5
+        with:
+          name: dist
+          path: dist/
+
+  testpypi:
+    name: publish to TestPyPI
+    needs: [check, build]
+    runs-on: ubuntu-latest
+    environment: testpypi
+    permissions:
+      id-token: write # the trusted-publishing proof; nothing else is granted
+    steps:
+      - uses: actions/download-artifact@v5
+        with:
+          name: dist
+          path: dist/
+
+      - name: Publish
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+
+  pypi:
+    name: publish to PyPI
+    # A pre-release stops at TestPyPI.
+    if: needs.check.outputs.final == 'true'
+    needs: [check, build, testpypi]
+    runs-on: ubuntu-latest
+    # Required reviewers on this environment make the run wait here until you approve it.
+    environment:
+      name: pypi
+      url: https://pypi.org/project/maptasker/${{ needs.check.outputs.version }}/
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v5
+        with:
+          name: dist
+          path: dist/
+
+      - name: Publish
+        uses: pypa/gh-action-pypi-publish@release/v1
