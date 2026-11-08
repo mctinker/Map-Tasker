@@ -341,6 +341,10 @@ class RunState:
         # directory_items is, and for the same reason: both describe one run's output, and
         # refresh_our_output throws that output away and starts it again mid-run.
         self.emitted_anchors: set[str] = set()
+        # The user's notes and tags (objnotes.NoteBook), read from their file the first time a build asks and held for
+        # that build.  None until then; thrown away with the rest of a build's output, so the next build reads the file
+        # again and shows a note added in between.
+        self.object_notes: Any = None
         # Where each object ended up in the Diagram that was last built: {mapjump anchor id:
         # (line, column, length)}, in the coordinates of the rendered diagram file, with column
         # and length counted in UTF-16 code units so the browser can use them as given.  Filled
@@ -497,7 +501,13 @@ _RUN_DEFAULTS = {name: value for name, value in vars(RunState()).items() if name
 #
 # The output of one Map build: thrown away together when a view is built (userintr.view_event)
 # and when a build starts its output again part-way through (lineout.refresh_our_output).
-MAP_OUTPUT_ATTRIBUTES = ("directory_items", "emitted_anchors", "grand_totals", "task_action_warnings")
+MAP_OUTPUT_ATTRIBUTES = (
+    "directory_items",
+    "emitted_anchors",
+    "grand_totals",
+    "object_notes",
+    "task_action_warnings",
+)
 # Everything diagram.network_map records about the Diagram it draws, emptied before it starts
 # so that a Diagram cannot inherit the last one's objects -- or, if it fails part-way through,
 # the last one's connectors.

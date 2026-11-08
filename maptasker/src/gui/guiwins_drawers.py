@@ -726,7 +726,7 @@ def _create_variable_manager_button(self: MyGui) -> None:
 
 
 def _create_analysis_buttons_section(self: MyGui) -> None:
-    """The reports that read the configuration: Variable Xref, Variable Manager, Task Flow, Outbound Inventory and Battery Audit."""
+    """The reports that read the configuration: Variable Xref, Variable Manager, Task Flow, Outbound Inventory, Battery Audit and Notes & Tags."""
     # Full width and coloured through "color" for the same two reasons the two buttons
     # above are: the drawer is w-80 and this label will not fit beside another, and
     # Quasar's own bg-primary beats a Tailwind bg-* class added here.
@@ -800,6 +800,31 @@ def _create_analysis_buttons_section(self: MyGui) -> None:
 
     _create_outbound_button(self)
     _create_battery_button(self)
+    _create_notes_button(self)
+
+
+def _create_notes_button(self: MyGui) -> None:
+    """Notes & Tags, last of the Analyze buttons: the person's own remarks on the objects, to find them by."""
+    notes_button = (
+        ui.button(
+            translate_string("Notes & Tags"),
+            color="teal",
+            on_click=self.event_handlers.tools.notes_event,
+            icon="sell",
+        )
+        .classes("w-full justify-center")
+        .style("margin-top:-6px")
+    )
+    with notes_button:
+        ui.tooltip(
+            translate_string(
+                "Your own notes and tags on Projects, Profiles and Tasks -- 'broken on Android 15', 'needs a "
+                "rewrite' -- to find them by.  Press a tag to list just the objects that carry it.\n\nThey are shown "
+                "under each object in the Map, and in the Diagram, where a tag can be followed from the toolbar.  "
+                "They are kept in a file of their own beside MapTasker's settings and never in the backup, so "
+                "Tasker never sees them.",
+            ),
+        ).style("white-space: pre-wrap")
 
 
 def _create_outbound_button(self: MyGui) -> None:

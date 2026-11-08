@@ -679,3 +679,36 @@ def test_whats_new_with_no_changelog_says_it_could_not_be_read(
     _handlers().whatsnew_event()
 
     assert popups == [("What's New?", "An error occurred reading the changelog file.")]
+
+
+# ##################################################################################
+# Notes & Tags: opened with whatever is loaded, or nothing
+# ##################################################################################
+def test_a_press_of_notes_and_tags_builds_the_window_and_opens_it(
+    seen: SimpleNamespace, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    window = MagicMock()
+    build = MagicMock(return_value=window)
+    patch_hub(monkeypatch, "build_notes_window", build)
+    handlers = _handlers()
+
+    handlers.tools.notes_event()
+
+    build.assert_called_once()
+    assert build.call_args.args[1] is handlers.gui.state
+    window.open.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_a_row_of_the_notes_window_opens_its_object_in_a_window_of_its_own(
+    seen: SimpleNamespace, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    build = MagicMock(return_value=MagicMock())
+    patch_hub(monkeypatch, "build_notes_window", build)
+    _handlers().tools.notes_event()
+    target = mapjump.Target(kind=mapjump.TASK, key="1", name="Wake Up")
+
+    await build.call_args.args[0](target)()
+
+    assert seen.jumped == [target]
+    assert seen.new_window == ["in", "out"]

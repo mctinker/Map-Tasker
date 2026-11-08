@@ -31,6 +31,7 @@ from maptasker.src.core.sysconst import (
     logger,
 )
 from maptasker.src.core.xmldata import tag_in_type
+from maptasker.src.mapgen.notesout import note_lines
 from maptasker.src.mapgen.taskactn import get_task_actions_and_output
 from maptasker.src.mapgen.twisty import add_twisty, remove_twisty
 
@@ -443,6 +444,17 @@ def item_anchor(list_type: str, the_item: str, the_task: Element | None, state: 
 
 
 # ################################################################################
+# The user's note on a Task, to go with the Task's line.
+# ################################################################################
+def _task_note(list_type: str, the_task: Element | None, state: RunState) -> str:
+    """The html of the user's note and tags on the Task being listed, or "" -- see notesout.note_lines."""
+    if list_type != "Task:" or the_task is None:
+        return ""
+    listed = state.tasker_root_elements["all_tasks"].get(the_task.attrib.get("sr", "")[4:])
+    return note_lines(TASK, listed["name"], state) if listed else ""
+
+
+# ################################################################################
 # Given an item, format it with all of the particulars and add to output.
 # ################################################################################
 def format_item(
@@ -487,10 +499,23 @@ def format_item(
     if list_type == "Task:":
         state.output_lines.add_line_to_output(5, BLANK_LINE_BEFORE, FormatLine.dont_format_line)
 
+    # The user's note and tags on this Task, if it has any.  Only a Task of its own: one fired from a Scene sits in the
+    # Scene's layout, and the Scene's own line is not one a note can be put on.
+    note = _task_note(list_type, the_task, state)
+    # Under a twisty everything after the Task's line is hidden until it is opened, and a tag is for seeing at a glance:
+    # so there the note goes in the line that stays, the twisty's summary, and nowhere else.
+    in_twisty = bool(note) and config.twisty
+
     # If "--Task:" then this is a Task under a Scene.
     # Need to temporarily save the_item since add_line_to_output changes the_item
     temp_item, temp_list = add_dictionary_and_twisty(
-        list_type, the_item, the_task, output_line, color_to_use, config, state=state
+        list_type,
+        the_item,
+        the_task,
+        f"{output_line}<br>{note}" if in_twisty else output_line,
+        color_to_use,
+        config,
+        state=state,
     )
 
     # Mark this Task/Scene's place so a report finding can be clicked and land on it.
@@ -503,6 +528,8 @@ def format_item(
         output_line,
         FormatLine.dont_format_line,
     )
+    if note and not in_twisty:
+        state.output_lines.add_line_to_output(2, f"{note}<br>", ["", "task_color", FormatLine.add_end_span])
 
     # Put the_item back with the 'ID: nnn' portion included.
     if temp_item:

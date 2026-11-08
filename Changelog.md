@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file!
 
 ### Added
 
+- Added: __Notes & Tags__ in the Analyze section lets you put your own notes and tags on Projects, Profiles and Tasks -- such as "needs a rewrite" -- and list just the ones carrying a tag. They show under each object in the Map and as dotted underlines in the Diagram, where a toolbar button lights up a tag; they are kept in a file of their own beside MapTasker's settings, never in the backup, so Tasker never sees them.
+
 - Added: __Fix Scope__ in the Variable Manager, and matching Health Check findings, find variable names that break Tasker's case rule -- a lower case name that is the same letters as a global, a name in the Variables tab with no capital, or a local read where nothing sets it -- and fix the one you choose everywhere it is used, with a preview and one Undo.
 
 - Added: __Variable Manager__ in the Analyze section shows every global variable in a table with its value, type, how often it is set and read, and what the phone holds for it, and marks the ones set but never read. You can rename one everywhere, change its value, delete one or several at once from the file or from the phone, see every place it is used, and push a value to the phone, with a preview first and one Undo.

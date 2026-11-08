@@ -21,6 +21,7 @@ from maptasker.src.gui.guiwins_diagram import (
     create_diagram_tools,
     create_export_menu,
     diagram_connectors_by_line,
+    fill_tag_menu,
     wrap_diagram_line,
 )
 from maptasker.src.gui.guiwins_mapstream import (
@@ -52,6 +53,9 @@ class NiceGuiTextView(TextViewSearch):
 
     # The Diagram toolbar's caption, put there by the builder that makes the toolbar.
     diagram_state_label: ui.label
+    # The toolbar's tag button and the menu under it, put there by the same builder; filled once a Diagram is drawn.
+    diagram_tag_button: ui.button
+    diagram_tag_menu: ui.menu
 
     def __init__(
         self,
@@ -761,8 +765,9 @@ class NiceGuiTextView(TextViewSearch):
             register_finding_clicks(self.master_gui)
             status_id = mapjump.dom_id(self.diagram_state_label) if hasattr(self, "diagram_state_label") else ""
             ui.run_javascript(diagintr.interaction_js(mapjump.dom_id(self.scroll_area), status_id, diagram_model))
+        fill_tag_menu(self, diagram_model.get("tags", {}))
 
-    def diagram_command(self, name: str, argument: float | None = None) -> None:
+    def diagram_command(self, name: str, argument: float | str | None = None) -> None:
         """Carry one of the Diagram toolbar's buttons to the view it belongs to."""
         with self.scroll_area:
             ui.run_javascript(diagintr.command_js(mapjump.dom_id(self.scroll_area), name, argument))

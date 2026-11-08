@@ -353,6 +353,22 @@ body:not(.body--dark) .gap-4.mb-6 {
     color: #000000 !important;
 }
 
+/* A name the user has put a note or tags on: a dotted amber underline, and the note as its tooltip.  Dotted so it
+   reads differently from the solid underline of hover, and amber so it does not borrow the chain's green. */
+.mt-dtagged {
+    text-decoration: underline dotted #f59e0b;
+    text-underline-offset: 3px;
+}
+/* Following one tag: as a chain is followed, the names that carry it are lit and the rest greys by colour. */
+.mt-tagging .mt-dline:not(.mt-tag-line) {
+    color: #6b7280 !important;
+}
+.mt-tag-hit {
+    background-color: #f59e0b !important;
+    color: #000000 !important;
+    font-weight: bold;
+}
+
 /* The menu a right-click on a node opens.  Parented to the body, for the reason
    the connector jump buttons are: the scroll area sets "contain: strict", which
    would clip anything positioned inside it to the scroll box. */

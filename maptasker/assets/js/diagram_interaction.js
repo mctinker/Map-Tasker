@@ -18,6 +18,8 @@
             filter: null,
             chain: null,
             marked: [],
+            tag: null,
+            tagMarked: [],
             adjacency: null,
             zoom: 1,
         };
@@ -128,6 +130,7 @@
             }
             if (state.folded.size) parts.push(state.folded.size + " collapsed");
             if (state.chain) parts.push("chain of " + state.chain.size);
+            if (state.tag) parts.push("tagged #" + state.tag);
             el.textContent = parts.join("  \u00b7  ");
         }
 
@@ -210,6 +213,49 @@
             container.classList.add(cls.chaining);
             report();
             const first = (nodes[anchor] || [])[0];
+            if (first) reveal(first);
+        }
+
+        // ------------------------------------------------------------------
+        // Following a tag the user gave objects.
+        // ------------------------------------------------------------------
+        // The same device as a chain, with its own classes so that the two can be on at once: every
+        // drawing of an object carrying the tag is lit, and the rest of the diagram is greyed by
+        // colour, except the lines the lit names are drawn on.  Greyed rather than hidden, because
+        // where the tagged objects sit among the others is as much of the answer as which they are.
+        function clearTag() {
+            state.tagMarked.forEach((entry) => entry.el.classList.remove(entry.name));
+            state.tagMarked = [];
+            state.tag = null;
+            container.classList.remove(cls.tagging);
+            report();
+        }
+
+        function markTag(el, name) {
+            if (!el) return;
+            el.classList.add(name);
+            state.tagMarked.push({ el: el, name: name });
+        }
+
+        function showTag(tag) {
+            clearTag();
+            if (!tag) return;
+            const anchors = new Set();
+            model.nodes.forEach((node) => { if ((node.tags || []).includes(tag)) anchors.add(node.anchor); });
+            if (!anchors.size) {
+                flash("Nothing is tagged #" + tag);
+                return;
+            }
+            const lines = lineIndex();
+            const nodes = nodeIndex();
+            anchors.forEach((anchor) => {
+                (nodes[anchor] || []).forEach((el) => markTag(el, cls.tagHit));
+                (nodesByAnchor[anchor] || []).forEach((node) => markTag(lines[node.line], cls.tagLine));
+            });
+            state.tag = tag;
+            container.classList.add(cls.tagging);
+            report();
+            const first = (nodes[[...anchors][0]] || [])[0];
             if (first) reveal(first);
         }
 
@@ -299,6 +345,12 @@
                     () => { state.filter = state.filter === owning.anchor ? null : owning.anchor; applyVisibility(); },
                 ]);
             }
+            (node.tags || []).forEach((tag) => {
+                items.push([
+                    state.tag === tag ? "Stop lighting #" + tag : "Light up everything tagged #" + tag,
+                    () => (state.tag === tag ? clearTag() : showTag(tag)),
+                ]);
+            });
             items.push(["Reset the view", () => command("reset")]);
             items.forEach(([label, action]) => {
                 const item = document.createElement("button");
@@ -419,7 +471,7 @@
                 if (event.key !== "Escape") return;
                 closeMenu();
                 const view = current();
-                if (view) view.clearChain();
+                if (view) { view.clearChain(); view.clearTag(); }
             });
         }
 
@@ -431,10 +483,12 @@
             else if (name === "expand-all") { state.folded.clear(); applyVisibility(); }
             else if (name === "zoom") setZoom(state.zoom * argument);
             else if (name === "zoom-reset") setZoom(1);
+            else if (name === "tag") showTag(argument);
             else if (name === "reset") {
                 state.folded.clear();
                 state.filter = null;
                 clearChain();
+                clearTag();
                 setZoom(1);
                 applyVisibility();
             }
@@ -445,6 +499,7 @@
             command: command,
             reveal: reveal,
             clearChain: clearChain,
+            clearTag: clearTag,
             onMouseDown: onMouseDown,
             onClick: onClick,
             onContextMenu: onContextMenu,

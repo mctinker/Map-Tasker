@@ -35,7 +35,7 @@ from __future__ import annotations
 import json
 from typing import TYPE_CHECKING, Any, cast
 
-from maptasker.src.core import assettext, mapjump
+from maptasker.src.core import assettext, mapjump, objnotes
 from maptasker.src.core.mapjump import PROJECT, TASK, Target
 
 if TYPE_CHECKING:
@@ -50,6 +50,10 @@ CHAIN_CONNECTOR_CLASS = "mt-chain-connector"  # An arrow in that chain.
 CHAIN_LINE_CLASS = "mt-chain-line"  # A line the chain runs through, exempt from dimming.
 CHAINING_CLASS = "mt-chaining"  # On the container, while a chain is being followed.
 HIDDEN_CLASS = "mt-hidden"  # Folded away, or filtered out.
+TAGGED_CLASS = "mt-dtagged"  # A name the user has put a note or tags on.
+TAG_HIT_CLASS = "mt-tag-hit"  # A name carrying the tag being followed.
+TAG_LINE_CLASS = "mt-tag-line"  # A line holding one, exempt from the greying.
+TAGGING_CLASS = "mt-tagging"  # On the container, while a tag is being followed.
 
 # How wide "└─ " is -- the prefix a Task line is drawn with, and the part of a Task's
 # recorded span that is drawing rather than name.  Trimmed off the clickable span so that a
@@ -135,6 +139,7 @@ def _nodes(
     placements: list[tuple[str, int, int, int]],
     targets: dict[str, Any],
     regions: list[dict[str, Any]],
+    notes: objnotes.NoteBook | None = None,
 ) -> list[dict[str, Any]]:
     """Every DRAWING of every object, as a span the browser can wrap and a token to jump with.
 
@@ -155,6 +160,9 @@ def _nodes(
     mapjump.scope_for), and the drawing code would have to thread it through four call
     layers to get it here any other way.  Read per drawing, since a Task drawn under one
     Project can be drawn again under another.
+
+    An object the user has put a note or tags on carries them ("note", "tags"), and one without carries neither key:
+    most of a large Diagram's objects have no note, and the model is sent to the browser whole.
     """
     nodes: list[dict[str, Any]] = []
     for anchor, line, column, length in placements:
@@ -170,23 +178,25 @@ def _nodes(
         if span_length <= 0:
             continue
         project = target.key if target.kind == PROJECT else _project_at(regions, line)
-        nodes.append(
-            {
-                "anchor": anchor,
-                "kind": target.kind,
-                "name": target.name,
-                "line": line,
-                "col": span_column,
-                "len": span_length,
-                "project": project,
-                "token": Target(
-                    kind=target.kind,
-                    key=target.key,
-                    name=target.name,
-                    project=project,
-                ).token(),
-            },
-        )
+        node: dict[str, Any] = {
+            "anchor": anchor,
+            "kind": target.kind,
+            "name": target.name,
+            "line": line,
+            "col": span_column,
+            "len": span_length,
+            "project": project,
+            "token": Target(
+                kind=target.kind,
+                key=target.key,
+                name=target.name,
+                project=project,
+            ).token(),
+        }
+        if notes is not None and (note := notes.get(target.kind, target.name)) is not None:
+            node["note"] = note.text
+            node["tags"] = note.tags
+        nodes.append(node)
     nodes.sort(key=lambda node: (node["line"], node["col"]))
     # Numbered after sorting, because the number is how the rendered element names WHICH
     # drawing it is.  The anchor alone cannot say: it is shared by every drawing of the
@@ -195,6 +205,20 @@ def _nodes(
     for index, node in enumerate(nodes):
         node["index"] = index
     return nodes
+
+
+def drawn_tags(nodes: list[dict[str, Any]]) -> dict[str, int]:
+    """Each tag carried by an object the Diagram draws, with how many objects carry it, the most used first.
+
+    Counted from the drawn nodes rather than from the notes: a tag on an object the Diagram does not draw (one in a
+    Project left out by the view limit, say) is nothing to follow, and offering it would find nothing.
+    """
+    anchors_by_tag: dict[str, set[str]] = {}
+    for node in nodes:
+        for tag in node.get("tags", ()):
+            anchors_by_tag.setdefault(tag, set()).add(node["anchor"])
+    counts = {tag: len(anchors) for tag, anchors in anchors_by_tag.items()}
+    return dict(sorted(counts.items(), key=lambda item: (-item[1], item[0])))
 
 
 def _task_on_row(by_row: dict[int, list[dict[str, Any]]], row: int, name: str) -> str:
@@ -269,9 +293,13 @@ def build_model(lines: list[str], state: RunState) -> dict[str, Any]:
     # no Project, and folding the last one should not take it away.
     tail = 2 if getattr(state, "diagram_limit_msg", "") else 0
     regions = _regions(anchors, targets, len(lines), tail)
-    nodes = _nodes(lines, getattr(state, "diagram_object_placements", []) or [], targets, regions)
+    # The user's notes and tags, unless they are switched off for this Map and Diagram.
+    book = objnotes.book_for(state)
+    notes = book if book.show_in_map and book.notes else None
+    nodes = _nodes(lines, getattr(state, "diagram_object_placements", []) or [], targets, regions, notes)
     return {
         "nodes": nodes,
+        "tags": drawn_tags(nodes),
         "regions": regions,
         "edges": _edges(
             nodes,
@@ -299,7 +327,7 @@ def model(state: RunState) -> dict[str, Any]:
         stored_model = cast("dict[str, Any]", stored)
         if stored_model.get("nodes"):
             return stored_model
-    return {"nodes": [], "regions": [], "edges": []}
+    return {"nodes": [], "tags": {}, "regions": [], "edges": []}
 
 
 def connector_tasks(the_model: dict[str, Any]) -> dict[str, list[str]]:
@@ -346,6 +374,10 @@ def model_json(the_model: dict[str, Any]) -> str:
                 "chainLine": CHAIN_LINE_CLASS,
                 "chaining": CHAINING_CLASS,
                 "hidden": HIDDEN_CLASS,
+                "tagged": TAGGED_CLASS,
+                "tagHit": TAG_HIT_CLASS,
+                "tagLine": TAG_LINE_CLASS,
+                "tagging": TAGGING_CLASS,
             },
         },
     )
@@ -386,7 +418,7 @@ def interaction_js(container_id: str, status_id: str, the_model: dict[str, Any])
     )
 
 
-def command_js(container_id: str, name: str, argument: float | None = None) -> str:
+def command_js(container_id: str, name: str, argument: float | str | None = None) -> str:
     """A toolbar button, as the script that carries it to the view it belongs to."""
     return (
         f"const view = (window.mtDiagrams || {{}})[{json.dumps(container_id)}];"

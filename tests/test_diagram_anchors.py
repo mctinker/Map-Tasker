@@ -12,13 +12,14 @@ is at risk is a row that quietly stops meaning the line it used to mean.
 
 from __future__ import annotations
 
+import json
 import os
 import unicodedata
 import xml.etree.ElementTree as ET
 from typing import Any
 
 import pytest
-from maptasker.src.core import mapjump
+from maptasker.src.core import mapjump, objnotes
 from maptasker.src.core.initparg import ProgramArguments
 from maptasker.src.core.mapjump import PROFILE, PROJECT, TASK, Target, diagram_placement
 from maptasker.src.core.primitem import PrimeItems
@@ -1068,3 +1069,159 @@ def test_connectors_stay_in_line_on_rows_that_carry_icons(tmp_path: object, rest
     for row in icon_rows:
         neighbours = columns[row - 1] | columns[row + 1]
         assert columns[row] <= neighbours, f"row {row}: {lines[row]!r}"
+
+
+# ##################################################################################
+# The user's own notes and tags: marked on the names they are on, and followed from the toolbar.
+# ##################################################################################
+def _noted_book(*, shown: bool = True) -> None:
+    """Save notes on a Profile, a Project and two Tasks -- one of them drawn twice -- and one on an object not drawn."""
+    book = objnotes.NoteBook(show_in_map=shown)
+    book.put(objnotes.Note(PROJECT, "Home", "The house", ["family"]))
+    book.put(objnotes.Note(PROFILE, "Wake Up", "", ["flaky"]))
+    book.put(objnotes.Note(TASK, "Backup", 'Rewrite <it> & "quote"', ["flaky", "needs-rewrite"]))
+    book.put(objnotes.Note(TASK, "Shared Menu", "Drawn twice", ["flaky"]))
+    book.put(objnotes.Note(TASK, "Not Drawn", "Not in the Diagram", ["flaky", "elsewhere"]))
+    objnotes.save(book)
+
+
+@pytest.fixture
+def noted(tmp_path: object) -> tuple[list[str], dict]:
+    """The three-Project diagram, drawn with notes saved first, as its rendered lines and its model."""
+    _noted_book()
+    tables = _load(_MODEL_XML, {"Backup": ["Restore"], "Restore": ["Notify Team"]})
+    lines = _render(
+        tmp_path,
+        {
+            "Home": {
+                "Wake Up": [
+                    {"xml": tables["all_tasks"]["20"]["xml"], "name": "Backup"},
+                    {"xml": tables["all_tasks"]["24"]["xml"], "name": "Shared Menu"},
+                ],
+                "Wind Down": [
+                    {"xml": tables["all_tasks"]["21"]["xml"], "name": "Restore"},
+                    {"xml": tables["all_tasks"]["24"]["xml"], "name": "Shared Menu"},
+                ],
+            },
+        },
+    )
+    return lines, PrimeItems.diagram_model
+
+
+def test_an_object_with_a_note_carries_it_in_the_model_and_one_without_carries_nothing(
+    noted: tuple[list[str], dict],
+) -> None:
+    _, model = noted
+
+    backup = _node(model, _BACKUP)
+    restore = _node(model, _RESTORE)
+
+    assert backup["note"] == 'Rewrite <it> & "quote"'
+    assert backup["tags"] == ["flaky", "needs-rewrite"]
+    # Most objects have none, and the model is sent to the browser whole.
+    assert "note" not in restore
+    assert "tags" not in restore
+
+
+def test_every_drawing_of_a_noted_object_carries_its_note(noted: tuple[list[str], dict]) -> None:
+    _, model = noted
+
+    drawings = _nodes_for(model, _SHARED)
+
+    assert len(drawings) > 1
+    assert all(node["tags"] == ["flaky"] for node in drawings)
+
+
+def test_a_project_and_a_profile_carry_their_notes_too(noted: tuple[list[str], dict]) -> None:
+    _, model = noted
+
+    home = next(node for node in model["nodes"] if node["kind"] == PROJECT and node["name"] == "Home")
+    wake_up = next(node for node in model["nodes"] if node["kind"] == PROFILE and node["name"] == "Wake Up")
+
+    assert home["tags"] == ["family"]
+    assert (wake_up["note"], wake_up["tags"]) == ("", ["flaky"])
+
+
+def test_the_tags_the_diagram_offers_are_those_of_objects_it_draws_counted_by_object(
+    noted: tuple[list[str], dict],
+) -> None:
+    _, model = noted
+
+    # 'flaky' is on a Profile and two Tasks drawn -- and the Task drawn twice is one object.  'elsewhere' is only on
+    # an object the Diagram does not draw, so there is nothing for it to light.
+    assert model["tags"] == {"flaky": 3, "family": 1, "needs-rewrite": 1}
+    assert list(model["tags"]) == ["flaky", "family", "needs-rewrite"]
+
+
+def test_notes_switched_off_leave_the_diagram_as_it_was(tmp_path: object) -> None:
+    _noted_book(shown=False)
+    tables = _load(_MODEL_XML, {})
+    _render(tmp_path, {"Home": {"Wake Up": [{"xml": tables["all_tasks"]["20"]["xml"], "name": "Backup"}]}})
+    model = PrimeItems.diagram_model
+
+    assert model["tags"] == {}
+    assert all("tags" not in node and "note" not in node for node in model["nodes"])
+
+
+def test_a_diagram_with_no_notes_file_is_as_it_always_was(modelled: tuple[list[str], dict]) -> None:
+    _, model = modelled
+
+    assert model["tags"] == {}
+    assert all("tags" not in node for node in model["nodes"])
+
+
+def test_the_browser_is_told_the_classes_a_tag_is_followed_through(noted: tuple[list[str], dict]) -> None:
+    _, model = noted
+
+    classes = json.loads(diagintr.model_json(model))["classes"]
+
+    assert classes["tagged"] == diagintr.TAGGED_CLASS
+    assert classes["tagHit"] == diagintr.TAG_HIT_CLASS
+    assert classes["tagLine"] == diagintr.TAG_LINE_CLASS
+    assert classes["tagging"] == diagintr.TAGGING_CLASS
+
+
+def test_a_name_with_a_note_is_marked_and_carries_the_note_as_its_tooltip(noted: tuple[list[str], dict]) -> None:
+    lines, model = noted
+    backup = _node(model, _BACKUP)
+
+    markup = _rendered(lines, model)[backup["line"]]
+
+    assert f'class="{diagintr.NODE_CLASS} {diagintr.TAGGED_CLASS}"' in markup
+    # Escaped as an attribute, with the tags under the note on a line of their own.
+    assert 'title="Rewrite &lt;it&gt; &amp; &quot;quote&quot;&#10;#flaky #needs-rewrite"' in markup
+
+
+def test_a_name_with_only_tags_has_them_as_its_tooltip() -> None:
+    node = {"anchor": "a", "index": 0, "kind": TASK, "col": 0, "len": 6, "tags": ["flaky"], "note": ""}
+
+    spans = guiwins_diagram._diagram_spans(0, "Backup", {}, {0: [node]})
+
+    assert 'title="#flaky"' in spans[0][2]
+    assert diagintr.TAGGED_CLASS in spans[0][2]
+
+
+def test_a_name_without_a_note_is_wrapped_exactly_as_before() -> None:
+    node = {"anchor": "a", "index": 0, "kind": TASK, "col": 0, "len": 6}
+
+    spans = guiwins_diagram._diagram_spans(0, "Backup", {}, {0: [node]})
+
+    assert spans[0][2] == (
+        f'<span class="{diagintr.NODE_CLASS}" data-anchor="a" data-node="0" data-kind="task" tabindex="0">'
+    )
+
+
+def test_the_script_that_follows_a_tag_is_in_the_interaction_script(noted: tuple[list[str], dict]) -> None:
+    _, model = noted
+
+    script = diagintr.interaction_js("c1", "c2", model)
+
+    for expected in ("function showTag", "function clearTag", 'name === "tag"', "cls.tagHit", "cls.tagging"):
+        assert expected in script
+    # Reset and Escape both let go of a tag, as they let go of a chain.
+    assert script.count("clearTag()") >= 3
+
+
+def test_a_tag_is_sent_to_the_browser_as_text() -> None:
+    assert '"tag", "flaky"' in diagintr.command_js("c1", "tag", "flaky")
+    assert '"tag", ""' in diagintr.command_js("c1", "tag", "")

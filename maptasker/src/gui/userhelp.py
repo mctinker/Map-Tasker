@@ -446,6 +446,19 @@ VARMAN_HELP_TEXT = (
     " same letters as a global, or a name in the Variables tab with no capital, and fixes the one you choose everywhere"
     " it is used, with a preview and one press of Undo.  The Health Check reports the same names.  \n"
 )
+NOTES_HELP_TEXT = (
+    "- Notes & Tags: Your own notes and tags on Projects, Profiles and Tasks -- 'broken on Android 15', 'needs a"
+    " rewrite' -- to find them by.  Add puts a note on an object, whose name you type or pick from the open file, with"
+    " any tags you like separated by spaces or commas; Edit changes it, or moves it to another object when the object"
+    " has been renamed; Delete takes the ticked ones away.  Press a tag above the table to list only the objects that"
+    " carry it, or press several for those that carry all of them.  A note is written under its object's own line in"
+    " the Map, with its tags as #like-this so the Map's search finds them, and a name carrying one is underlined with"
+    " dots in the Diagram, where the tag button on the toolbar lights up everything that carries a tag and greys the"
+    " rest.  The notes are kept in MapTasker_Notes.json, in the folder MapTasker is run from and never in the backup,"
+    " so Tasker never sees them and Undo does not touch them; turn off 'Show In Map And Diagram' before sharing a Map"
+    " or Diagram to leave them out.  A note is found again by its object's kind and name, so one on an object that has"
+    " since been renamed is marked 'Not in this file' until you Edit it onto the new name.  \n"
+)
 COMMAND_REFERENCE_TEXT = (
     "See the MapTasker [Command Reference](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference)"
     " for more information.  \n"
@@ -475,5 +488,5 @@ def build_help(translate: Callable[[str], str] | None = None) -> str:
     lookup: Callable[[str], str] = translate or (lambda text: text)
     return (
         f"MapTasker {VERSION} {lookup(HELP_HEADING)}  \n{lookup(COMMAND_REFERENCE_TEXT)}{lookup(INFO_TEXT)}"
-        f"{lookup(OUTPUT_FOLDER_HELP_TEXT)}{lookup(TASKERNET_UPDATES_HELP_TEXT)}{lookup(TASKSTEP_HELP_TEXT)}{lookup(TREND_HELP_TEXT)}{lookup(VARIABLE_HELP_TEXT)}{lookup(RESOURCES_HELP_TEXT)}{lookup(MONITOR_HELP_TEXT)}{lookup(PREBUILD_HELP_TEXT)}{lookup(CARRY_HELP_TEXT)}{lookup(TASKTESTS_HELP_TEXT)}{lookup(OUTBOUND_HELP_TEXT)}{lookup(TNDESC_HELP_TEXT)}{lookup(LAUNCHER_HELP_TEXT)}{lookup(DESCRIBE_HELP_TEXT)}{lookup(BATTERY_HELP_TEXT)}{lookup(VARMAN_HELP_TEXT)}"
+        f"{lookup(OUTPUT_FOLDER_HELP_TEXT)}{lookup(TASKERNET_UPDATES_HELP_TEXT)}{lookup(TASKSTEP_HELP_TEXT)}{lookup(TREND_HELP_TEXT)}{lookup(VARIABLE_HELP_TEXT)}{lookup(RESOURCES_HELP_TEXT)}{lookup(MONITOR_HELP_TEXT)}{lookup(PREBUILD_HELP_TEXT)}{lookup(CARRY_HELP_TEXT)}{lookup(TASKTESTS_HELP_TEXT)}{lookup(OUTBOUND_HELP_TEXT)}{lookup(TNDESC_HELP_TEXT)}{lookup(LAUNCHER_HELP_TEXT)}{lookup(DESCRIBE_HELP_TEXT)}{lookup(BATTERY_HELP_TEXT)}{lookup(VARMAN_HELP_TEXT)}{lookup(NOTES_HELP_TEXT)}"
     )

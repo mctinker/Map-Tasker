@@ -22,6 +22,7 @@ from maptasker.src.core.property import get_properties
 from maptasker.src.core.share import share
 from maptasker.src.core.sysconst import DISABLED, NORMAL_TAB, UNNAMED_ITEM, FormatLine
 from maptasker.src.mapgen.globalvr import output_variables
+from maptasker.src.mapgen.notesout import output_notes
 from maptasker.src.mapgen.proclist import output_task_list
 from maptasker.src.mapgen.profiles import process_profiles
 from maptasker.src.mapgen.scenes import process_project_scenes, process_scene_list
@@ -522,6 +523,8 @@ def get_extra_and_output_project(
         final_project_line,
         FormatLine.dont_format_line,
     )
+    # The user's note and tags on this Project, under its line.
+    output_notes(PROJECT, project_name, state=state)
 
     return False
 

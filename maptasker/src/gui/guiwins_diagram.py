@@ -5,6 +5,7 @@ step through the connectors live here with them."""
 
 from __future__ import annotations
 
+from html import escape
 from typing import TYPE_CHECKING, Any
 
 from nicegui import ui
@@ -57,6 +58,21 @@ def diagram_connectors_by_line(state: RunState) -> dict[int, list[tuple[int, int
     return by_line
 
 
+def _tagged_class(node: dict[str, Any]) -> str:
+    """The extra class a name carries when the user has put a note or tags on it: ' mt-dtagged', or nothing."""
+    return f" {diagintr.TAGGED_CLASS}" if node.get("note") or node.get("tags") else ""
+
+
+def _note_title(node: dict[str, Any]) -> str:
+    """The tooltip of a name the user has put a note or tags on -- the note, then the tags -- as an attribute, or ''."""
+    lines = [node["note"]] if node.get("note") else []
+    if node.get("tags"):
+        lines.append(" ".join(f"#{tag}" for tag in node["tags"]))
+    if not lines:
+        return ""
+    return f' title="{escape(chr(10).join(lines), quote=True).replace(chr(10), "&#10;")}"'
+
+
 def _diagram_spans(
     line_num: int,
     line: str,
@@ -83,8 +99,8 @@ def _diagram_spans(
                 start,
                 min(end, len(line)),
                 (
-                    f'<span class="{diagintr.NODE_CLASS}" data-anchor="{node["anchor"]}" '
-                    f'data-node="{node["index"]}" data-kind="{node["kind"]}" tabindex="0">'
+                    f'<span class="{diagintr.NODE_CLASS}{_tagged_class(node)}" data-anchor="{node["anchor"]}" '
+                    f'data-node="{node["index"]}" data-kind="{node["kind"]}" tabindex="0"{_note_title(node)}>'
                 ),
             ),
         )
@@ -182,6 +198,15 @@ def create_diagram_tools(view: NiceGuiTextView) -> None:
         )
         with reset:
             ui.tooltip(translate_string("Back to the whole diagram: no zoom, nothing folded, nothing filtered."))
+        # The tags the user has put on objects, to follow one: the objects that carry it stay lit and the rest greys.
+        # Filled, and shown, once the Diagram is drawn and says which tags it holds (see fill_tag_menu).
+        view.diagram_tag_button = ui.button(icon="sell").props("flat dense")
+        with view.diagram_tag_button:
+            ui.tooltip(
+                translate_string("Light up the objects that carry a tag you gave them, and grey the rest."),
+            )
+            view.diagram_tag_menu = ui.menu()
+        view.diagram_tag_button.set_visibility(False)
         # The one place the gestures are written down.  Everything the diagram does on a
         # click is discoverable by trying it, but only if you already suspect it is there.
         help_button = ui.button(icon="help_outline").props("flat dense")
@@ -199,6 +224,21 @@ def create_diagram_tools(view: NiceGuiTextView) -> None:
                 ),
             ).style("white-space: pre-wrap")
     view.diagram_state_label = ui.label("").classes("text-xs text-gray-400 italic ml-1")
+
+
+def fill_tag_menu(view: NiceGuiTextView, tags: dict[str, int]) -> None:
+    """Put the tags the Diagram holds into the toolbar's tag menu, or hide the button when it holds none."""
+    menu = getattr(view, "diagram_tag_menu", None)
+    button = getattr(view, "diagram_tag_button", None)
+    if menu is None or button is None:
+        return
+    menu.clear()
+    with menu:
+        for tag, count in tags.items():
+            ui.menu_item(f"#{tag}  ({count})", on_click=lambda _e=None, chosen=tag: view.diagram_command("tag", chosen))
+        ui.separator()
+        ui.menu_item(translate_string("Show All"), on_click=lambda: view.diagram_command("tag", ""))
+    button.set_visibility(bool(tags))
 
 
 def wrap_diagram_line(

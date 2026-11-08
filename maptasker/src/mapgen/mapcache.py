@@ -53,7 +53,7 @@ import hashlib
 import os
 from typing import TYPE_CHECKING, Any
 
-from maptasker.src.core import caches
+from maptasker.src.core import caches, objnotes
 from maptasker.src.core.primitem import RunState
 
 if TYPE_CHECKING:
@@ -141,6 +141,9 @@ def settings_digest(state: RunState) -> str:
     for name, value in sorted(colors.items()):
         digest.update(f"{name}={value!r}".encode())
         digest.update(SEPARATOR)
+    # The user's notes and tags are written into the Map, so a note added since is a Map that has to be built again.
+    digest.update(f"notes={objnotes.fingerprint()}".encode())
+    digest.update(SEPARATOR)
     return digest.hexdigest()
 
 

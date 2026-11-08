@@ -27,6 +27,7 @@ from maptasker.src.core.sysconst import (
 from maptasker.src.core.xmldata import remove_html_tags
 from maptasker.src.mapgen import condition, tasks
 from maptasker.src.mapgen.actione import fix_json
+from maptasker.src.mapgen.notesout import output_notes
 from maptasker.src.mapgen.proclist import output_task_list
 
 if TYPE_CHECKING:
@@ -509,6 +510,8 @@ def build_profile_line(
         profile_info,
         FormatLine.dont_format_line,
     )
+    # The user's note and tags on this Profile, under its line.
+    output_notes(PROFILE, unmodified_profile_name, state=state)
     return profile_name
 
 

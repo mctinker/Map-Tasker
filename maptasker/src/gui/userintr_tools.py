@@ -26,6 +26,7 @@ from maptasker.src.gui.guiwins_firesim import build_firesim_dialog
 from maptasker.src.gui.guiwins_fix import build_fix_dialog
 from maptasker.src.gui.guiwins_monitor import build_monitor_dialog
 from maptasker.src.gui.guiwins_nav import go_to_target, opening_view_in_a_new_window
+from maptasker.src.gui.guiwins_notes import build_notes_window
 from maptasker.src.gui.guiwins_refactor import build_refactor_dialog
 from maptasker.src.gui.guiwins_resources import build_resources_dialog
 from maptasker.src.gui.guiwins_restore import build_restore_dialog
@@ -141,6 +142,23 @@ class ToolEventHandlers(HandlerGroup):
         dialog = build_variable_manager(self.gui, make_jump, self.hub.save_whole_configuration, state=self.state)
         if dialog is not None:
             dialog.open()
+
+    def notes_event(self) -> None:
+        """Open the Notes & Tags window: the person's own notes and tags on Projects, Profiles and Tasks.
+
+        Works with no file loaded, since the notes are in a file of their own.  Rebuilt on every press rather than kept,
+        so it reads the notes as they are now.  Its Show In Map opens a window of its own, for the reason
+        variable_manager_event gives.
+        """
+
+        def make_jump(target: mapjump.Target) -> Callable[[], Coroutine[Any, Any, None]]:
+            async def go() -> None:
+                with opening_view_in_a_new_window(self.gui):
+                    await go_to_target(self.gui, target)
+
+            return go
+
+        build_notes_window(make_jump, self.state).open()
 
     def fix_findings_event(self) -> None:
         """Open the Fix Findings dialog: the Health Check's findings, with a repair for each.

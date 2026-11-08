@@ -336,6 +336,10 @@ TASK_TESTS_FILE = "MapTasker_TaskTests.json"
 # The saved report of a run of them.
 TASK_TESTS_REPORT_FILE = "MapTasker_TaskTests.txt"
 
+# The user's own notes and tags on Projects, Profiles and Tasks -- see objnotes.py.  Kept in the current directory,
+# beside the settings and the Task tests, and never in the backup, so that Tasker never sees them.
+NOTES_FILE = "MapTasker_Notes.json"
+
 # Set up background color and border for tables
 TABLE_BACKGROUND_COLOR = "DarkSteelBlue" if darkdetect.isDark() else "PaleTurquois"
 TABLE_BORDER_COLOR = "DarkSlateGrey" if darkdetect.isDark() else "LightGrey"

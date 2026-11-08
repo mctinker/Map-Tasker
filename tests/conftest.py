@@ -8,8 +8,9 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pytest
-from maptasker.src.core import outdir
+from maptasker.src.core import objnotes, outdir
 from maptasker.src.core.primitem import PrimeItems
+from maptasker.src.core.sysconst import NOTES_FILE
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -61,6 +62,21 @@ def _output_folder_is_the_working_directory(monkeypatch: pytest.MonkeyPatch) -> 
     Tests of outdir's own default undo this with monkeypatch.undo() or by patching platformdirs.
     """
     monkeypatch.setattr(outdir, "default_output_directory", Path.cwd)
+
+
+@pytest.fixture(autouse=True)
+def _the_users_own_notes_are_not_read(
+    monkeypatch: pytest.MonkeyPatch, tmp_path_factory: pytest.TempPathFactory
+) -> None:
+    """Keep the notes file of whoever runs the tests out of the Map the tests build.
+
+    The notes are read from the working directory, which for a test that does not move to a directory of its own is
+    the project's -- where a developer who uses MapTasker keeps theirs.  A Map built here would then show them, and a
+    test of what the Map holds would pass or fail by who ran it.  Each test gets a notes file of its own instead,
+    empty until the test writes one; objnotes.book_path is what every reader and writer asks, so this is all of them.
+    """
+    where = str(tmp_path_factory.mktemp("notes") / NOTES_FILE)
+    monkeypatch.setattr(objnotes, "book_path", lambda: where)
 
 
 @pytest.fixture(autouse=True)
