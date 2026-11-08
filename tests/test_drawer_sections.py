@@ -25,7 +25,11 @@ _window = SimpleNamespace(drawer_sections={})
 
 
 def _page() -> None:
-    for key, title in (("history", "Compare & History"), ("analyze", "Analyze")):
+    for key, title in (
+        ("history", "Compare & History"),
+        ("analyze", "Analyze"),
+        ("simulate", "Simulate & Verify"),
+    ):
         with guiwins_drawers._drawer_section(_window, key, title, "history"):  # type: ignore[arg-type]
             ui.button(f"{title} button")
 
@@ -55,7 +59,7 @@ async def test_every_section_starts_folded() -> None:
     async with _open() as user:
         sections = _sections(user)
 
-        assert set(sections) == {"Compare & History", "Analyze"}
+        assert set(sections) == {"Compare & History", "Analyze", "Simulate & Verify"}
         assert not any(section.value for section in sections.values())
 
 

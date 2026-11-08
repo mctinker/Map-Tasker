@@ -284,8 +284,10 @@ def _create_right_drawer(self: MyGui) -> None:
         )
         _create_view_buttons_section(self)
         # Health Check stays out where it can be seen -- it is the most used of these and the others
-        # (Fix Findings beside it, Missing Resources) are its follow-ups.  The rest are tucked into two
-        # sections that open with a click, so the drawer is a few lines tall until one is wanted.
+        # (Fix Findings beside it) is its follow-up.  The rest are tucked into three sections that open
+        # with a click, so the drawer is a few lines tall until one is wanted: what changed (Compare &
+        # History), what the file says (Analyze) and what it would do, checked against the phone
+        # (Simulate & Verify).
         _create_health_check_row(self)
 
         with _drawer_section(self, "history", "Compare & History", "history"):
@@ -293,8 +295,11 @@ def _create_right_drawer(self: MyGui) -> None:
             _create_trend_button(self)
 
         with _drawer_section(self, "analyze", "Analyze", "analytics"):
-            _create_resources_button(self)
             _create_analysis_buttons_section(self)
+
+        with _drawer_section(self, "simulate", "Simulate & Verify", "science"):
+            _create_simulation_buttons(self)
+            _create_resources_button(self)
             _create_monitor_button(self)
 
         ui.button(translate_string("Clear"), on_click=self.event_handlers.views.clear_view_event).classes(
@@ -628,7 +633,7 @@ def _create_import_button(self: MyGui) -> None:
 
 
 def _create_resources_button(self: MyGui) -> None:
-    """Missing Resources, under the Health Check it extends: do the files, Scenes and apps the actions use still exist?"""
+    """Missing Resources, the Health Check's follow-up that asks the phone: do the files, Scenes and apps the actions use still exist?"""
     resources_button = (
         ui.button(
             translate_string("Missing Resources"),
@@ -650,7 +655,7 @@ def _create_resources_button(self: MyGui) -> None:
 
 
 def _create_monitor_button(self: MyGui) -> None:
-    """Live Run Monitor, under What Fires When and the Task Stepper, whose predictions it checks against the phone."""
+    """Live Run Monitor, last in Simulate & Verify, checking What Fires When's and the Task Stepper's predictions against the phone."""
     monitor_button = (
         ui.button(
             translate_string("Live Run Monitor"),
@@ -721,7 +726,7 @@ def _create_variable_manager_button(self: MyGui) -> None:
 
 
 def _create_analysis_buttons_section(self: MyGui) -> None:
-    """The reports that read the configuration's behaviour: Variable Xref, Task Flow and What Fires When."""
+    """The reports that read the configuration: Variable Xref, Variable Manager, Task Flow, Outbound Inventory and Battery Audit."""
     # Full width and coloured through "color" for the same two reasons the two buttons
     # above are: the drawer is w-80 and this label will not fit beside another, and
     # Quasar's own bg-primary beats a Tailwind bg-* class added here.
@@ -795,7 +800,6 @@ def _create_analysis_buttons_section(self: MyGui) -> None:
 
     _create_outbound_button(self)
     _create_battery_button(self)
-    _create_simulation_buttons(self)
 
 
 def _create_outbound_button(self: MyGui) -> None:
