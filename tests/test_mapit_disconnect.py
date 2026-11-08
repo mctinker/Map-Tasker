@@ -111,7 +111,11 @@ async def test_a_tab_that_connects_again_cancels_the_wait() -> None:
 
 
 @pytest.mark.asyncio
-async def test_a_connection_that_flaps_leaves_one_wait_not_a_pile() -> None:
+async def test_a_connection_that_flaps_leaves_one_wait_not_a_pile(monkeypatch: pytest.MonkeyPatch) -> None:
+    # Long enough that no wait runs out while the six are being started, however slow the machine: on a loaded
+    # runner six starts took longer than the fixture's tenth of a second, and the early waits ended on their own
+    # instead of being replaced.
+    monkeypatch.setattr(mapit, "DISCONNECT_GRACE_SECONDS", 0.5)
     client = _Client()
     monitor = _Monitor(client)
     tasks = []

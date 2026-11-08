@@ -247,6 +247,7 @@ async def test_the_helper_tasks_the_phone_holds_are_listed_stale_and_current(pho
     async with open_page(_panel(window)) as user:
         _fill(user, phone, "")
         await click(user, "List Helper Tasks")
+        await settled(lambda: "MapTasker List Files v0" in _texts(user))  # listed by a worker thread
         shown = _texts(user)
 
     assert "MapTasker List Files v0" in shown

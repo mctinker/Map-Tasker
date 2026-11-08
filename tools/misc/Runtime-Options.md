@@ -2,7 +2,7 @@
 
 The options MapTasker takes on the command line.  Everything here is also what `-h` prints.
 
-_Generated from the MapTasker 15.1.1 source by `build_runtime_options_wiki.py`._ _Do not edit this page by hand -- rerun that program instead._
+_Generated from the MapTasker 15.2.0 source by `build_runtime_options_wiki.py`._ _Do not edit this page by hand -- rerun that program instead._
 
 ## How to use this page
 
@@ -103,6 +103,7 @@ Exactly one of these is required.
 | `-changes_since` | `PERIOD` |  | show what changed since PERIOD: today, week, month, all, a date (YYYY-MM-DD) or Nd (e.g. 3d) |
 | `-trend` |  |  | show whether the configuration is getting healthier or messier over the history (see -file, -project); exits 10 if the newest backup made it messier |
 | `-export` | `{map,diagram}` |  | write the Map or the Diagram as a file (see -format), and print its path |
+| `-text` | `{export,apply}` |  | export: write every piece of text a person reads (Flash, Notify, Say, dialogs, Scene labels) as a table to translate or edit; apply: put the table's translations back (see -table, -text_format, -project) |
 | `-watch` | `FOLDER` |  | record each new backup that appears in FOLDER in the history, until stopped |
 
 ### Options for the reports
@@ -111,8 +112,10 @@ Where an option is for one report only, its description says which.
 
 | Option | Value | Default | What it does |
 | --- | --- | --- | --- |
+| `-table` | `TABLE` |  | -text apply: the table of translations to put back (.csv or .json) |
+| `-text_format` | `{csv,json}` | `csv` | -text export: the table's format (default: csv, which opens in a spreadsheet) |
 | `-file` | `FILE` |  | the Tasker backup to use: a file, or a folder to use the newest .xml in (-trend: only its name is used, to follow the backups of that file) |
-| `-project` | `PROJECT` |  | -trend: look at this Project alone, not the whole configuration |
+| `-project` | `PROJECT` |  | -trend, -text: look at this Project alone, not the whole configuration (-text apply: write that Project as a .prj.xml, ready to share) |
 | `-outdir` | `OUTDIR` |  | the folder to write files into (see -save and -export) |
 | `-history_dir` | `HISTORY_DIR` |  | the folder holding the history, if not MapTasker_Timeline here |
 | `-save` |  |  | also save the report as a file, as the window does |
