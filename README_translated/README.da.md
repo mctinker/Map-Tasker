@@ -309,6 +309,10 @@ Se dokumentet [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/cavea
 
 - [ ] Kortlæg resterende Tasker-indstillinger
 
+- [x] TaskerNet opdateringsspor: informerer dig, når forfatteren af en fil, du bruger, har udgivet en nyere version med en oversigt over ændringerne.
+
+- [x] Kontrollering af manglende ressourcer: Bekræft, at filerne, mapperne, billederne, lydeffekterne, scenerne og applikationerne, som dine handlinger refererer til, stadig eksisterer.
+
 - [x] Task Stepper: "dry-run" en Task action for action, og vis hvilke If-, For- og Goto-forgreninger der køres, og hvad hver variabel indeholder
 
 - [x] Live Run Monitor: strøm live, hvilke Profiles og Tasks der udløses på telefonen, og markér dem i Diagram-visningen
@@ -321,6 +325,10 @@ Se dokumentet [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/cavea
 
 - [x] Tilføj/rediger beskrivelser for TaskerNet.
 
+- [x] Variabeladministrator
+
+- [x] Støtte for noter og tags
+
 - [ ] Forklaringer i almindeligt sprog i Map'en: en AI-skrevet, cachelagret og redigerbar en-linjes opsummering af hver Profile og Task
 
 - [x] Kontrol af manglende ressourcer: bekræft, at de filer, mapper, billeder, lyde, Scenes og apps, dine actions refererer til, stadig findes
@@ -329,7 +337,13 @@ Se dokumentet [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/cavea
 
 - [ ] Eksport af dokumentationswebsted: et sammenkoblet sæt Markdown- eller HTML-sider, én pr. Project, Profile, Task og Scene, med kaldediagrammer
 
+- [ ] Sammenlægning af tre forskellige sikkerhedskopier for at kombinere dem
+
+- [ ] Varmekort til at visualisere aktuelle brandudbrud over en periode, viser, hvor brandene opstår.
+
 - [x] Assistent til omdøbning og scope af variabler: omdøb en variabel, eller lav en global til en lokal, alle steder den bruges, som én fortrydelig handling
+
+- [ ] Projektets afhængighedsdiagram
 
 ## Erklæring om privatliv
 

@@ -299,8 +299,6 @@ Reportez-vous au document [Caveats](https://github.com/mctinker/Map-Tasker/blob/
 
 ## Liste de tâches à faire (sans ordre particulier)
 
-- [x] Readiness Check (vérification de l'état de préparation)
-
 - [x] Prise en charge de plugins supplémentaires
 
 - [x] Importation avec dépendances (Import with Dependencies)
@@ -313,6 +311,12 @@ Reportez-vous au document [Caveats](https://github.com/mctinker/Map-Tasker/blob/
 
 - [ ] Fusion à trois voies (three-way merge) de deux sauvegardes par rapport à un ancêtre commun, résolue conflit par conflit et annulable en une seule étape
 
+- [x] Vérificateur de ressources manquantes : assurez-vous que les fichiers, dossiers, images, sons, scènes et applications auxquels vos actions font référence existent toujours.
+
+- [x] Tableau de bord de complexité et d'évolution : suivi de la durée des tâches, de leur imbrication, de la profondeur des chaînes d'appel et des résultats au fil du temps.
+
+- [x] Assistant de renommage et de portée des variables : renommez une variable, ou transformez-la en variable locale, partout où elle est utilisée, en une seule opération "Annuler"
+
 - [x] TaskerNet update tracker : vous avertir lorsque l'auteur d'un partage que vous utilisez publie une nouvelle version, avec un diff des modifications
 
 - [ ] Bibliothèque personnelle de snippets : enregistrer des séquences d'actions, des Tasks et des modèles de Profile réutilisables, et les insérer avec des paramètres
@@ -321,15 +325,25 @@ Reportez-vous au document [Caveats](https://github.com/mctinker/Map-Tasker/blob/
 
 - [x] Possibilité d'ajouter/modifier les descriptions des tâches dans TaskerNet.
 
+- [x] Gestionnaire de variables
+
 - [x] Vérificateur de ressources manquantes : vérifier que les fichiers, dossiers, images, sons, Scenes et applications référencés par vos actions existent toujours
 
 - [ ] Sauvegarder les préférences de Tasker
 
 - [x] Tableau de bord de complexité et de tendances : suivre dans le temps la longueur des Tasks, l'imbrication, la profondeur des chaînes d'appel et les constats
 
+- [ ] Explications claires en langage courant dans la carte : un résumé d'une seule ligne, rédigé par l'IA, mis en cache et modifiable, pour chaque profil et chaque tâche.
+
 - [ ] Export vers un site de documentation : un ensemble de pages Markdown ou HTML reliées entre elles, une par Project, Profile, Task et Scene, avec des diagrammes d'appel
 
+- [ ] Fusion de trois sauvegardes pour fusionner deux sauvegardes divergentes
+
+- [ ] Carte thermique pour visualiser les incendies en temps réel sur une période donnée, afin de déterminer quelles zones sont les plus touchées.
+
 - [x] Assistant de renommage et de portée des variables : renommer une variable, ou transformer une variable globale en locale, partout où elle est utilisée, en un seul Undo
+
+- [ ] Graph de dépendance du projet
 
 ## Déclaration de confidentialité
 

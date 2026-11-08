@@ -302,8 +302,6 @@ Refer the the [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/cavea
 
 ## To-Do List (in no particular order)
 
-- [x] Readiness Check
-
 - [x] Support additional plugins
 
 - [x] Import with Dependencies
@@ -326,6 +324,14 @@ Refer the the [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/cavea
 
 - [x] Outbound Inventory: identify all external references
 
+- [x] Battery Audit
+
+- [x] Insert Requirements into TaskerNet description
+
+- [x] Variable Manager
+
+- [x] Notes and Tags support
+
 - [ ] Map remaining Tasker preferences
 
 - [ ] Personal snippet library: save reusable action sequences, Tasks and Profile templates and insert them with parameters
@@ -333,6 +339,14 @@ Refer the the [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/cavea
 - [ ] Plain-English explanations in the Map: an AI-written, cached and editable one-line summary of each Profile and Task
 
 - [ ] Documentation site export: a linked set of Markdown or HTML pages, one per Project, Profile, Task and Scene, with call diagrams
+
+- [ ] Three-way merge to merge two divergent backups
+
+- [ ] Heat Map to capture live runs over a period show what fires when
+
+- [ ] Near-duplicate Finder to find Tasks that were copy/pasted with minor differences and offer to merge
+
+- [ ] Project Dependency Graph
 
 ## Privacy Statement
 

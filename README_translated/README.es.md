@@ -278,10 +278,10 @@ Los detalles de algunos de los puntos mencionados en la sección "Solución de p
 Para obtener el archivo XML de Tasker directamente:
 
 - Asegúrese de que tanto los dispositivos de escritorio como los de Android estén conectados a la misma red local y de que Tasker esté en funcionamiento.
-- Los proyectos "Ejemplo de servidor HTTP" y "API HTTP de Tasker" (https://shorturl.at/bwCD4 y https://shorturl.at/hlTj0) deben estar instalados y activos en el dispositivo Android, con el servidor en funcionamiento. Recuerde ejecutar la tarea "Actualizar información HTTP de GD" y, la primera vez, ingresar su ID de Google Drive cuando se solicite.
-  - NOTA: MapTasker ofrece la opción de instalar 'Http Server Example' por usted. Puede encontrar esta opción en el panel 'OBTENER XML DEL DISPOSITIVO ANDROIDE'. Sin embargo, *es necesario* que 'Tasker HTTP API' ya esté instalado para que funcione.
-- Una vez descargado, el archivo XML se guarda en tu escritorio y no necesita ser descargado repetidamente a menos que se modifique.
-- Otras funciones de MapTasker solicitarán primero permiso en su dispositivo Android para que la función específica pueda funcionar.
+- Los proyectos de Tasker ['Http Server Example'](https://shorturl.at/bwCD4) y ['Tasker HTTP API'](https://shorturl.at/hlTj0) deben estar instalados y activos en el dispositivo Android, con el servidor en funcionamiento. Recuerde ejecutar la tarea "Update GD HTTP Info" y, solo la primera vez, introducir su ID de Google Drive cuando se le solicite.
+  - NOTA: MapTasker ofrece la opción de instalar "Ejemplo de Servidor HTTP" por usted. Puede encontrar esta opción en el panel "OBTENER XML DEL DISPOSITIVO ANDROID". Sin embargo, *es necesario* que "Tasker HTTP API" ya esté instalado para que funcione.
+- Una vez descargado, el archivo XML se guarda en el escritorio y no necesita ser descargado de nuevo con frecuencia, a menos que se haya modificado.
+- Otras características de MapTasker solicitarán primero permiso en su dispositivo Android para que la función específica pueda funcionar.
 
 ### 3
 **Compatibilidad con IA**
@@ -313,13 +313,21 @@ Consulte el documento de [Advertencias (Caveats)](https://github.com/mctinker/Ma
 
 - [x] Live Run Monitor: transmitir en vivo qué Perfiles y Tareas se activan en el teléfono y resaltarlos en la vista de Diagrama
 
+- [x] Panel de control de complejidad y tendencias: seguimiento de la duración de las tareas, la anidación, la profundidad de las cadenas de llamadas y los hallazgos a lo largo del tiempo.
+
 - [ ] Fusión a tres bandas de dos copias de seguridad respecto a un ancestro común, resuelta conflicto por conflicto y deshecha en un solo paso
 
 - [x] Rastreador de actualizaciones de TaskerNet: le avisa cuando el autor de una publicación que usted utiliza ha publicado una nueva versión, con una comparación de los cambios
 
 - [ ] Biblioteca personal de fragmentos: guarde secuencias de acciones, Tareas y plantillas de Perfiles reutilizables, e insértelas con parámetros
 
+- [x] Auditoría de baterías
+
 - [x] Añadir/modificar descripciones en TaskerNet.
+
+- [x] Administrador de variables
+
+- [x] Soporte para notas y etiquetas
 
 - [ ] Explicaciones en lenguaje sencillo dentro del Mapa: un resumen de una línea, escrito por IA, en caché y editable, de cada Perfil y Tarea
 
@@ -329,7 +337,13 @@ Consulte el documento de [Advertencias (Caveats)](https://github.com/mctinker/Ma
 
 - [ ] Exportación a sitio de documentación: un conjunto enlazado de páginas Markdown o HTML, una por cada Proyecto, Perfil, Tarea y Escena, con diagramas de llamadas
 
+- [ ] Fusión de tres fuentes para combinar dos copias de seguridad divergentes.
+
+- [ ] Mapa de calor para visualizar las incidencias en tiempo real durante un período, mostrando qué incendios están activos.
+
 - [x] Asistente de renombrado y alcance de variables: renombre una variable, o convierta una global en local, en todos los lugares donde se usa, como un único paso que se puede deshacer
+
+- [ ] Gráfico de dependencias del proyecto
 
 ## Declaración de privacidad
 

@@ -305,7 +305,11 @@ Katso [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/caveats.txt)-
 
 - [x] Tuonti riippuvuuksineen (Import with Dependencies)
 
+- [x] Tehtävä-askel: suorita tehtävä vaihe vaiheelta, näyttäen, mitkä `If`, `For` ja `Goto`-haarat suoritetaan ja mitä kukin muuttuja sisältää.
+
 - [ ] Jäljellä olevien Tasker-asetusten (preferences) kartoittaminen
+
+- [x] TaskerNet päivityseurantajärjestelmä: ilmoittaa, kun käytössäsi olevan sovelluksen kehittäjä on julkaissut uudemman version, ja näyttää muutosten erotuksen.
 
 - [ ] Määritä jäljellä olevat Taskerin asetukset
 
@@ -317,7 +321,13 @@ Katso [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/caveats.txt)-
 
 - [x] TaskerNet-päivitysseuranta: ilmoittaa sinulle, kun käyttämäsi jaon tekijä julkaisee uuden version, muutosten diffin kanssa
 
+- [x] Akun-audito
+
 - [ ] Henkilökohtainen katkelmakirjasto (snippet library): tallenna uudelleenkäytettäviä action-sekvensseja, Taskeja ja Profile-malleja, ja lisää niitä parametrien kanssa
+
+- [x] Muuttujien hallinta
+
+- [x] Muistiinpanot ja tunnisteiden tuki
 
 - [x] TaskerNet-kuvaukset: lisäys/muokkaus.
 
@@ -327,9 +337,13 @@ Katso [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/caveats.txt)-
 
 - [x] Monimutkaisuuden ja trendien hallintapaneeli: seuraa Task-pituutta, sisäkkäisyyttä, kutsuketjun syvyyttä ja havaintoja ajan myötä
 
+- [ ] Kolmastoiminen yhdistäminen, jolla voidaan yhdistää kaksi eri varmuuskopioa
+
 - [ ] Dokumentaatiosivuston vienti: toisiinsa linkitetty joukko Markdown- tai HTML-sivuja, yksi joka Projectia, Profilea, Taskia ja Scenea kohden, kutsukaavioiden kanssa
 
 - [x] Muuttujien uudelleennimeämis- ja scope-avustaja: nimeä muuttuja uudelleen, tai muuta globaali paikalliseksi, kaikkialla missä sitä käytetään, yhtenä peruutettavana toimintona
+
+- [ ] Projektin riippuvuussuunnitelma
 
 ## Tietosuojaseloste
 
