@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
+import asyncio
 from typing import TYPE_CHECKING, Any
 
 from nicegui import ui
 
-from maptasker.src.core.maputil2 import translate_string, write_full_backup_to_current_file
+from maptasker.src.core.maputil2 import suppress_logged, translate_string, write_full_backup_to_current_file
 from maptasker.src.edit import (
     taskedit,
     taskedit_apply,
@@ -44,12 +45,24 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 from maptasker.src.gui.userintr_editors_base import EditorHandlerBase
 
+# How many actions make a Task slow enough to open that the user should be told why.  Measured at about 1.3 milliseconds
+# an action, so this is a quarter of a second or more before the browser has it.
+LARGE_TASK_ACTIONS = 200
+# Long enough for the event loop to send the notice before the dialog is built.
+NOTICE_SEND_SECONDS = 0.15
+
 
 class TaskEditorHandlers(EditorHandlerBase):
     """The Task editor handlers: Edit, Add, Rename, Delete, and the action list they work on."""
 
-    def open_edit_task_dialog_event(self) -> None:
-        """Opens the Edit Task dialog for the currently selected single Task name."""
+    async def open_edit_task_dialog_event(self) -> None:
+        """Opens the Edit Task dialog for the currently selected single Task name.
+
+        A Task of LARGE_TASK_ACTIONS actions or more takes a noticeable time to put on screen (a row of widgets for
+        every action: about three seconds for the 2,213 of 'ADB App Manager'), all of it on NiceGUI's event loop, so
+        a notification only queued before it would not reach the browser until the dialog was done.  The short sleep
+        hands the loop back long enough for the notice to be sent first; the notice comes down when the dialog is up.
+        """
         the_view = self.gui
         task_name = getattr(the_view, "single_task_name", "")
         if not task_name:
@@ -61,7 +74,21 @@ class TaskEditorHandlers(EditorHandlerBase):
             ui.notify(f"Could not find Task '{task_name}'.", type="negative")
             return
 
-        build_edit_task_dialog(the_view, edited_task)
+        notice = None
+        if len(edited_task.actions) >= LARGE_TASK_ACTIONS:
+            notice = ui.notification(
+                translate_string("The task actions are being captured.  Please stand by..."),
+                type="ongoing",
+                spinner=True,
+                timeout=None,
+            )
+            await asyncio.sleep(NOTICE_SEND_SECONDS)
+        try:
+            build_edit_task_dialog(the_view, edited_task)
+        finally:
+            if notice is not None and not getattr(notice, "is_deleted", False):
+                with suppress_logged("Dismissing the large-Task notice"):
+                    notice.dismiss()
 
     def open_run_task_on_android_dialog_event(self) -> None:
         """Opens the Run Task On Android dialog for the currently selected single Task name.

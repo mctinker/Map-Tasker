@@ -511,36 +511,118 @@ def _stub_the_save(
 # ##################################################################################
 # The Task editor
 # ##################################################################################
-def test_edit_task_with_none_selected_asks_for_one(
+@pytest.mark.asyncio
+async def test_edit_task_with_none_selected_asks_for_one(
     handlers: MapTaskerEventHandlers, notices: _Notices, calls: dict
 ) -> None:
-    handlers.editors.open_edit_task_dialog_event()
+    await handlers.editors.open_edit_task_dialog_event()
     assert notices.said("Select a single Task first")
     assert calls["build_edit_task_dialog"] == []
 
 
-def test_edit_task_for_a_name_that_does_not_resolve_says_so(
+@pytest.mark.asyncio
+async def test_edit_task_for_a_name_that_does_not_resolve_says_so(
     handlers: MapTaskerEventHandlers,
     gui: MagicMock,
     notices: _Notices,
     calls: dict,
 ) -> None:
     gui.single_task_name = "Vanished"
-    handlers.editors.open_edit_task_dialog_event()
+    await handlers.editors.open_edit_task_dialog_event()
     assert notices.of_type("negative") == ["Could not find Task 'Vanished'."]
     assert calls["build_edit_task_dialog"] == []
 
 
-def test_edit_task_opens_the_dialog_over_a_copy_of_the_selected_task(
+@pytest.mark.asyncio
+async def test_edit_task_opens_the_dialog_over_a_copy_of_the_selected_task(
     handlers: MapTaskerEventHandlers,
     gui: MagicMock,
     calls: dict,
 ) -> None:
     gui.single_task_name = "Noisy"
-    handlers.editors.open_edit_task_dialog_event()
+    await handlers.editors.open_edit_task_dialog_event()
     ((args, _),) = calls["build_edit_task_dialog"]
     assert args[0] is gui
     assert args[1].task_element is not _live_task("Noisy"), "a copy, so Cancel leaves the loaded Task alone"
+
+
+class _Notification:
+    """A notification as the page sees it, recording what was done to it and in what order with the dialog's build."""
+
+    def __init__(self, order: list[str]) -> None:
+        self.order = order
+        self.is_deleted = False
+
+    def dismiss(self) -> None:
+        self.order.append("dismissed")
+
+
+@pytest.fixture
+def large_task_notice(monkeypatch: pytest.MonkeyPatch, calls: dict) -> dict:
+    """Every Task counts as large, and the notice and the dialog's build report to one list, in order."""
+    from maptasker.src.gui import userintr_editors_task
+
+    seen: dict = {"order": [], "made": []}
+    monkeypatch.setattr(userintr_editors_task, "LARGE_TASK_ACTIONS", 1)
+    monkeypatch.setattr(userintr_editors_task, "NOTICE_SEND_SECONDS", 0)
+
+    def notification(*args: object, **kwargs: object) -> _Notification:
+        seen["made"].append((args, kwargs))
+        seen["order"].append("noticed")
+        return _Notification(seen["order"])
+
+    monkeypatch.setattr(editor_ui, "notification", notification)
+    monkeypatch.setattr(
+        userintr_editors_task, "build_edit_task_dialog", lambda *_a, **_k: seen["order"].append("built")
+    )
+    return seen
+
+
+@pytest.mark.asyncio
+async def test_a_large_task_says_its_actions_are_being_captured_before_the_dialog_is_built(
+    handlers: MapTaskerEventHandlers, gui: MagicMock, large_task_notice: dict
+) -> None:
+    gui.single_task_name = "Noisy"
+
+    await handlers.editors.open_edit_task_dialog_event()
+
+    ((args, kwargs),) = large_task_notice["made"]
+    assert args == ("The task actions are being captured.  Please stand by...",)
+    assert kwargs["spinner"] is True
+    assert kwargs["timeout"] is None, "it stays until the dialog is up"
+    assert large_task_notice["order"] == ["noticed", "built", "dismissed"]
+
+
+@pytest.mark.asyncio
+async def test_the_notice_comes_down_when_the_dialog_could_not_be_built(
+    handlers: MapTaskerEventHandlers, gui: MagicMock, large_task_notice: dict, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from maptasker.src.gui import userintr_editors_task
+
+    def fails(*_args: object, **_kwargs: object) -> None:
+        raise RuntimeError("no dialog")
+
+    monkeypatch.setattr(userintr_editors_task, "build_edit_task_dialog", fails)
+    gui.single_task_name = "Noisy"
+
+    with pytest.raises(RuntimeError):
+        await handlers.editors.open_edit_task_dialog_event()
+
+    assert large_task_notice["order"] == ["noticed", "dismissed"]
+
+
+@pytest.mark.asyncio
+async def test_a_small_task_opens_without_a_notice(
+    handlers: MapTaskerEventHandlers, gui: MagicMock, monkeypatch: pytest.MonkeyPatch, calls: dict
+) -> None:
+    made = []
+    monkeypatch.setattr(editor_ui, "notification", lambda *a, **k: made.append(a))
+    gui.single_task_name = "Noisy"
+
+    await handlers.editors.open_edit_task_dialog_event()
+
+    assert made == []
+    assert len(calls["build_edit_task_dialog"]) == 1
 
 
 def test_run_on_android_needs_a_selected_task_and_takes_only_its_name(

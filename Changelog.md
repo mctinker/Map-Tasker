@@ -25,6 +25,7 @@ All notable changes to this project will be documented in this file!
 - Changed: List Helper Tasks now shows "Getting the list from Tasker.  Please stand by..." while it waits for the phone, which can take several seconds.
 - Changed: In Health Check and Task Flow, an 'If' or 'For' that is never closed before its Task ends is now a warning instead of an error, since the end of the Task closes it.
 - Changed: The right-hand panel's report buttons are now grouped under three sections instead of two: 'Compare & History', 'Analyze' and a new 'Simulate & Verify' that holds What Fires When?, Task Stepper, Task Tests, Missing Resources and Live Run Monitor. This makes the Analyze list shorter and puts the buttons that check the phone together.
+- Changed: Opening a very large Task for editing, one with 200 or more actions, now shows 'The task actions are being captured.  Please stand by...' until its actions are on screen, so the wait no longer looks like a hang.
 
 ### Removed
 
