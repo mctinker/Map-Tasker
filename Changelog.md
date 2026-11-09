@@ -35,6 +35,7 @@ All notable changes to this project will be documented in this file!
 
 ### Fixed
 
+- Fixed: The Map no longer lists global variables left over from a backup you loaded earlier in the same session, so a variable you had deleted from the file stops appearing. Loading a local file also no longer leaves the Map's source line reading 'From Android device' with a blank address.
 - Fixed: Importing or saving a Task no longer refuses If conditions that Tasker accepts: array references such as %list(#) or %list(), and values that are regular expressions or any other text, such as .apk$, Success|success, 1,2 or Third Party. The 85 conditions it wrongly refused in 'ADB App Manager' now pass.
 - Fixed: On a phone with a large Tasker configuration, MapTasker now waits as long as the phone needs for its lists and lookups, instead of giving up after five or thirty seconds and then importing a Task that was already there. It remembers the lists for the session, tells you when the phone is going to take a while, and waits longer after a timeout.
 - Fixed: Changing one color and pressing Save no longer turns every other color turquoise the next time the window opens. The settings file now keeps only the colors you changed from the light or dark palette, whichever way it is saved.

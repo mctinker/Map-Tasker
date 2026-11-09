@@ -336,6 +336,9 @@ class LoadingEventHandlers(HandlerGroup):
             program_args.android_file = ""
             program_args.android_ipaddr = ""
             program_args.android_port = ""
+            # And the Map's "Source backup file" line must stop saying the phone is: that flag was set by the last fetch
+            # and nothing cleared it, so a local file loaded afterwards was still reported as "From Android device".
+            program_args.fetched_backup_from_android = False
 
             # Empty the pulldown menus for Project, Profile, Task and Scene selections
             reset_single_item_pulldowns(gui)

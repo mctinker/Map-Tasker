@@ -235,7 +235,14 @@ def window(monkeypatch: pytest.MonkeyPatch, handlers: tuple) -> SimpleNamespace:
     )
     monkeypatch.setattr(userintr_loading, "clear_android_buttons", lambda g: calls.setdefault("buttons", []).append(1))
     handler.hub.state = SimpleNamespace(
-        program_arguments=SimpleNamespace(file="x", android_file="x", android_ipaddr="x", android_port="x", gui=False),
+        program_arguments=SimpleNamespace(
+            file="x",
+            android_file="x",
+            android_ipaddr="x",
+            android_port="x",
+            gui=False,
+            fetched_backup_from_android=True,
+        ),
         backup_fetch_path="",
         file_to_get="",
     )
@@ -267,6 +274,9 @@ async def test_a_file_picked_on_this_computer_becomes_the_one_loaded(
     assert window.calls["exported"] == ["/home/me/backup.xml"]
     assert window.gui.android_ipaddr == window.gui.android_port == window.gui.android_file == ""
     assert window.handler.state.program_arguments.android_ipaddr == "", "the phone is no longer the source"
+    assert window.handler.state.program_arguments.fetched_backup_from_android is False, (
+        "the Map's source line would go on saying 'From Android device'"
+    )
     assert window.notes == [("File path saved successfully!", "positive")]
 
 

@@ -450,3 +450,32 @@ def test_every_task_has_a_blank_line_above_it(tmp_path) -> None:
     assert page.count("Task:") >= 5, "the configuration has Tasks to look at"
     assert "mt-blank-line" not in page, "the marker for a blank line reached the file"
     assert _task_lines_with_nothing_above(optimize_map_html(page)) == []
+
+
+# ##################################################################################
+# The Map's table of variables belongs to the build that made it.
+# ##################################################################################
+@pytest.mark.usefixtures("_a_real_configuration")
+def test_a_variable_left_by_an_earlier_backup_is_not_in_the_map_of_this_one(tmp_path) -> None:
+    """Nothing emptied the table, so a backup picked after another listed the other's globals as its own.
+
+    A variable deleted from the file stayed in the Map for as long as the program ran: %Kaka1 to %Kaka89 were
+    still listed from a backup that had been replaced, though the file open now had never heard of them.
+    """
+    PrimeItems.variables["%Kaka1"] = {"value": "left over", "project": [], "verified": True}
+
+    _build_a_map(tmp_path)
+
+    assert "%Kaka1" not in PrimeItems.variables
+    assert "%Kaka1" not in (tmp_path / "MapTasker.html").read_text(encoding="utf-8")
+
+
+@pytest.mark.usefixtures("_a_real_configuration")
+def test_the_variables_the_loaded_backup_uses_are_still_in_its_map(tmp_path) -> None:
+    """The table is emptied before the build fills it, not after: what the file names is there."""
+    PrimeItems.variables["%Kaka1"] = {"value": "left over", "project": [], "verified": True}
+
+    _build_a_map(tmp_path)
+
+    assert "%ChoresDone" in PrimeItems.variables
+    assert "%ChoresDone" in (tmp_path / "MapTasker.html").read_text(encoding="utf-8")

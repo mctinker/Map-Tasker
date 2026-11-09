@@ -96,6 +96,22 @@ def _save_runtime_settings(state: RunState) -> None:
             _, _ = save_restore_args(state.program_arguments, state.colors_to_use, to_save=True, state=state)
 
 
+def _load_variables(configuration: str, state: RunState) -> None:
+    """Start this build's table of variables, and fill it from the backup if the detail level lists them.
+
+    The table is this build's own.  It is filled from the backup that is loaded and then from the actions that name a
+    variable, and nothing else empties it: left as it was, it held every variable of every backup this session had ever
+    loaded -- a file picked after another listed the other's globals as its own, and a variable deleted from the file
+    stayed in the Map for as long as the program ran.
+
+    The configuration digest goes with them so that the where-used counts survive a rebuild that only changed how the
+    Map is displayed.
+    """
+    state.variables.clear()
+    if state.program_arguments.display_detail_level >= DISPLAY_DETAIL_LEVEL_all_variables:
+        get_variables(configuration, state=state)
+
+
 def build_html(file_to_get: str, state: RunState) -> int:
     """Builds and generates the final HTML output file for MapTasker.
 
@@ -146,10 +162,7 @@ def build_html(file_to_get: str, state: RunState) -> int:
     if _map_on_disk_is_current(state, building_from, doing_ai_analysis):
         return 0
 
-    # Get all Tasker variables.  The configuration digest goes with them so that the
-    # where-used counts survive a rebuild that only changed how the Map is displayed.
-    if state.program_arguments.display_detail_level >= DISPLAY_DETAIL_LEVEL_all_variables:
-        get_variables(building_from[0], state=state)
+    _load_variables(building_from[0], state)
 
     # Process all Projects and their Profiles
     found_tasks: list[str] = []
