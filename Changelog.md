@@ -20,6 +20,7 @@ All notable changes to this project will be documented in this file!
 
 ### Changed
 
+- Changed: The note that Insert Requirements adds to a TaskerNet description now says that an action missing from MapTasker's list "may still need something", instead of the confusing "is not known to need nothing".
 - Changed: The Map's directory and the Diagram now include unnamed Profiles and Tasks whatever the 'List Unnamed Items' checkbox says, where the Diagram used to leave out every unnamed Task. The checkbox now only decides what the four 'Specific Name' pulldowns offer.
 - Changed: Loading a backup and building the Map is about 20% faster on large configurations; one 13 MB backup went from about 3 seconds to about 2.3. A backup that declares an XML entity is still refused with a message.
 - Changed: The "Go to top" links in the Map are now blue and underlined, like the Map's other links, so they are easy to see as links.

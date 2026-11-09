@@ -282,9 +282,9 @@ class Readiness:
 
 # What every report ends with, said once.  See the header on why a "ready" answer needs it.
 LIMITATIONS = (
-    "Built from what is in the file.  An action this list does not know is not known to need nothing, "
-    "ordinary permissions such as location or SMS are left to Tasker to ask for on import, and a "
-    "plugin's own account or license is not visible here."
+    "Built from what is in the file.  An action missing from this list may still need something, "
+    "so a short list is not proof that nothing is needed.  Ordinary permissions such as location or SMS "
+    "are left to Tasker to ask for on import, and a plugin's own account or license is not visible here."
 )
 
 

@@ -91,7 +91,7 @@ def test_a_file_that_needs_nothing_says_so_in_a_line_and_still_has_the_fine_prin
 
     assert "No plugin, app or special access was found in this file." in block
     assert "<b>Plugins</b>" not in block
-    assert "not known to need nothing" in block, "'found nothing' is not 'needs nothing', and the block says so"
+    assert "may still need something" in block, "'found nothing' is not 'needs nothing', and the block says so"
 
 
 def test_whatever_an_author_typed_is_escaped() -> None:

@@ -21,8 +21,8 @@
     "that access whatever the action is.  Twelve actions have a Use Root switch, and finding them by",
     "the switch means a new one is covered without an entry here.",
     "",
-    "This is a floor, not a guarantee.  An action with no entry is not known to need nothing -- it is",
-    "just not known.  Every code below is checked against actionc by tests/test_readiness.py, so a",
+    "This is a floor, not a guarantee.  An action with no entry may still need something -- its",
+    "needs are just not known.  Every code below is checked against actionc by tests/test_readiness.py, so a",
     "typo or a renamed action fails there rather than silently reading as 'no requirement'."
   ],
 
