@@ -61,11 +61,11 @@ The Tasker backup or other Tasker exported XML can either be manually uploaded t
 ## Features
 
 - Your choice of output detail level, from a summary overview to a very detailed level of your configuration.
-- Display just a single Project, Profile, or Task.
+- Display just a single Project, Profile, or Task...or the entire XML configuration.
 - Include/exclude Profile and Task conditions: States, Events, etc.
 - Just stream everything or make the output "pretty" by aligning all of the fields.
 - Change the appearance: select 'light', or 'dark' modes.
-- Output using your favorite monospaced font, and accent Project, Profile and Task names by making them italicized, bold, highlighted and/or underscored.
+- Output using your favorite font, and accent Project, Profile and Task names by making them italicized, bold, highlighted and/or underscored.
 - Modify the colors associated with various aspects of the output to suit your mood.
 - Include TaskerNet descriptions and/or Tasker preferences.
 - For complex configurations, optionally include a dictionary of hotlinks to your Projects, Profiles, Tasks and Scenes.
@@ -91,6 +91,8 @@ The Tasker backup or other Tasker exported XML can either be manually uploaded t
 - Step through the logic of a Task, and compare one run against another.
 - Run a live monitor on the Android device to see which Profiles and Tasks fire.
 - Identify what is hard on your battery.
+- Pull out every piece of text a person reads (Flash, Notify, Say, dialogs, Scene labels) as a table to translate or edit, and put the edited text back.
+- Manage the global variables: see where each is set and read, rename one everywhere, change its value, and send it to the phone.
 
 ## Program Dependencies
 
@@ -151,13 +153,16 @@ This program and all of its prerequisites will take about 230MBs of space.  It i
 
 ### Reports from the command line
 
-Health Check, Compare, Changes Since, Export and a folder watch run with no window, so a nightly Tasker backup can be checked automatically (from `cron`, Task Scheduler, `launchd` or a CI job):
+Health Check, Compare, Changes Since, Trend, Export, the text table and a folder watch run with no window, so a nightly Tasker backup can be checked automatically (from `cron`, Task Scheduler, `launchd` or a CI job):
 
 ```
 maptasker -healthcheck -file backup.xml                 # problems in a backup
 maptasker -compare older.xml newer.xml                  # what differs between two backups
 maptasker -changes_since week -file backup.xml          # what changed: today, week, month, all, a date, or 3d
+maptasker -trend -file backup.xml                       # is the configuration getting healthier or messier
 maptasker -export map -format md -file backup.xml       # the Map (or diagram) as md, json or pdf
+maptasker -text export -file backup.xml                 # every piece of text a person reads, as a table to translate or edit
+maptasker -text apply -table edited.csv -file backup.xml  # put the edited table back
 maptasker -watch ~/TaskerBackups                        # record each new backup in the history
 ```
 

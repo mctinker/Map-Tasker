@@ -62,37 +62,39 @@ Tasker 的备份文件或其他 Tasker 导出的 XML 文件，既可以手动上
 
 ## 功能特性
 
-- 您可以根据需要选择输出的详细程度，从概括性的概述到非常详细的配置信息。
+- 您可以选择输出的详细程度，从概括性的概述到非常详细的配置信息。
 - 仅显示一个项目、个人资料或任务。
-- 包含/排除个人资料和任务条件：状态、事件等。
-- 要么直接播放所有内容，要么通过将所有字段对齐来使输出更美观。
-- 更改外观：选择“浅色”或“深色”模式。
-- 使用您喜欢的固定宽字体，并突出显示“项目”、“个人资料”和“任务”等名称，使其呈现斜体、粗体、加粗或下划线。
-- 根据您的心情，调整输出中各个方面的颜色。
-- 包括 TaskerNet 的描述以及/或 Tasker 的偏好设置。
-- 对于复杂的配置，可以选择性地包含一个包含您项目、个人资料、任务和场景的热键词字典。
-- 展示您整个 Tasker 配置的图表，以及任务流程图。
+- 包含/排除“用户配置文件”和“任务条件”：例如，状态、事件等。
+- 要么直接播放所有内容，要么通过对所有字段进行对齐，使输出结果更美观。
+- 调整外观：选择“浅色”或“深色”模式。
+- 使用您喜欢的等宽字体输出，并突出显示“项目”、“个人资料”和“任务”的名称，例如，使用斜体、粗体、高亮或下划线。
+- 根据您的心情，调整输出的不同方面所使用的颜色。
+- 包含 TaskerNet 的描述以及/或 Tasker 的偏好设置。
+- 对于复杂的配置，可以选择性地包含一个包含您项目、个人资料、任务和场景的热键字典。
+- 展示您的整个 Tasker 配置的图表，以及任务流程图。
 - 命令行或图形用户界面。
-- 使用导出的 XML 文件，或直接从您的 Android 设备获取 XML 数据，进行配置映射。
-- 将项目、个人资料、任务和场景发送回您的 Android 设备上的 Tasker 应用程序。
+- 对于配置映射，可以使用导出的 XML 文件，或直接从您的 Android 设备获取 XML 数据。
+- 将项目、个人资料、任务和场景发送回您的 Android 设备的 Tasker 应用程序。
 - 保存和恢复运行时设置。
-- 找出包含过多的“步骤”的任务，并确定哪些任务应该分解成多个任务。
-- 使用 AI 分析功能，可以分析特定的项目、个人资料、任务或场景，使用支持的服务器端 ChatGPT/Claude/Gemini 或本地端 Llama (通过 Ollama) 提供的模型。
+- 找出包含过多“动作”的任务，并确定哪些任务应该分解为多个任务。
+- AI 分析选项，用于使用基于服务器的 ChatGPT/Claude/Gemini 或本地的 Llama (通过 Ollama) 支持的模型，对特定项目、个人资料、任务或场景进行分析。
 - 在图形用户界面（GUI）中直接显示结果：（配置）地图视图、树状视图和图表视图。
-- 自动检测更新，并可选择安装新版本。
-- 增强的搜索功能和结构化的“查找/替换”功能。
-- 添加和编辑项目、个人资料、任务和场景（请参阅 [第 6 条](#6)）
+- 自动检测更新并可选地安装新版本。
+- 改进的搜索功能和结构化的“查找/替换”功能。
+- 添加和编辑项目、个人资料、任务和场景（请参阅[备注 6](#6)）
 - 自特定日期起，列表的变更。
-- 分析 Tasker XML 的健康状况，以及配置过程中出现的各种变量。
+- 分析 Tasker XML 的健康状况，以及配置中各个变量的状态。
 - 将 XML 文件与已加载的 XML 文件进行比较。
-- 请查阅 TaskerNet 了解关于项目、个人资料和任务的最新信息，并在可用时进行应用。
+- 请查看 TaskerNet，以获取关于项目、个人资料和任务的最新信息，并在可用时进行应用。
 - 从另一个 XML 文件中导入 Tasker 对象，以及所有相关的依赖项。
 - 进行趋势分析，以查看您的代码是否在改进（或没有改进）。
-- 详细记录任务在 Android 设备之外所使用的所有资源。
-- 确定“什么在特定条件下（状态或事件）时会触发”，例如：
-- 了解任务的逻辑，并比较不同运行结果。
+- 详细记录任务使用的所有非 Android 设备资源。
+- 根据特定条件（状态或事件），确定“什么会在什么情况下触发”。
+- 逐步了解任务的逻辑，并将一次运行结果与另一次结果进行比较。
 - 在 Android 设备上运行实时监控，以查看哪些配置文件和任务正在执行。
-- 找出导致电池耗电快的原因。
+- 找出影响电池寿命的因素。
+- 将个人阅读的所有文本（例如：Flash、通知、Say、对话框、场景标签等）整理成表格，以便进行翻译或编辑，然后将编辑后的文本重新插入。
+- 管理全局变量：查看每个变量的设置和读取位置，统一重命名一个变量，修改其值，并将它发送到手机。
 
 ## 程序依赖
 
@@ -155,11 +157,14 @@ Tasker 的备份文件或其他 Tasker 导出的 XML 文件，既可以手动上
 Health Check（健康检查）、Compare（比较）、Changes Since（变更追踪）、Export（导出）以及文件夹监视（watch）均可在无窗口模式下运行，因此可以自动检查每晚的 Tasker 备份（通过 `cron`、任务计划程序、`launchd` 或 CI 作业触发）：
 
 ```
-maptasker -healthcheck -file backup.xml                 # 检查某个备份中的问题
-maptasker -compare older.xml newer.xml                  # 比较两个备份之间的差异
-maptasker -changes_since week -file backup.xml          # 列出变更：today（今天）、week（本周）、month（本月）、all（全部）、某个日期，或 3d（3 天前）
-maptasker -export map -format md -file backup.xml       # 将地图（或图表）导出为 md、json 或 pdf 格式
-maptasker -watch ~/TaskerBackups                        # 将每个新备份记录到历史记录中
+maptasker -healthcheck -file backup.xml                 # problems in a backup
+maptasker -compare older.xml newer.xml                  # what differs between two backups
+maptasker -changes_since week -file backup.xml          # what changed: today, week, month, all, a date, or 3d
+maptasker -trend -file backup.xml                       # is the configuration getting healthier or messier
+maptasker -export map -format md -file backup.xml       # the Map (or diagram) as md, json or pdf
+maptasker -text export -file backup.xml                 # every piece of text a person reads, as a table to translate or edit
+maptasker -text apply -table edited.csv -file backup.xml  # put the edited table back
+maptasker -watch ~/TaskerBackups                        # record each new backup in the history
 ```
 
 - **`-file`** 可接受一个备份文件，或一个文件夹（将使用其中最新的 `.xml` 文件）。 `-outdir` 用于选择文件写入的位置， `-save` 则会（像窗口模式一样）将报告另存为文件。

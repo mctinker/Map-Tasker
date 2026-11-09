@@ -62,37 +62,39 @@ Das Tasker-Backup oder eine andere von Tasker exportierte XML-Datei kann entwede
 
 ## Funktionen
 
-- Die Auswahl des gewünschten Detailgrads der Ausgabe, von einer allgemeinen Übersicht bis hin zu einer sehr detaillierten Darstellung Ihrer Konfiguration.
+- Die Wahl des gewünschten Detaillierungsgrades für die Ausgabe, von einer allgemeinen Übersicht bis hin zu einer sehr detaillierten Darstellung Ihrer Konfiguration.
 - Zeigen Sie nur ein einzelnes Projekt, Profil oder Aufgabe an.
 - Einschließen/ausschließen von Profil- und Aufgabenbedingungen: Zustände, Ereignisse usw.
 - Entweder alles streamen oder das Ergebnis so gestalten, dass alle Felder ausgerichtet sind.
-- Ändern Sie das Aussehen: wählen Sie die Modi „hell“ oder „dunkel“.
-- Ergebnisse mit Ihrer bevorzugten Schriftart mit fester Breite ausgeben. Betonen Sie die Namen von Projekt, Profil und Aufgabe, indem Sie sie kursiv, fett, hervorgehoben oder unterstrichen darstellen.
-- Passen Sie die Farben an, die verschiedenen Aspekte der Ausgabe zugeordnet sind, um Ihren Stimmung zu entsprechen.
-- Bitte fügen Sie Beschreibungen von TaskerNet hinzu und/oder Angaben zu den Präferenzen des Benutzers.
+- Ändern Sie das Aussehen: wählen Sie die Modi "hell" oder "dunkel".
+- Ausgabe mit Ihrer bevorzugten Schriftart mit fester Breite, und heben Sie die Namen der Projekte, Profile und Aufgaben durch Kursivschrift, Fettdruck, Hervorhebung und/oder Unterstreichung hervor.
+- Passen Sie die Farben an, die verschiedenen Aspekte der Ausgabe zugeordnet sind, an Ihren aktuellen Zustand an.
+- Fügen Sie Beschreibungen und/oder Präferenzen für TaskerNet ein.
 - Für komplexe Konfigurationen können Sie optional ein Wörterbuch mit Verknüpfungen zu Ihren Projekten, Profilen, Aufgaben und Szenen hinzufügen.
-- Zeigen Sie ein Diagramm Ihrer gesamten Tasker-Konfiguration sowie einen Aufgabenablauf an.
+- Zeigen Sie ein Diagramm Ihrer gesamten Tasker-Konfiguration sowie einen Flussdiagramm.
 - Befehlszeile oder grafische Benutzeroberfläche.
-- Verwenden Sie die exportierte XML-Datei oder laden Sie die XML-Datei direkt von Ihrem Android-Gerät für die Konfigurationszuordnung.
+- Verwenden Sie das exportierte XML-Format oder laden Sie das XML-Format direkt von Ihrem Android-Gerät für die Konfigurationszuordnung.
 - Senden Sie Projekte, Profile, Aufgaben und Szenen an Tasker auf Ihrem Android-Gerät zurück.
 - Einstellungen während der Laufzeit speichern und wiederherstellen.
-- Identifizieren Sie Aufgaben, die zu viele "Aktionen" enthalten, und die potenziell in mehrere Aufgaben aufgeteilt werden sollten.
-- Die Option "AI-Analyse" ermöglicht die Analyse eines bestimmten Projekts, Profils, einer Aufgabe oder einer Szene mithilfe der entweder serverbasierten Modelle ChatGPT/Claude/Gemini oder der lokal installierten Modelle Llama (über Ollama).
-- Ergebnisse direkt innerhalb der GUI anzeigen: (Konfiguration) Kartenansicht, Baumansicht und Diagramm-Ansicht.
+- Identifizieren Sie Aufgaben, die zu viele "Aktionen" enthalten, und die möglicherweise in mehrere Aufgaben aufgeteilt werden sollten.
+- Die Option "KI-Analyse" ermöglicht die Analyse eines bestimmten Projekts, Profils, Aufgaben oder Szenarios mithilfe der mit dem Server arbeitenden Modelle ChatGPT/Claude/Gemini oder der lokal arbeitenden Modelle Llama (über Ollama).
+- Ergebnisse direkt innerhalb der grafischen Benutzeroberfläche anzeigen: (Konfiguration) Kartenansicht, Baumansicht und Diagramm-Ansicht.
 - Automatische Erkennung von Updates und optionale Installation neuer Versionen.
 - Verbesserte Suchfunktion und strukturierte "Finden/Ersetzen"-Funktion.
-- Fügen Sie Projekte, Profile, Aufgaben und Szenen hinzu und bearbeiten Sie diese (siehe [Anmerkung 6](#6))
+- Fügen Sie Projekte, Profile, Aufgaben und Szenen hinzu und bearbeiten Sie diese (siehe [Hinweis 6](#6))
 - Auflistung der Änderungen seit einem bestimmten Datum.
-- Analysieren Sie den Zustand der Tasker-XML-Datei sowie die zahlreichen Variablen in der Konfiguration.
+- Analysieren Sie die Gesundheit der Tasker-XML-Datei sowie die zahlreichen Variablen in der Konfiguration.
 - Vergleichen Sie eine XML-Datei mit der geladenen XML-Datei.
 - Überprüfen Sie TaskerNet auf Aktualisierungen für Projekte, Profile und Aufgaben, und wenden Sie diese gegebenenfalls an.
 - Importieren Sie ein Tasker-Objekt aus einer anderen XML-Datei, zusammen mit allen zugehörigen Abhängigkeiten.
 - Führen Sie eine Trendanalyse durch, um festzustellen, ob Ihr Code sich verbessert (oder verschlechtert).
 - Erstellen Sie eine Liste aller Ressourcen, die eine Aufgabe außerhalb des Android-Geräts benötigt.
-- Bestimmen Sie, welche Aktionen ausgelöst werden sollen, basierend auf einer bestimmten Bedingung (Zustand oder Ereignis).
-- Verfolgen Sie den Ablauf einer Aufgabe und vergleichen Sie einen Durchlauf mit einem anderen.
-- Richten Sie eine Live-Überwachung auf dem Android-Gerät ein, um zu sehen, welche Profile und Aufgaben ausgeführt werden.
-- Identifizieren Sie, was Ihren Akku stark beansprucht.
+- Bestimmen Sie, welche Aktionen ausgelöst werden, basierend auf einer bestimmten Bedingung (Zustand oder Ereignis).
+- Verfolgen Sie den Ablauf einer Aufgabe und vergleichen Sie eine Ausführung mit einer anderen.
+- Richten Sie eine Echtüberwachung auf dem Android-Gerät ein, um zu sehen, welche Profile und Aufgaben ausgeführt werden.
+- Identifizieren Sie, was Ihre Batterie besonders stark belastet.
+- Extrahieren Sie jeden Text, den eine Person liest (z. B. Flash-Nachrichten, Benachrichtigungen, Sätze, Dialoge, Szenenbeschriftungen), und speichern Sie ihn als Tabelle, um ihn zu übersetzen oder zu bearbeiten, und geben Sie die bearbeiteten Texte dann wieder zurück.
+- Verwalten Sie die globalen Variablen: Überprüfen Sie, wo jede Variable definiert und gelesen wird, benennen Sie eine Variable überall um, ändern Sie ihren Wert und senden Sie sie an das Telefon.
 
 ## Programmabhängigkeiten
 
@@ -155,11 +157,14 @@ Dieses Programm und alle seine Voraussetzungen benötigen etwa 230 MB Speicherpl
 Health Check, Compare, Changes Since, Export und eine Ordnerüberwachung (watch) laufen ohne Fenster, sodass ein nächtliches Tasker-Backup automatisch überprüft werden kann (über `cron`, die Aufgabenplanung, `launchd` oder einen CI-Job):
 
 ```
-maptasker -healthcheck -file backup.xml                 # Probleme in einem Backup
-maptasker -compare older.xml newer.xml                  # Unterschiede zwischen zwei Backups
-maptasker -changes_since week -file backup.xml          # was sich geändert hat: today (heute), week (Woche), month (Monat), all (alles), ein Datum, oder 3d (3 Tage)
-maptasker -export map -format md -file backup.xml       # die Map (oder das Diagramm) als md, json oder pdf
-maptasker -watch ~/TaskerBackups                        # erfasst jedes neue Backup im Verlauf
+maptasker -healthcheck -file backup.xml                 # problems in a backup
+maptasker -compare older.xml newer.xml                  # what differs between two backups
+maptasker -changes_since week -file backup.xml          # what changed: today, week, month, all, a date, or 3d
+maptasker -trend -file backup.xml                       # is the configuration getting healthier or messier
+maptasker -export map -format md -file backup.xml       # the Map (or diagram) as md, json or pdf
+maptasker -text export -file backup.xml                 # every piece of text a person reads, as a table to translate or edit
+maptasker -text apply -table edited.csv -file backup.xml  # put the edited table back
+maptasker -watch ~/TaskerBackups                        # record each new backup in the history
 ```
 
 - **`-file`** akzeptiert ein Backup oder einen Ordner (die neueste `.xml`-Datei darin wird verwendet). `-outdir` legt fest, wohin Dateien geschrieben werden, und `-save` speichert den Bericht ebenfalls als Datei, genau wie das Fenster.

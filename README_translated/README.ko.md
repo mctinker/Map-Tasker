@@ -62,37 +62,39 @@ Tasker 백업 또는 기타 Tasker 내보내기 XML은 수동으로 PC/Mac/Linux
 
 ## 기능
 
-- 출력 상세 수준 선택은 요약 정보부터 구성 설정을 매우 상세하게 보여주는 수준까지 가능합니다.
+- 출력 상세 수준을 선택할 수 있습니다. 요약된 개요부터 사용 설정에 따라 매우 상세한 정보까지 선택 가능합니다.
 - 단 하나의 프로젝트, 프로필 또는 작업만 표시합니다.
-- 프로필 및 작업 조건(상태, 이벤트 등) 포함/제외
-- 모든 내용을 스트리밍하거나, 모든 필드를 정렬하여 출력을 "깔끔하게" 만들 수 있습니다.
-- 외관 변경: '밝은 모드' 또는 '어두운 모드'를 선택합니다.
-- 선호하는 고정폭 글꼴을 사용하여 결과를 출력하고, "프로젝트", "프로필" 및 "작업" 이름에 굵게, 강조 표시 또는 밑줄을 추가하여 강조 표시합니다.
-- 출력물의 다양한 요소와 관련된 색상을 자신의 기분에 맞게 변경하세요.
-- TaskerNet 설명 및/또는 Tasker 선호 사항을 포함합니다.
-- 복잡한 설정의 경우, 프로젝트, 프로필, 작업 및 장면과 관련된 핫링크를 포함하는 사전을 추가할 수 있습니다.
-- 전체 Tasker 설정과 작업 흐름을 보여주는 다이어그램을 표시하십시오.
-- 명령줄 인터페이스 또는 그래픽 사용자 인터페이스.
-- 설정 매핑을 위해 내보낸 XML 파일을 사용하거나, Android 장치에서 직접 XML 파일을 가져올 수 있습니다.
-- ANdroid 장치에서 프로젝트, 프로필, 작업 및 장면을 Tasker로 다시 전송합니다.
-- 실행 중인 설정 저장 및 복원
-- 너무 많은 '작업'이 포함된 작업들을 식별하고, 여러 개의 작업으로 분리할 가능성이 있는 작업들을 파악합니다.
-- AI 분석 옵션은 서버 기반의 ChatGPT/Claude/Gemini 또는 로컬 기반의 Llama (Ollama를 통해)를 지원하는 모델을 사용하여 특정 프로젝트, 프로필, 작업 또는 장면을 분석하는 데 사용할 수 있습니다.
-- GUI 내에서 결과를 직접 표시: (설정) 지도 보기, 트리 보기, 다이어그램 보기.
+- 프로필 및 작업 조건 (상태, 이벤트 등) 포함/제외
+- 모든 것을 스트리밍하거나, 모든 필드를 정렬하여 출력을 "깔끔하게" 만들 수 있습니다.
+- 외관 변경: '밝은 모드' 또는 '어두운 모드'를 선택하세요.
+- 원하는 고정 글꼴을 사용하여 결과를 출력하고, '프로젝트', '프로필', '작업' 등의 이름에 이탤릭체, 굵은 글꼴, 강조 표시, 밑줄 등을 사용하여 강조합니다.
+- 출력의 다양한 요소와 관련된 색상을 원하는 대로 변경하여 기분에 맞게 조정하세요.
+- TaskerNet에 대한 설명 및/또는 Tasker 사용 선호 사항을 포함합니다.
+- 복잡한 설정의 경우, 프로젝트, 프로필, 작업, 장면 등의 핫링크를 포함하는 사전을 선택적으로 포함할 수 있습니다.
+- 전체 Tasker 설정 및 작업 흐름을 보여주는 다이어그램을 표시하십시오.
+- 명령줄 또는 그래픽 사용자 인터페이스.
+- 구성 매핑을 위해 내보낸 XML 파일을 사용하거나, Android 기기에서 직접 XML 파일을 가져올 수 있습니다.
+- ANdroid 장치에서 프로젝트, 프로필, 작업 및 장면을 Tasker로 다시 보내세요.
+- 실행 중인 설정의 저장 및 복원
+- '액션'이 너무 많은 작업을 식별하고, 여러 개의 작업으로 분할해야 할 가능성이 있는 작업을 파악합니다.
+- AI 분석 기능을 사용하여 서버 기반의 ChatGPT/Claude/Gemini 또는 로컬 기반의 Llama (Ollama를 통해)를 지원하는 모델을 사용하여 특정 프로젝트, 프로필, 작업 또는 장면을 분석할 수 있습니다.
+- GUI 내에서 결과를 직접 표시: (설정) 지도 보기, 트리 보기 및 다이어그램 보기.
 - 자동 업데이트 감지 및 새로운 버전의 선택적 설치 기능.
-- 향상된 검색 기능 및 구조화된 '찾아 바꾸기' 기능
-- 프로젝트, 프로필, 작업, 장면을 추가하고 편집합니다 ([참고 6](#6) 참조).
-- 특정 날짜 이후 변경된 항목 목록.
-- Tasker XML의 상태와 설정 내 다양한 변수들을 분석합니다.
+- 향상된 검색 기능 및 구조화된 '찾아 바꾸기' 기능.
+- 프로젝트, 프로필, 작업, 장면을 추가하고 편집합니다 (참조: [6번 노트](#6)).
+- 특정 날짜 이후 변경된 목록 내용
+- Tasker XML의 상태를 분석하고, 설정 내 다양한 변수들을 검토하십시오.
 - 로드된 XML 파일과 XML 파일을 비교합니다.
-- TaskerNet에서 프로젝트, 프로필, 작업에 대한 최신 정보를 확인하고, 사용 가능한 경우 해당 정보를 적용하십시오.
-- 다른 XML 파일에서 Tasker 객체를 가져오고, 그 객체의 모든 의존성도 함께 가져옵니다.
-- 코드의 성능 향상 여부를 확인하기 위해 트렌드 분석을 수행하십시오.
-- 애드라이드 장치 외에 Task가 사용하는 모든 요소를 목록으로 작성하십시오.
-- 특정 조건(상태 또는 이벤트)에 따라 '어떤 것이 실행될 것인지'를 결정합니다.
-- 작업의 논리를 따라가고, 한 실행 결과를 다른 실행 결과와 비교해 보세요.
+- 프로젝트, 프로필, 작업에 대한 최신 정보를 TaskerNet에서 확인하고, 사용 가능한 경우 해당 정보를 적용하십시오.
+- 다른 XML 파일에서 Tasker 객체를 가져오고, 그에 필요한 모든 종속 항목도 함께 가져옵니다.
+- 코드의 개선 여부를 확인하기 위해 트렌드 분석을 수행해 보세요.
+- 애드레드 장치 외부에서 Task가 사용하는 모든 것을 목록으로 작성하십시오.
+- 특정 조건(상태 또는 이벤트)에 따라 "어떤 것이 실행될 것인가"를 결정합니다.
+- 작업의 논리를 따라가고, 한 번의 실행 결과를 다른 실행 결과와 비교해 보세요.
 - Android 장치에서 실시간 모니터를 실행하여 어떤 프로필과 작업이 실행되는지 확인하십시오.
 - 배터리 사용에 어려움을 겪는 요소를 파악하세요.
+- 사람이 읽는 모든 텍스트(플래시, 알림, 말, 대화 상자, 장면 레이블)를 표 형태로 추출하여 번역하거나 수정하고, 수정된 텍스트를 다시 삽입합니다.
+- 글로벌 변수를 관리합니다: 각 변수가 설정되고 읽히는 위치를 확인하고, 모든 곳에서 이름을 변경하고, 값을 변경한 다음, 이를 휴대폰으로 전송합니다.
 
 ## 프로그램 종속성
 
@@ -155,11 +157,14 @@ Tasker 백업 또는 기타 Tasker 내보내기 XML은 수동으로 PC/Mac/Linux
 Health Check, Compare, Changes Since, Export, 폴더 감시(watch)는 창 없이 실행되므로, 매일 밤 Tasker 백업을 자동으로 확인할 수 있습니다 (`cron`, 작업 스케줄러, `launchd` 또는 CI 작업을 통해):
 
 ```
-maptasker -healthcheck -file backup.xml                 # 백업의 문제점
-maptasker -compare older.xml newer.xml                  # 두 백업 간의 차이점
-maptasker -changes_since week -file backup.xml          # 변경된 내용: today(오늘), week(1주), month(1개월), all(전체), 특정 날짜, 또는 3d(3일)
-maptasker -export map -format md -file backup.xml       # Map(또는 diagram)을 md, json 또는 pdf로 내보내기
-maptasker -watch ~/TaskerBackups                        # 새 백업을 기록(history)에 저장
+maptasker -healthcheck -file backup.xml                 # problems in a backup
+maptasker -compare older.xml newer.xml                  # what differs between two backups
+maptasker -changes_since week -file backup.xml          # what changed: today, week, month, all, a date, or 3d
+maptasker -trend -file backup.xml                       # is the configuration getting healthier or messier
+maptasker -export map -format md -file backup.xml       # the Map (or diagram) as md, json or pdf
+maptasker -text export -file backup.xml                 # every piece of text a person reads, as a table to translate or edit
+maptasker -text apply -table edited.csv -file backup.xml  # put the edited table back
+maptasker -watch ~/TaskerBackups                        # record each new backup in the history
 ```
 
 - **`-file`**은 백업 또는 폴더(그 안에서 가장 최신의 `.xml` 파일이 사용됨)를 받을 수 있습니다. `-outdir`는 파일을 저장할 위치를 지정하고, `-save`는 창(window)에서와 마찬가지로 리포트를 파일로도 저장합니다.

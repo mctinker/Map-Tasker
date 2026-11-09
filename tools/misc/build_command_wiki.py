@@ -37,6 +37,7 @@ finds the source, and writes the page, wherever it is run from::
 
     python tools/misc/build_command_wiki.py            # write Command-Reference.md
     python tools/misc/build_command_wiki.py --stats    # ... and report what it found
+    python tools/misc/build_command_wiki.py --check    # write nothing; fail if the page on disk is out of date
     python tools/misc/build_command_wiki.py --publish  # ... and push it to the wiki
 
 Publishing clones https://github.com/mctinker/Map-Tasker.wiki.git into a temporary
@@ -1239,6 +1240,23 @@ def name_variants(name: str) -> list[str]:
 # ##################################################################################
 # Command-line arguments
 # ##################################################################################
+def report_commands() -> list[dict]:
+    """The reports MapTasker runs with no window (-healthcheck, -compare ...), read from the parser that runs them.
+
+    Unlike the rest of this page they are not in a table: clireports builds its parser in code, so this asks the
+    parser itself -- the way build_runtime_options_wiki.py does, and with its reader, so the two pages cannot
+    disagree about what a report is.  That needs the program's own Python (see load_parsers).
+    """
+    import build_runtime_options_wiki as runtime_options
+
+    _main_parser, report_parser = runtime_options.load_parsers()
+    return [
+        {"flags": option.names, "value": option.value, "help": option.description}
+        for option in runtime_options.read_parser(report_parser)
+        if option.exclusive_with
+    ]
+
+
 def command_line_arguments(source: Path) -> list[dict]:
     """The runtime arguments, read from the table parsearg.py builds its parser from."""
     path = source.parent / CLI_TABLE
@@ -1769,6 +1787,7 @@ class PageWriter:
         self._add_extra_commands()
         self.entries = flatten_entries(self.doc.entries)
         self.attached_notes: set[str] = set()
+        self.has_reports = False
         self._assign_anchors()
         self._attach_widgets()
         self._attach_related_help()
@@ -1841,23 +1860,23 @@ class PageWriter:
                         self.attached_notes.add(note)
 
     # -- the page ----------------------------------------------------------------
-    def render(self, arguments: list[dict]) -> str:
+    def render(self, arguments: list[dict], reports: list[dict] | None = None) -> str:
         """The whole page."""
         lines: list[str] = []
+        self.has_reports = bool(reports)
         lines += self._header()
         lines += self._contents(has_arguments=bool(arguments))
         lines += ["## Commands", ""]
         for entry in self.doc.entries:
             lines += self._entry(entry)
         if arguments:
-            lines += self._arguments(arguments)
+            lines += self._arguments(arguments, reports or [])
         lines += self._notes()
         lines += self._footer()
         return "\n".join(lines).rstrip() + "\n"
 
     def _header(self) -> list[str]:
         """Title, what MapTasker does, and how to use the page."""
-        today = datetime.date.today().isoformat()
         described = sum(1 for entry in self.entries if not entry.is_group)
         return [
             "# MapTasker Command Reference",
@@ -1866,7 +1885,7 @@ class PageWriter:
             f"This page describes each of the **{described}** commands, options and tabs in MapTasker's Help screen, "
             "in the same order, with more detail on each and the caveats that go with it.",
             "",
-            f"_Generated from the MapTasker {self.version} source on {today} by `build_command_wiki.py`._ "
+            f"_Generated from the MapTasker {self.version} source by `build_command_wiki.py`._ "
             "_Do not edit this page by hand -- rerun that program instead._",
             "",
             "## How to use this page",
@@ -1895,6 +1914,8 @@ class PageWriter:
         listing(sorted(self.doc.entries, key=lambda entry: entry.name.casefold().lstrip("'\"")), 0)
         if has_arguments:
             lines.append("* [Command-Line Arguments](#command-line-arguments)")
+            if self.has_reports:
+                lines.append("  * [Reports with no window](#reports-with-no-window)")
         if self._unattached_notes():
             lines.append("* [Notes](#notes)")
         lines.append("")
@@ -2008,8 +2029,8 @@ class PageWriter:
             return []
         return ["## Notes", "", *[f"* {note}" for note in notes], ""]
 
-    def _arguments(self, arguments: list[dict]) -> list[str]:
-        """The command-line arguments, for running MapTasker without the GUI."""
+    def _arguments(self, arguments: list[dict], reports: list[dict]) -> list[str]:
+        """The command-line arguments, for running MapTasker without the GUI -- and the reports that run with no window."""
         lines = [
             "## Command-Line Arguments",
             "",
@@ -2027,6 +2048,24 @@ class PageWriter:
             flags = ", ".join(f"`{flag}`" for flag in argument["flags"])
             lines.append(f"| {flags} | {cell(argument['choices'])} | {cell(argument['help'])} |")
         lines.append("")
+        if reports:
+            lines += [
+                "### Reports with no window",
+                "",
+                "These run one report from the command line and write it to standard output (everything else goes "
+                "to standard error), so a scheduled job can check a nightly backup.  Name one report and then any of "
+                "its options, as in `maptasker -healthcheck -file backup.xml`.  Every option they take, and the exit "
+                "codes a script can act on, are on the "
+                "[Runtime Options](https://github.com/mctinker/Map-Tasker/wiki/Runtime-Options) page.",
+                "",
+                "| Report | Value | What it does |",
+                "| --- | --- | --- |",
+            ]
+            for report in reports:
+                spelling = ", ".join(f"`{flag}`" for flag in report["flags"])
+                value = f"`{cell(report['value'])}`" if report["value"] else ""
+                lines.append(f"| {spelling} | {value} | {cell(' '.join(report['help'].split()))} |")
+            lines.append("")
         return lines
 
     def _footer(self) -> list[str]:
@@ -2093,6 +2132,7 @@ def parse_arguments(argv: list[str] | None = None) -> argparse.Namespace:
             "Examples:\n"
             "  python tools/misc/build_command_wiki.py            write the page\n"
             "  python tools/misc/build_command_wiki.py --stats    ... and report what was found\n"
+            "  python tools/misc/build_command_wiki.py --check    write nothing; fail if the page is out of date\n"
             "  python tools/misc/build_command_wiki.py --publish  ... and push it to the wiki\n"
             "  python tools/misc/build_command_wiki.py --publish --dry-run   show what would be pushed\n"
         ),
@@ -2110,6 +2150,7 @@ def parse_arguments(argv: list[str] | None = None) -> argparse.Namespace:
         help=f"Where to list the commands with no description (default: {DEFAULT_LOG_NAME} beside the page).",
     )
     parser.add_argument("--stats", action="store_true", help="Report what was found, and what could not be named.")
+    parser.add_argument("--check", action="store_true", help="Write nothing; fail if the page on disk is out of date.")
     add_publish_arguments(parser)
     return parser.parse_args(argv)
 
@@ -2153,9 +2194,24 @@ def main(argv: list[str] | None = None) -> int:
     model = CommandModel(source, kinds)
     nodes = model.tree()
     arguments = [] if options.no_cli else command_line_arguments(source)
+    try:
+        reports = [] if options.no_cli else report_commands()
+    except ImportError as error:
+        print(f"Cannot import MapTasker ({error}).  Run this with the project's own Python.", file=sys.stderr)
+        return 1
     writer = PageWriter(model, nodes, version_of(source), options.page_name)
-    page = writer.render(arguments)
+    page = writer.render(arguments, reports)
     out = options.out or HERE / f"{options.page_name}.md"
+    if options.check:
+        # Nothing is written, not even the log: this is the question "is the page on disk what the source says?".
+        if not out.is_file() or out.read_text(encoding="utf-8") != page:
+            print(
+                f"{out.name} is out of date.  Run: python tools/misc/build_command_wiki.py",
+                file=sys.stderr,
+            )
+            return 1
+        print(f"{out.name} is up to date.")
+        return 0
     out.write_text(page, encoding="utf-8")
     print(f"Wrote {out} ({len(page.splitlines())} lines, {len(flatten(nodes))} entries).")
 

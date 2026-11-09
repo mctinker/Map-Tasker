@@ -62,37 +62,39 @@ Taskerin varmuuskopio tai muu Taskerin viety XML voidaan joko latata manuaalises
 
 ## Ominaisuudet
 
-- Valitsemasi tulostustasojen tarkkuus, aina yleiskuvaukseen asti erittäin yksityiskohtaiseen konfiguraatiotietojen esitykseen.
+- Valitsemasi tulostuksen yksityiskohtien taso, alkaen yleisestä yleiskatsauksesta erittäin yksityiskohtaiseen asetusten tasoon.
 - Näytä vain yksi projekti, profiili tai tehtävä.
-- Sisällytä/poista profiilin ja tehtävien ehdot: Tilat, tapahtumat jne.
-- Toista kaikki materiaali tai muokkaa tulosteen ulkoasua niin, että kaikki kentät ovat linjassa.
-- Muuta ulkonäköä: valitse 'valo' tai 'tumma' -tilat.
-- Tulosta tulos suosikkikirjaimella, ja korosta Projektin, Profiilin ja Tehtävän nimiä lihavoimalla, kursivoimalla, alleviivauksella tai yhdistämällä useita menetelmiä.
-- Muuta ulostulon eri osa-alueisiin liittyviä värejä, jotta ne sopivat mielentilaasi.
+- Sisällytä/poista profiilin ja tehtävän ehdot: Tilat, tapahtumat jne.
+- Toista kaikki tai muokkaa tulosta niin, että kaikki kentät ovat linjassa.
+- Muuta ulkonäköä: valitse 'valo' tai 'tumma' -tila.
+- Tulosta käyttämällä suosikkikirjainta, ja korosta "Project", "Profile" ja "Task" -nimien avulla, esimerkiksi lihapainamalla, kursivoimalla, alleviivottamalla tai muulla tavalla.
+- Muokkaa eri tulosteen osa-alueisiin liittyviä värejä, jotta ne vastaavat mielentilaasi.
 - Sisällytä TaskerNet-kuvaukset ja/tai Taskerin asetukset.
-- Monimutkaisille asetuksille, voit halutessasi sisällyttää sanaston, jossa on linkkejä projekteihisi, profiileihisi, tehtäviisi ja kohtauksiisi.
-- Esittele kaavio, jossa esitetään koko Tasker-asetuksesi sekä tehtävien kulku.
-- Komentoriväli tai graafinen käyttöliittymä.
-- Käytä tuotettua XML-tiedostoa tai hanki XML-tiedosto suoraan Android-laitteeltasi konfiguraation kartoitukseen.
+- Monimutkaisille asetuksille voidaan lisätä valinnaisesti sanasto, jossa on lyhenteitä (hotlinks) projekteihisi, profiileihisi, tehtäviisi ja kohtauksiisi.
+- Esitä kaavion, joka näyttää koko Tasker-asetuksesi sekä tehtävien kulun.
+- Komentoriväline tai graafinen käyttöliittymä.
+- Käytä tuotettua XML-tiedostoa tai hanki XML-tiedosto suoraan Android-laitteiltasi konfiguraation kartoittamiseen.
 - Lähetä projekteja, profiileja, tehtäviä ja kohtauksia takaisin Tasker-sovellukseen Android-laitteellasi.
-- Tallenna ja palauta suoritusaikaiset asetukset.
-- Tunnista tehtävät, joissa on liian monta "toimintoa", ja jotka voisivat mahdollisesti pilkata useiksi erillisiksi tehtäviksi.
-- "Ai-analyysivaihtoehto mahdollistaa tietyn projektin, profiilin, tehtävän tai kohtauksen analysoinnin käyttämällä joko palvelimella toimivaa ChatGPT/Claude/Gemini- tai paikallisella järjestelmällä toimivaa Llamaa (Ollamalla), tuettuja malleja."
+- Tallenna ja palauta suoritustilanteen asetukset.
+- Tunnista tehtävät, joissa on liian monta "toimintoa", ja jotka voisivat mahdollisesti jaettuna useiksi eri tehtäviksi.
+- "Ai-analyysi -ominaisuus mahdollistaa tietyn projektin, profiilin, tehtävän tai kohtauksen analysoinnin käyttämällä joko palvelimella toimivia ChatGPT/Claude/Gemini- tai paikallisesti toimivia Llama-malleja (Ollaman kautta).
 - Näytä tulokset suoraan käyttöliittymässä: (Konfiguraatio) Kartanäkymä, puunäkymä ja kaavionäkymä.
-- Automaattinen päivitysten havaitseminen ja valinnaisten uusien versioiden asennus.
+- Automaattinen päivitysten havaitseminen ja valinnaisen uusien versioiden asennus.
 - Parannettu hakutoiminto ja rakenteellinen "Etsi/Korvaa" -toiminto.
 - Lisää ja muokkaa projekteja, profiileja, tehtäviä ja kohtauksia (katso [Huom. 6](#6))
-- Muutokset luettelossa tiettyyn päivään mennessä.
+- Luettelon muutokset tietty päivämäärään mennessä.
 - Analysoi Tasker-XML:n terveyttä sekä useita muuttujia asetuksissa.
-- Vertaa XML-tiedostoa ladatun XML-tiedoston kanssa.
-- Tarkista TaskerNet-alusta uusimmat tiedot projekteista, profiileista ja tehtävistä, ja ota ne käyttöön, jos mahdollista.
+- Vertaa XML-tiedostoa latautuneeseen XML-tiedostoon.
+- Tarkista TaskerNet-sivustolta päivitykset projekteille, profiileille ja tehtäville, ja ota ne käyttöön, jos mahdollista.
 - Tuo Tasker-objekti toisesta XML-tiedostosta, sekä kaikki sen riippuvuudet.
-- Tee trendianalyysi nähdäksesi, paraneeko koodisi (tai ei).
+- Suorita trendianalyysi nähdäksesi, onko koodisi kehittymässä (tai ei).
 - Tee inventaario kaikista asioista, joita tehtävä käyttää Android-laitteen ulkopuolella.
 - Määritä, mikä "laukeaa" tietyn ehdon (tilanteen tai tapahtuman) perusteella.
 - Tutki tehtävän logiikkaa ja vertaile yhtä suoritusta toiseen.
-- Käytä Android-laitteessa reaaliaikaista valvontaa nähdäksesi, mitkä profiilit ja tehtävät ovat aktiivisessa käytössä.
-- Selvitä, mitkä asiat kuluttavat akkusi eniten.
+- Käytä Android-laitteessa reaaliaikaista valvontaa nähdäksesi, mitkä profiilit ja tehtävät aktivoituvat.
+- Tunnista, mitkä asiat kuluttavat akkusi nopeasti.
+- Vie kaikki tekstit, joita henkilö lukee (Flash, Notify, Say, dialogit, kohtausnimet), taulukoiksi, jotka voidaan kääntää tai muokata, ja palauta muokatut tekstit.
+- Hallitse globaaleja muuttujia: tarkista, missä ne on määritetty ja luettu, nimeä yksi muuttuja uudelleen kaikissa paikoissa, muuta sen arvoa ja lähetä se puhelimelle.
 
 ## Ohjelman riippuvuudet
 
@@ -155,11 +157,14 @@ Tämä ohjelma ja kaikki sen esivaatimukset vievät noin 230 Mt tilaa. Suositell
 Health Check, Compare, Changes Since, Export ja kansion tarkkailu (watch) toimivat ilman ikkunaa, jolloin yöllinen Tasker-varmuuskopio voidaan tarkistaa automaattisesti (`cron`:sta, Tehtävien ajoittajasta, `launchd`:sta tai CI-työstä):
 
 ```
-maptasker -healthcheck -file backup.xml                 # ongelmat varmuuskopiossa
-maptasker -compare older.xml newer.xml                  # mikä eroaa kahden varmuuskopion välillä
-maptasker -changes_since week -file backup.xml          # mikä on muuttunut: today (tänään), week (viikko), month (kuukausi), all (kaikki), päivämäärä, tai 3d (3 päivää)
-maptasker -export map -format md -file backup.xml       # Map (tai diagrammi) muodossa md, json tai pdf
-maptasker -watch ~/TaskerBackups                        # tallentaa jokaisen uuden varmuuskopion historiaan
+maptasker -healthcheck -file backup.xml                 # problems in a backup
+maptasker -compare older.xml newer.xml                  # what differs between two backups
+maptasker -changes_since week -file backup.xml          # what changed: today, week, month, all, a date, or 3d
+maptasker -trend -file backup.xml                       # is the configuration getting healthier or messier
+maptasker -export map -format md -file backup.xml       # the Map (or diagram) as md, json or pdf
+maptasker -text export -file backup.xml                 # every piece of text a person reads, as a table to translate or edit
+maptasker -text apply -table edited.csv -file backup.xml  # put the edited table back
+maptasker -watch ~/TaskerBackups                        # record each new backup in the history
 ```
 
 - **`-file`** hyväksyy varmuuskopion tai kansion (uusinta `.xml`-tiedostoa käytetään). `-outdir` valitsee, minne tiedostot kirjoitetaan, ja `-save` tallentaa raportin myös tiedostona, kuten ikkuna tekee.

@@ -62,37 +62,39 @@ El archivo XML de copia de seguridad de Tasker, u otro XML exportado por Tasker,
 
 ## Características
 
-- La opción que elija para el nivel de detalle de la salida, desde una visión general hasta un nivel de detalle muy específico de su configuración.
-- Mostrar solo un único Proyecto, Perfil o Tarea.
-- Incluir/excluir condiciones de perfil y tareas: Estados, eventos, etc.
-- Simplemente transmite todo, o formatea la salida para que todos los campos estén alineados.
-- Cambie la apariencia: seleccione los modos 'claro' o 'oscuro'.
-- Genera la salida utilizando la fuente monoespaciada que prefieras, y destaca los nombres de los proyectos, perfiles y tareas, utilizando negritas, cursivas, subrayados u otros formatos.
-- Ajuste los colores asociados a diferentes aspectos de la salida para que se adapten a su estado de ánimo.
-- Incluir descripciones de TaskerNet y/o preferencias de Tasker.
-- Para configuraciones complejas, opcionalmente incluya un diccionario de enlaces directos a sus proyectos, perfiles, tareas y escenas.
+- El nivel de detalle de la salida que elija, desde una visión general hasta un nivel de detalle muy específico de su configuración.
+- Mostrar solo un único proyecto, perfil o tarea.
+- Incluir/excluir condiciones para perfiles y tareas: estados, eventos, etc.
+- Simplemente transmita todo o, en cambio, formatee la salida para que todos los campos estén alineados.
+- Cambia la apariencia: elige los modos 'claro' o 'oscuro'.
+- Genera la salida utilizando la fuente monoespaciada que prefieras, y destaca los nombres de "Proyecto", "Perfil" y "Tarea" utilizando negritas, cursivas, resaltes y/o subrayados.
+- Modifique los colores asociados a los diferentes aspectos de la salida para que se adapten a su estado de ánimo.
+- Incluya descripciones y/o preferencias de Tasker.
+- Para configuraciones complejas, opcionalmente incluya un diccionario de enlaces rápidos a sus proyectos, perfiles, tareas y escenas.
 - Muestra un diagrama de toda tu configuración de Tasker, así como un diagrama de flujo de tareas.
-- Interfaz de línea de comandos o interfaz gráfica.
+- Interfaz de línea de comandos o interfaz gráfica de usuario.
 - Utilice el archivo XML exportado o obtenga el archivo XML directamente desde su dispositivo Android para la configuración.
-- Envía proyectos, perfiles, tareas y escenas de nuevo a Tasker en tu dispositivo Android.
+- Envía los proyectos, perfiles, tareas y escenas de nuevo a Tasker en tu dispositivo Android.
 - Guarda y restaura la configuración durante la ejecución.
-- Identificar las tareas que tienen demasiadas "acciones" y que podrían dividirse en múltiples tareas.
-- La opción "Análisis de IA" permite analizar un proyecto, perfil, tarea o escena específicos utilizando los modelos compatibles, ya sean ChatGPT/Claude/Gemini basados en servidor o los modelos Llama basados localmente (a través de Ollama).
-- Mostrar los resultados directamente dentro de la interfaz gráfica: (Configuración) Vista de mapa, vista de árbol y vista de diagrama.
+- Identifique las tareas que tienen demasiadas "acciones" y que podrían dividirse en varias tareas.
+- Opción de Análisis AI para analizar un proyecto, perfil, tarea o escena específicos utilizando los modelos compatibles, ya sean ChatGPT/Claude/Gemini basados en servidor o los modelos Llama basados localmente (a través de Ollama).
+- Mostrar los resultados directamente dentro de la interfaz gráfica de usuario: (Configuración) Vista de mapa, vista de árbol y vista de diagrama.
 - Detección automática de actualizaciones y, opcionalmente, instalación de nuevas versiones.
-- Búsqueda mejorada y función de "Encontrar/Reemplazar" estructurada.
+- Búsqueda mejorada y función de "Buscar y Reemplazar" estructurada.
 - Añadir y editar proyectos, perfiles, tareas y escenas (ver [Nota 6](#6))
 - Lista de cambios desde una fecha específica.
 - Analice la salud del archivo XML de Tasker, así como las numerosas variables presentes en la configuración.
 - Compara un archivo XML con el XML cargado.
-- Consulte TaskerNet para obtener las últimas actualizaciones de los proyectos, perfiles y tareas, y aplíquelas si están disponibles.
+- Verifique TaskerNet para obtener las últimas actualizaciones de los proyectos, perfiles y tareas, y aplíquelas si están disponibles.
 - Importe un objeto de Tasker de otro archivo XML, junto con todas sus dependencias.
-- Realiza un análisis de tendencias para determinar si tu código está mejorando (o no).
-- Realice un inventario de todo lo que una tarea utiliza fuera del dispositivo Android.
-- Identifique "qué acciones se ejecutan" en función de una condición específica (estado o evento).
+- Realice un análisis de tendencias para determinar si su código está mejorando (o no).
+- Realice un inventario de todo lo que una Tarea utiliza fuera del dispositivo Android.
+- Determinar "qué se activa" en función de una condición específica (estado o evento).
 - Analice la lógica de una tarea y compare un resultado con otro.
-- Realice un seguimiento en tiempo real en el dispositivo Android para ver qué perfiles y tareas están activos.
-- Identifique qué es lo que está consumiendo más energía de su batería.
+- Ejecute una monitorización en tiempo real en el dispositivo Android para ver qué perfiles y tareas están activas.
+- Identifique qué está consumiendo más batería.
+- Extrae cada fragmento de texto que una persona lee (Flash, Notify, Say, diálogos, etiquetas de escena) y organízalos en una tabla para traducirlos o editarlos, y luego vuelve a insertar el texto editado.
+- Gestionar las variables globales: identificar dónde se establecen y se leen, renombrar una en todas las partes, modificar su valor y enviarla al teléfono.
 
 ## Dependencias del programa
 
@@ -155,11 +157,14 @@ Este programa y todos sus requisitos previos ocuparán alrededor de 230 MB de es
 Health Check (chequeo de salud), Compare (comparar), Changes Since (cambios desde), Export (exportar) y la vigilancia de carpetas se ejecutan sin ventana, de modo que una copia de seguridad nocturna de Tasker puede comprobarse automáticamente (desde `cron`, el Programador de tareas, `launchd` o un trabajo de CI):
 
 ```
-maptasker -healthcheck -file backup.xml                 # problemas en una copia de seguridad
-maptasker -compare older.xml newer.xml                  # qué difiere entre dos copias de seguridad
-maptasker -changes_since week -file backup.xml          # qué cambió: today (hoy), week (semana), month (mes), all (todo), una fecha, o 3d (3 días)
-maptasker -export map -format md -file backup.xml       # el Mapa (o diagrama) como md, json o pdf
-maptasker -watch ~/TaskerBackups                        # registra cada nueva copia de seguridad en el historial
+maptasker -healthcheck -file backup.xml                 # problems in a backup
+maptasker -compare older.xml newer.xml                  # what differs between two backups
+maptasker -changes_since week -file backup.xml          # what changed: today, week, month, all, a date, or 3d
+maptasker -trend -file backup.xml                       # is the configuration getting healthier or messier
+maptasker -export map -format md -file backup.xml       # the Map (or diagram) as md, json or pdf
+maptasker -text export -file backup.xml                 # every piece of text a person reads, as a table to translate or edit
+maptasker -text apply -table edited.csv -file backup.xml  # put the edited table back
+maptasker -watch ~/TaskerBackups                        # record each new backup in the history
 ```
 
 - **`-file`** acepta una copia de seguridad, o una carpeta (se usa el `.xml` más reciente que contenga). `-outdir` elige dónde se escriben los archivos, y `-save` también guarda el informe como archivo, igual que hace la ventana.

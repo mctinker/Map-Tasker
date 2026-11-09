@@ -63,36 +63,38 @@ Le fichier de sauvegarde Tasker, ou tout autre XML exporté par Tasker, peut êt
 ## Fonctionnalités
 
 - Le niveau de détail de la sortie que vous choisissez, allant d'un aperçu général à un niveau de détail très précis de votre configuration.
-- Affichez uniquement un seul projet, profil ou tâche.
-- Inclure/Exclure les conditions de profil et de tâche : États, événements, etc.
-- Soit, vous pouvez simplement diffuser tout, soit, vous pouvez rendre la sortie plus esthétique en alignant tous les champs.
+- Affichez uniquement un seul projet, un profil ou une tâche.
+- Inclure/Exclure les conditions du profil et des tâches : États, événements, etc.
+- Soit, vous pouvez simplement diffuser tout, soit vous pouvez rendre la sortie plus esthétique en alignant tous les champs.
 - Modifier l'apparence : sélectionnez les modes "clair" ou "sombre".
-- Affichez les résultats en utilisant la police à chasse fixe de votre choix, et mettez en évidence les noms de Projet, Profil et Tâche en les mettant en italique, en gras, en couleur ou en soulignant.
-- Ajustez les couleurs associées à différents aspects de la sortie pour qu'elles correspondent à votre humeur.
+- Produisez le résultat en utilisant la police à chasse fixe de votre choix, et mettez en évidence les noms de Projet, Profil et Tâche en les mettant en italique, en gras, en couleur ou en soulignant.
+- Ajustez les couleurs associées à différents aspects de la sortie pour correspondre à votre humeur.
 - Inclure les descriptions de TaskerNet et/ou les préférences de l'utilisateur.
-- Pour les configurations complexes, vous pouvez également inclure un dictionnaire de liens rapides vers vos projets, profils, tâches et scènes.
+- Pour les configurations complexes, vous pouvez éventuellement inclure un dictionnaire de liens rapides vers vos projets, profils, tâches et scènes.
 - Présentez un schéma de votre configuration complète de Tasker, ainsi qu'un diagramme de flux de tâches.
 - Interface en ligne de commande ou graphique.
 - Utilisez le fichier XML exporté ou récupérez directement le fichier XML depuis votre appareil Android pour la configuration.
 - Envoyez les projets, les profils, les tâches et les scènes à Tasker sur votre appareil Android.
-- Enregistrer et restaurer les paramètres de fonctionnement.
+- Enregistrer et restaurer les paramètres d'exécution.
 - Identifier les tâches qui comportent trop d'« actions » et qui pourraient potentiellement être divisées en plusieurs tâches.
-- L'option "Analyse" permet d'analyser un projet, un profil, une tâche ou une scène spécifiques en utilisant les modèles ChatGPT/Claude/Gemini ou Llama (via Ollama) qui fonctionnent sur un serveur ou localement.
+- L'option d'analyse Ai permet d'analyser un projet, un profil, une tâche ou une scène spécifiques en utilisant les modèles ChatGPT/Claude/Gemini ou Llama (via Ollama) basés sur le serveur, ou les modèles locaux.
 - Afficher les résultats directement dans l'interface graphique : (Configuration) Vue de la carte, Vue arborescente et Vue de diagramme.
-- Détection automatique des mises à jour et possibilité d'installer manuellement de nouvelles versions.
+- Détection automatique des mises à jour et possibilité d'installer manuellement les nouvelles versions.
 - Recherche améliorée et fonction "Rechercher/Remplacer" structurée.
 - Ajoutez et modifiez des projets, des profils, des tâches et des scènes (voir [Note 6](#6))
 - Liste des modifications depuis une date spécifique.
-- Analysez la santé du fichier XML de Tasker, ainsi que les nombreuses variables présentes dans la configuration.
-- Comparez un fichier XML avec le fichier XML chargé.
-- Consultez TaskerNet pour obtenir les dernières mises à jour des projets, des profils et des tâches, et appliquez-les si elles sont disponibles.
+- Analysez l'état du fichier XML de Tasker, ainsi que les nombreuses variables présentes dans la configuration.
+- Comparer un fichier XML avec le fichier XML chargé.
+- Consultez TaskerNet pour obtenir les dernières mises à jour concernant les projets, les profils et les tâches, et appliquez-les si disponibles.
 - Importer un objet Tasker à partir d'un autre fichier XML, ainsi que toutes ses dépendances.
-- Réalisez une analyse des tendances pour déterminer si votre code s'améliore (ou non).
-- Faites l'inventaire de tous les éléments qu'une tâche utilise en dehors de l'appareil Android.
-- Déterminer « ce qui s'active », en fonction d'une condition spécifique (état ou événement).
+- Effectuez une analyse des tendances pour déterminer si votre code s'améliore (ou non).
+- Faites l'inventaire de tout ce qu'une tâche utilise en dehors de l'appareil Android.
+- Déterminer « ce qui s'active », en fonction d'une condition spécifique (état ou événement).
 - Analysez la logique d'une tâche et comparez un résultat avec un autre.
-- Utilisez un moniteur en direct sur l'appareil Android pour voir quels profils et tâches sont actifs.
+- Utilisez un moniteur en direct sur l'appareil Android pour déterminer quels profils et tâches sont actifs.
 - Déterminez ce qui consomme le plus d'énergie de votre batterie.
+- Extrayez chaque élément de texte (Flash, Notify, Say, dialogues, étiquettes de scène) sous forme de tableau, afin de pouvoir le traduire ou le modifier, puis réinsérez le texte modifié.
+- Gérer les variables globales : identifier où elles sont définies et lues, renommer une variable partout, modifier sa valeur et l'envoyer au téléphone.
 
 ## Dépendances du programme
 
@@ -155,11 +157,14 @@ Ce programme et l'ensemble de ses prérequis occuperont environ 230 Mo d'espace.
 Health Check, Compare, Changes Since, Export et la surveillance de dossier (watch) s'exécutent sans fenêtre, ce qui permet de vérifier automatiquement une sauvegarde Tasker nocturne (depuis `cron`, le Planificateur de tâches, `launchd` ou une tâche CI) :
 
 ```
-maptasker -healthcheck -file backup.xml                 # problèmes détectés dans une sauvegarde
-maptasker -compare older.xml newer.xml                  # différences entre deux sauvegardes
-maptasker -changes_since week -file backup.xml          # ce qui a changé : today (aujourd'hui), week (semaine), month (mois), all (tout), une date, ou 3d (3 jours)
-maptasker -export map -format md -file backup.xml       # la Map (ou le diagramme) au format md, json ou pdf
-maptasker -watch ~/TaskerBackups                        # enregistre chaque nouvelle sauvegarde dans l'historique
+maptasker -healthcheck -file backup.xml                 # problems in a backup
+maptasker -compare older.xml newer.xml                  # what differs between two backups
+maptasker -changes_since week -file backup.xml          # what changed: today, week, month, all, a date, or 3d
+maptasker -trend -file backup.xml                       # is the configuration getting healthier or messier
+maptasker -export map -format md -file backup.xml       # the Map (or diagram) as md, json or pdf
+maptasker -text export -file backup.xml                 # every piece of text a person reads, as a table to translate or edit
+maptasker -text apply -table edited.csv -file backup.xml  # put the edited table back
+maptasker -watch ~/TaskerBackups                        # record each new backup in the history
 ```
 
 - **`-file`** accepte une sauvegarde, ou un dossier (le fichier `.xml` le plus récent y est utilisé). `-outdir` permet de choisir où les fichiers sont écrits, et `-save` enregistre aussi le rapport dans un fichier, comme le fait la fenêtre.

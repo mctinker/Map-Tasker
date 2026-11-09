@@ -62,37 +62,39 @@ Taskers backup-fil eller andet Tasker-eksporteret XML kan enten uploades manuelt
 
 ## Funktioner
 
-- Dit valg af detaljeringsgrad for outputtet, fra en overordnet oversigt til en meget detaljeret beskrivelse af din konfiguration.
-- Vis kun ét projekt, en profil eller en opgave.
-- Inkluder/ekskluder betingelser for profil og opgave: Tilstande, begivenheder osv.
-- Enten kan du streame alt, eller også kan du formatere outputtet, så alle felter er justeret.
+- Dit valg af detaljeringsgrad for outputtet, fra et overordnet resumé til en meget detaljeret beskrivelse af din konfiguration.
+- Vis kun ét projekt, profil eller opgave.
+- Inkluder/ekskluder profil- og opgavekriterier: Tilstande, begivenheder osv.
+- Enten kan du streame alt, eller også kan du formatere outputtet, så alle felterne er justeret.
 - Ændr udseendet: vælg 'lyst' eller 'mørkt' tema.
-- Udskriv resultatet med din foretrukne monospace-skrifttype, og fremhæv navnene på "Project", "Profile" og "Task" ved at gøre dem kursive, fed, med baggrundsfarve eller understregede.
-- Tilpas farverne, der er forbundet med de forskellige elementer i outputtet, så de passer til din stemning.
+- Output ved hjælp af din foretrukne monospace-skrifttype, og fremhæv projekter, profiler og opgaver ved at gøre deres navne kursive, fed, fremhævede og/eller understregede.
+- Juster farverne, der er forbundet med forskellige elementer i outputtet, så de passer til dit humør.
 - Inkluder beskrivelser og/eller præferencer for TaskerNet.
-- For komplekse konfigurationer, kan du valgfrit inkludere en ordbog med hurtiglinks til dine projekter, profiler, opgaver og scener.
+- For komplekse konfigurationer, kan du valgfrit inkludere en ordbog med links til dine projekter, profiler, opgaver og scener.
 - Vis et diagram over hele din Tasker-konfiguration samt en flow-diagram.
 - Kommandolinje eller grafisk brugergrænseflade.
-- Brug den eksporterede XML-fil eller hent XML-filen direkte fra din Android-enhed til konfigurationen.
+- Brug det eksporterede XML-format eller hent XML-filen direkte fra din Android-enhed til konfigurationsmapping.
 - Send projekter, profiler, opgaver og scener tilbage til Tasker på din Android-enhed.
 - Gem og gendan indstillinger under kørsel.
 - Identificer opgaver, der har for mange "handlinger", og som potentielt bør opdeles i flere opgaver.
-- Mulighed for at analysere et specifikt projekt, profil, opgave eller scene ved hjælp af enten serverbaserede modeller som ChatGPT/Claude/Gemini eller lokale modeller, der understøttes af Llama (via Ollama).
+- Mulighed for at analysere et specifikt projekt, profil, opgave eller scene ved hjælp af enten serverbaserede modeller som ChatGPT/Claude/Gemini eller lokale modeller, der understøttes via Llama (via Ollama).
 - Vis resultater direkte i GUI'en: (Konfiguration) Kortvisning, trævisning og diagramvisning.
 - Automatisk opdagelse af opdateringer og mulighed for valgfri installation af nye versioner.
 - Forbedret søgning og struktureret "Find/Erstat"-funktion.
 - Tilføj og rediger projekter, profiler, opgaver og scener (se [Note 6](#6))
 - Vis ændringer i listen siden en bestemt dato.
-- Analyser Tasker XML's tilstand samt de mange variabler i konfigurationen.
+- Analyser sundheden af Tasker-XML'en samt de mange variabler i konfigurationen.
 - Sammenlign en XML-fil med den indlæste XML-fil.
-- Tjek TaskerNet for opdateringer vedrørende projekter, profiler og opgaver, og anvend dem, hvis de er tilgængelige.
+- Tjek TaskerNet for opdateringer af projekter, profiler og opgaver, og anvend dem, hvis de er tilgængelige.
 - Importer et Tasker-objekt fra en anden XML-fil, sammen med alle dets afhængigheder.
 - Udfør en trendanalyse for at se, om din kode forbedres (eller ikke).
-- Lav en liste over alt, hvad en Task bruger, der ikke er tilgængeligt på Android-enheden.
-- Bestem 'hvad der udløses', baseret på en specifik betingelse (tilstand eller begivenhed).
-- Gå igennem logikken i en opgave, og sammenlign et udførelse med et andet.
-- Kør en live-overvågning på Android-enheden for at se, hvilke profiler og opgaver der er aktive.
-- Find ud af, hvad der dræner din batteri.
+- Lav en liste over alt, hvad en opgave bruger, der ikke er tilgængeligt på Android-enheden.
+- Bestem 'hvad der udløses', baseret på en bestemt betingelse (tilstand eller begivenhed).
+- Følg logikken i en opgave og sammenlign et udførelsesforløb med et andet.
+- Kør en live-overvågning på Android-enheden for at se, hvilke profiler og opgaver der aktiveres.
+- Find ud af, hvad der tærer mest på din batterilevetid.
+- Ekstraher al tekst, en person læser (Flash, Notifikationer, Siger, dialoger, Scenetiketter) og opret en tabel til oversættelse eller redigering, og indsæt den redigerede tekst igen.
+- Administrer de globale variabler: se, hvor de er defineret og læst, omdøb én overalt, ændr dens værdi og send den til telefonen.
 
 ## Programafhængigheder
 
@@ -155,11 +157,14 @@ Dette program og alle dets forudsætninger vil kræve omkring 230 MB plads. Det 
 Health Check, Compare, Changes Since, Export og en mappeovervågning (watch) kører uden vindue, så en natlig Tasker-backup kan kontrolleres automatisk (fra `cron`, Jobplanlæggeren, `launchd` eller et CI-job):
 
 ```
-maptasker -healthcheck -file backup.xml                 # problemer i en backup
-maptasker -compare older.xml newer.xml                  # hvad der er forskelligt mellem to backups
-maptasker -changes_since week -file backup.xml          # hvad der er ændret: today (i dag), week (uge), month (måned), all (alt), en dato, eller 3d (3 dage)
-maptasker -export map -format md -file backup.xml       # Map'en (eller diagrammet) som md, json eller pdf
-maptasker -watch ~/TaskerBackups                        # registrerer hver ny backup i historikken
+maptasker -healthcheck -file backup.xml                 # problems in a backup
+maptasker -compare older.xml newer.xml                  # what differs between two backups
+maptasker -changes_since week -file backup.xml          # what changed: today, week, month, all, a date, or 3d
+maptasker -trend -file backup.xml                       # is the configuration getting healthier or messier
+maptasker -export map -format md -file backup.xml       # the Map (or diagram) as md, json or pdf
+maptasker -text export -file backup.xml                 # every piece of text a person reads, as a table to translate or edit
+maptasker -text apply -table edited.csv -file backup.xml  # put the edited table back
+maptasker -watch ~/TaskerBackups                        # record each new backup in the history
 ```
 
 - **`-file`** accepterer en backup eller en mappe (den nyeste `.xml`-fil i den bruges). `-outdir` vælger, hvor filer skrives, og `-save` gemmer også rapporten som en fil, ligesom vinduet gør.

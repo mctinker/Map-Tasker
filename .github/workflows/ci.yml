@@ -155,6 +155,13 @@ jobs:
       - name: translation ratchet
         run: uv run --no-sync python scripts/translation_ratchet.py
 
+      # The pages tools/misc generates from the source (the Command Reference, the Runtime Options, the Generated
+      # Output) are what their generators write now, and README.md names every report that runs with no window and
+      # lists the exit codes the program documents.  Each generator's --check writes nothing and fails on a
+      # difference; regenerate with ./publish-wikis.sh --dry-run and commit what it writes.
+      - name: generated docs
+        run: uv run --no-sync python scripts/docs_check.py
+
       # [tool.importlinter] in pyproject.toml: entry points above the GUI, the GUI above the
       # core, and NiceGUI imported only by the GUI. Every module has to be placed in a layer,
       # so a new one fails here until it is.

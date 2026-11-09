@@ -4,9 +4,9 @@ MapTasker displays your Android Tasker configuration based on your uploaded Task
 
 Once the XML file is loaded, you can optionally edit your Projects, Profiles, Tasks, and Scenes.
 
-This page describes each of the **96** commands, options and tabs in MapTasker's Help screen, in the same order, with more detail on each and the caveats that go with it.
+This page describes each of the **97** commands, options and tabs in MapTasker's Help screen, in the same order, with more detail on each and the caveats that go with it.
 
-_Generated from the MapTasker 15.1.1 source on 2026-11-05 by `build_command_wiki.py`._ _Do not edit this page by hand -- rerun that program instead._
+_Generated from the MapTasker 15.2.0 source by `build_command_wiki.py`._ _Do not edit this page by hand -- rerun that program instead._
 
 ## How to use this page
 
@@ -112,10 +112,12 @@ _Generated from the MapTasker 15.1.1 source on 2026-11-05 by `build_command_wiki
 * [TaskerNet Description](#cmd-taskernet-description)
 * [TaskerNet Updates](#cmd-taskernet-updates)
 * [Trend Dashboard](#cmd-trend-dashboard)
+* [Variable Manager](#cmd-variable-manager)
 * [Variable Xref](#cmd-variable-xref)
 * [View Limit](#cmd-view-limit)
 * [What Fires When?](#cmd-what-fires-when)
 * [Command-Line Arguments](#command-line-arguments)
+  * [Reports with no window](#reports-with-no-window)
 
 ## Commands
 
@@ -701,7 +703,7 @@ Modify the object currently selected in the pulldowns above.
 _Part of [Add, Edit and Save](#cmd-add-edit-and-save)._
 
 **Type:** Command  
-**Where:** Edit Profile Buttons; Edit Project Buttons; Edit Scene Buttons (and 9 more)
+**Where:** Build; Edit Profile Buttons; Edit Project Buttons (and 10 more)
 
 Give the object being edited a new name.
 
@@ -711,7 +713,9 @@ Give the object being edited a new name.
 * Prompts for a new name and applies it to the loaded backup, right now. The Project Name field above is read-only -- this is the only way to change it.
 * Tasks address this element by name (Element Text, Element Position, ... 18 action codes in all), so renaming it is not a field edit. The Rename dialog lists what depends on the current name and offers to bring those Tasks along.
 
-**Opens:** Rename, Rename Legacy Element
+**Opens:** Plan, Rename, Rename Legacy Element
+
+**Commands in it:** [Preview](#cmd-preview)
 
 <a id="cmd-delete"></a>
 ##### Delete
@@ -719,11 +723,13 @@ Give the object being edited a new name.
 _Part of [Add, Edit and Save](#cmd-add-edit-and-save)._
 
 **Type:** Command  
-**Where:** Delete All; Item Layout; Render (and 1 more)
+**Where:** Build; Delete All; Item Layout (and 2 more)
 
 Remove the object being edited from the loaded XML.
 
-**Opens:** Build
+**Opens:** Plan, Build
+
+**Commands in it:** [Preview](#cmd-preview)
 
 <a id="cmd-add-edit-properties"></a>
 ##### Add/Edit Properties
@@ -778,7 +784,7 @@ Make a copy of the selected Scene element.
 _Part of [Add, Edit and Save](#cmd-add-edit-and-save)._
 
 **Type:** Command  
-**Where:** Buttons; Draw Row; Main &gt; Add Scene &gt; Legacy Scene
+**Where:** Buttons; Draw Row; Build &gt; Delete (and 7 more)
 
 Display the Scene being edited as it will appear.
 
@@ -1186,6 +1192,10 @@ Dry-run one Task. Pick it, say what its variables hold when it starts (Suggest I
 
 **Hover text:** Dry-run one Task: pick it, say what its variables hold when it starts, and see which If, Else If, For and Goto branches it takes and what every variable holds after each action. Nothing is run on your phone and nothing in the configuration changes.
 
+**Opens:** Plan
+
+**Commands in it:** [Preview](#cmd-preview)
+
 **Caveats:**
 
 * Variable Set, Add, Clear and Split, and the conditions Tasker's If offers, are simulated; Flash, Notify and the like are shown with their variables filled in; anything that talks to the outside world is listed as not simulated, and a variable it may have set is unknown.
@@ -1209,6 +1219,10 @@ Is your configuration getting healthier or messier?
 
 **Hover text:** Is your configuration getting healthier or messier? Measures every configuration the history has kept -- Task length, nesting depth, how deep Perform Task calls go, and what the Health Check finds -- and shows each number over time, for the whole configuration and for each Project. Each configuration is measured once and the figures are kept, so only the first look is slow.
 
+**Opens:** Plan
+
+**Commands in it:** [Preview](#cmd-preview)
+
 <a id="cmd-refactor-variable"></a>
 ### Refactor > Variable
 
@@ -1228,6 +1242,10 @@ Rename a variable everywhere it is used, or change it between global and local.
 Do the files, folders, images, sounds, Scenes and apps your Tasks and Profiles use still exist on your Android device? Press Check Device and MapTasker asks the device -- it puts a small helper Task there, hands it the list of paths to test, fetches the installed apps and asks Tasker for its Scenes -- then lists what the device does not have, with every action or Profile that uses each one (click a line to go to it). The Health Check reports the same as RESOURCE-MISSING from the last check, and says when it was made. Nothing is changed on the device but the helper Task and two small files in its Tasker folder, and nothing in your configuration changes.
 
 **Hover text:** Do the files, folders, images, sounds, Scenes and apps your Tasks and Profiles use still exist on your Android device? Asks the device and lists the ones it does not have, with every place that uses each. The Health Check reports the same findings from the last time you checked.
+
+**Opens:** Plan
+
+**Commands in it:** [Preview](#cmd-preview)
 
 **Caveats:**
 
@@ -1252,6 +1270,10 @@ Watch which Profiles and Tasks fire on your Android device as they do.
 * Nothing on the device is changed but the helper Task.
 
 **Hover text:** Watch which Profiles and Tasks fire on your Android device as they do, and see them light up in the Diagram. Compare what the device really has active with what What Fires When predicted for the same moment. It samples several times a second, so a Task that runs for a moment can be missed. Nothing on the device is changed but one small helper Task.
+
+**Opens:** Plan
+
+**Commands in it:** [Preview](#cmd-preview)
 
 <a id="cmd-pre-build-the-map"></a>
 ### Pre-Build The Map
@@ -1302,6 +1324,10 @@ Keep a Task Stepper run as a named test, and run every test again after each edi
 * Nothing is run on your phone.
 
 **Hover text:** Run the tests you have saved from the Task Stepper: a Task, the values it started with and what it did -- how it ended, the variables it set, and what it showed and sent. They are run again after every edit, Fix Findings pass, refactor or import, and you are told if a Task no longer does what it did.
+
+**Opens:** Plan
+
+**Commands in it:** [Preview](#cmd-preview)
 
 **Caveats:**
 
@@ -1405,6 +1431,25 @@ Finds what in the loaded configuration keeps the phone busy and scores each Proj
 
 * A loop that something in it can end, such as a Stop or a condition on its Goto, is a job that finishes and is only counted when a Wait shows it pacing itself, and then at half; a loop that waits on a dialog, a menu, speech or Wait Until is paced by that and is not counted; a Wait or an action that is switched off counts for nothing.
 
+<a id="cmd-variable-manager"></a>
+### Variable Manager
+
+**Type:** Command  
+**Where:** Right Drawer
+
+A table of every global variable in the loaded configuration: its value in Tasker's Variables tab, its type, how many places set it and how many read it, and -- once you press Get From Phone -- what the phone holds for it and whether that differs from the file.
+
+* A variable set but never read, read but never set, or in the Variables tab and used nowhere is marked.
+* Choose one to see every place that uses it, each a link to the Map view.
+* Rename changes it everywhere it is written; Change Value sets its value in the Variables tab, and the type you pick is a check on the value (Tasker itself keeps every value as text); Delete removes its Variables tab entry and leaves the actions that use it alone, and takes every variable you have ticked at once -- the buttons above the table show just the ones set but never read, read but never set, or unused, ready to tick and delete together.
+* Each of these shows a preview first, changes the loaded configuration only, and is one press of Undo.
+* Send To Phone sets one global on the Android device through Tasker's HTTP API and reads it back to confirm; it needs the Tasker HTTP API project's 'POST Globals' Profile enabled, and an empty value is never sent, because the API reads it as clearing the variable.
+* Delete On Phone clears the ticked variables from the phone the same way, one at a time, and asks the phone whether each is gone; it never touches the file, and Delete never touches the phone.
+* Fix Scope lists the names that break Tasker's case rule -- all lower case is local to a Task, one capital makes it global -- such as a lower case name that is the same letters as a global, or a name in the Variables tab with no capital, and fixes the one you choose everywhere it is used, with a preview and one press of Undo.
+* The Health Check reports the same names.
+
+**Hover text:** A table of every global variable: its value, its type, how often it is set and read, and what the phone holds for it. The ones set but never read, or read but never set, are marked. Rename one everywhere it is used, change or delete the value in the Variables tab, or push a value to the phone. Each change is previewed first and is one press of Undo.
+
 ## Command-Line Arguments
 
 MapTasker can also be run from a terminal, where these arguments do the same job the settings above do in the window:
@@ -1445,6 +1490,20 @@ maptasker [arguments]
 | `-taskernet` |  | Display any TaskerNet information for Projects/Profiles. |
 | `-twisty` |  | Hide Task's details under 'twisty' ➤. Click on twisty to display details. |
 | `-v`, `-version` |  | Display the program version and license information. |
+
+### Reports with no window
+
+These run one report from the command line and write it to standard output (everything else goes to standard error), so a scheduled job can check a nightly backup.  Name one report and then any of its options, as in `maptasker -healthcheck -file backup.xml`.  Every option they take, and the exit codes a script can act on, are on the [Runtime Options](https://github.com/mctinker/Map-Tasker/wiki/Runtime-Options) page.
+
+| Report | Value | What it does |
+| --- | --- | --- |
+| `-healthcheck` |  | scan a backup for problems |
+| `-compare` | `OLDER NEWER` | show what differs between two backups (which is older is settled by the files' dates) |
+| `-changes_since` | `PERIOD` | show what changed since PERIOD: today, week, month, all, a date (YYYY-MM-DD) or Nd (e.g. 3d) |
+| `-trend` |  | show whether the configuration is getting healthier or messier over the history (see -file, -project); exits 10 if the newest backup made it messier |
+| `-export` | `{map,diagram}` | write the Map or the Diagram as a file (see -format), and print its path |
+| `-text` | `{export,apply}` | export: write every piece of text a person reads (Flash, Notify, Say, dialogs, Scene labels) as a table to translate or edit; apply: put the table's translations back (see -table, -text_format, -project) |
+| `-watch` | `FOLDER` | record each new backup that appears in FOLDER in the history, until stopped |
 
 ---
 

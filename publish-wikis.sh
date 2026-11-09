@@ -46,11 +46,12 @@ fi
 
 cd "$(dirname "$0")" || exit 1
 
-# The Command-Reference and Generated-Output generators are standard library only and
-# read the source as text; the Runtime-Options generator imports the program to ask its
-# own parsers for the options, so it needs the project's packages as well.  All need the
-# Python the project does (3.11 or later), and the python3 on a Mac's PATH can be the
-# system's 3.9. Use the project's virtual environment when there is one. Let one
+# The Generated-Output generator is standard library only and reads the source as text.
+# The Command-Reference generator reads the window's commands as text too, but asks the
+# program's own parser for the reports that run with no window, and the Runtime-Options
+# generator asks both parsers for every option, so those two need the project's packages
+# as well.  All need the Python the project does (3.11 or later), and the python3 on a
+# Mac's PATH can be the system's 3.9. Use the project's virtual environment when there is one. Let one
 # already chosen win.
 if [ -z "${PYTHON:-}" ]; then
     if [ -x .venv/bin/python ]; then
@@ -93,9 +94,9 @@ ACTION=(--publish)
 [ "$DRY_RUN" -eq 1 ] && ACTION=(--publish --dry-run)
 
 if [ "$CHECK" -eq 1 ]; then
-    # --check is the generators' own "is the page on disk current?" gate. Only the
-    # newer generators have one; the Command Reference is stamped with the date it was
-    # built, so it differs from itself every day and cannot be compared this way.
+    # --check is the generators' own "is the page on disk current?" gate; scripts/docs_check.py
+    # runs the same three in CI, and checks README.md against the code as well.
+    publish_page "Command-Reference is current" tools/misc/build_command_wiki.py --check
     publish_page "Generated-Output is current" tools/misc/build_generated_files_doc.py --check
     publish_page "Runtime-Options is current" tools/misc/build_runtime_options_wiki.py --check
 else
