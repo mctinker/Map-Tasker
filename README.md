@@ -61,7 +61,7 @@ The Tasker backup or other Tasker exported XML can either be manually uploaded t
 ## Features
 
 - Your choice of output detail level, from a summary overview to a very detailed level of your configuration.
-- Display just a single Project, Profile, or Task...or the entire XML configuration.
+- Display just a single Project, Profile, Task, or Scene...or the entire XML configuration.
 - Include/exclude Profile and Task conditions: States, Events, etc.
 - Just stream everything or make the output "pretty" by aligning all of the fields.
 - Change the appearance: select 'light', or 'dark' modes.
@@ -72,11 +72,10 @@ The Tasker backup or other Tasker exported XML can either be manually uploaded t
 - Display a diagram of your entire Tasker configuration as well as a Task Flow.
 - Command line or GUI interface.
 - Use exported XML or fetch the XML directly from your Android device for the configuration mapping.
-- Send Projects, Profiles, Tasks and Scenes back to Tasker on your ANdroid device.
+- Send Projects, Profiles, Tasks and Scenes back to Tasker on your Android device.
 - Save and restore runtime settings.
 - Identify Tasks that have too many 'actions', and which should potentially be broken up into multiple Tasks.
 - Ai Analysis option to analyze a specific Project, Profile, Task or Scene using either the server-based ChatGPT/Claude/Gemini or the local-based Llama (via Ollama) supported models.
-- Display results directly within the GUI: (Configuration) Map View, Tree View, and Diagram View.
 - Automatic update detection and optional installation of new versions.
 - Enhanced search and structured 'Find/Replace'.
 - Add and Edit Projects, Profiles, Tasks, and Scenes (see [Note 6](#6))
@@ -92,7 +91,8 @@ The Tasker backup or other Tasker exported XML can either be manually uploaded t
 - Run a live monitor on the Android device to see which Profiles and Tasks fire.
 - Identify what is hard on your battery.
 - Pull out every piece of text a person reads (Flash, Notify, Say, dialogs, Scene labels) as a table to translate or edit, and put the edited text back.
-- Manage the global variables: see where each is set and read, rename one everywhere, change its value, and send it to the phone.
+- Manage the global variables: see where each is set and read, rename one everywhere, change its value, and send it to your phone.
+- Add notes and tags to your Projects, Profiles, Tasks and Scenes.
 
 ## Program Dependencies
 
