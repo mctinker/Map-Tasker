@@ -15,6 +15,7 @@ Map's text, not its HTML.
 from __future__ import annotations
 
 import asyncio
+import ssl
 from pathlib import Path
 from types import SimpleNamespace
 from typing import TYPE_CHECKING, Any
@@ -303,6 +304,17 @@ def test_a_known_failure_is_explained_and_an_unknown_one_is_passed_on(
     assert expected in _error_text(tmp_path)
 
 
+def test_a_dropped_connection_is_explained_as_the_network_s_doing(state: RunState, tmp_path: Path) -> None:
+    state.program_arguments.ai_model = "gemini-3.5-flash-lite"
+    state.ai["gemini_models"] = ["gemini-3.5-flash-lite"]
+
+    text = mapai.handle_ai_error(ssl.SSLError("[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred"), state=state)
+
+    assert "connection to Gemini was dropped" in text
+    assert "UNEXPECTED_EOF_WHILE_READING" in text
+    assert "VPN" in text
+
+
 # ##################################################################################
 # Each provider, called the way its library is called.
 # ##################################################################################
@@ -427,6 +439,55 @@ def test_gemini_is_given_no_tools_to_call(state: RunState) -> None:
     assert sent["config"] == {"automatic_function_calling": {"disable": True}}
     assert sent["contents"].endswith("the query")
     assert sent["contents"].startswith(mapai.ai_role)
+
+
+def _flaky_gemini(failures: list[Exception], calls: list[int]) -> SimpleNamespace:
+    """A Gemini client whose first requests fail with these errors, and whose next one answers."""
+
+    def generate(**_kwargs: Any) -> SimpleNamespace:
+        calls.append(1)
+        if failures:
+            raise failures.pop(0)
+        return SimpleNamespace(text="Gemini says.")
+
+    return SimpleNamespace(models=SimpleNamespace(generate_content=generate))
+
+
+def test_a_gemini_connection_that_drops_is_tried_again(state: RunState, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(mapai.time, "sleep", lambda _seconds: None)
+    calls: list[int] = []
+    drops: list[Exception] = [ssl.SSLError("[SSL: UNEXPECTED_EOF_WHILE_READING]"), httpx.ConnectError("reset")]
+
+    reply = mapai._process_gemini_response(_flaky_gemini(drops, calls), "q", state=state)
+
+    assert reply == "Gemini says."
+    assert len(calls) == 3
+
+
+def test_a_gemini_connection_that_keeps_dropping_is_given_up_on(
+    state: RunState, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(mapai.time, "sleep", lambda _seconds: None)
+    calls: list[int] = []
+    drops: list[Exception] = [ssl.SSLError("one"), ssl.SSLError("two"), ssl.SSLError("three"), ssl.SSLError("four")]
+
+    with pytest.raises(ssl.SSLError, match="three"):
+        mapai._process_gemini_response(_flaky_gemini(drops, calls), "q", state=state)
+
+    assert len(calls) == mapai.GEMINI_CONNECTION_ATTEMPTS
+
+
+@pytest.mark.parametrize("error", [ValueError("API key not valid"), httpx.ReadTimeout("slow")])
+def test_a_gemini_failure_that_is_not_a_dropped_connection_is_not_retried(
+    state: RunState, monkeypatch: pytest.MonkeyPatch, error: Exception
+) -> None:
+    monkeypatch.setattr(mapai.time, "sleep", lambda _seconds: pytest.fail("waited to retry"))
+    calls: list[int] = []
+
+    with pytest.raises(type(error)):
+        mapai._process_gemini_response(_flaky_gemini([error], calls), "q", state=state)
+
+    assert len(calls) == 1
 
 
 # ##################################################################################

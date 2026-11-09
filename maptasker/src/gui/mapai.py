@@ -7,6 +7,8 @@ upon reinvocation of the application.
 import html
 import importlib.util
 import re
+import ssl
+import time
 
 import httpx
 from nicegui import run
@@ -301,24 +303,56 @@ def _process_anthropic_response(client: AiClient, query: str, state: RunState) -
     return text
 
 
+# How many times Gemini is asked before a dropped connection is given up on, and the pause before the next try
+# (it grows: one second, then two).
+GEMINI_CONNECTION_ATTEMPTS = 3
+
+
+def _connection_dropped(error: BaseException) -> bool:
+    """Whether the connection to the service failed, as opposed to the service answering with a refusal.
+
+    A connection can be cut part-way through setting up the secure channel ("SSL: UNEXPECTED_EOF_WHILE_READING"),
+    which is nearly always a momentary fault on the way there -- a router, VPN or proxy -- and passes by the next
+    attempt.  A timeout is not counted: asking again would just wait the whole time again.
+    """
+    if isinstance(error, httpx.TimeoutException):
+        return False
+    return isinstance(error, (httpx.TransportError, ssl.SSLError, ConnectionError))
+
+
 def _process_gemini_response(client: AiClient, query: str, state: RunState) -> str:
-    """Helper function to process Gemini responses."""
+    """Helper function to process Gemini responses.
+
+    A dropped connection is retried.  OpenAI's and Anthropic's libraries already do that for themselves; Google's
+    does not, and one hiccup on the way would otherwise end an analysis that a second try completes.
+    """
     model = state.program_arguments.ai_model
     role = ai_role
-    # Suppress logging warnings
-    # message = client.GenerativeModel(model)
-    # response1 = message.generate_content(role + query)
-    response = client.models.generate_content(
-        model=model,
-        contents=f"{role}  {query}",
-        # MapTasker gives the model no tools, so there is nothing for it to call.  Left unset,
-        # the library defaults to automatic function calling and warns that using it this way
-        # is "not recommended".
-        config={"automatic_function_calling": {"disable": True}},
-        # NOTE: Need to add logic to determine specific model eligability for the following option.
-        # config=types.GenerateContentConfig(thinking_config=types.ThinkingConfig(thinking_level="low")),
-    )
-    return response.text
+    for attempt in range(1, GEMINI_CONNECTION_ATTEMPTS + 1):
+        try:
+            response = client.models.generate_content(
+                model=model,
+                contents=f"{role}  {query}",
+                # MapTasker gives the model no tools, so there is nothing for it to call.  Left unset,
+                # the library defaults to automatic function calling and warns that using it this way
+                # is "not recommended".
+                config={"automatic_function_calling": {"disable": True}},
+                # NOTE: Need to add logic to determine specific model eligability for the following option.
+                # config=types.GenerateContentConfig(thinking_config=types.ThinkingConfig(thinking_level="low")),
+            )
+        except Exception as error:
+            if attempt == GEMINI_CONNECTION_ATTEMPTS or not _connection_dropped(error):
+                raise
+            logger.warning(
+                "Gemini connection dropped (%s); trying again (%d of %d)",
+                error,
+                attempt + 1,
+                GEMINI_CONNECTION_ATTEMPTS,
+            )
+            time.sleep(attempt)
+        else:
+            return response.text
+    return ""  # Unreachable: the last attempt either returns or raises.
 
 
 def process_ai_query_and_response(
@@ -402,6 +436,13 @@ def handle_ai_error(error: Exception, state: RunState) -> str:
         return f"OpenAI failed with error: {error!s}"
     if "invalid x-api-key" in message or "API key not valid" in message:
         return f"Invalid {ai} API key provided: key='{state.program_arguments.ai_apikey}' for model {model}!\n\n"
+    if _connection_dropped(error):
+        return (
+            f"The connection to {ai} was dropped ({message}).\n\n"
+            "MapTasker tried again but it kept dropping.  That is usually the network between this computer and "
+            "the service rather than MapTasker or your API key: an unstable connection, or a VPN, proxy, firewall "
+            "or antivirus that inspects secure connections.  Try again, or try without those.\n\n"
+        )
     if "Connection error" in message:
         return "Connection Error: Check your firewall. If this is not the issue, try another Anthropic API key.  Also check out their 'Initial Setup' steps.\n\n"
     return f"{ai} failed with error: {error!s}"

@@ -43,6 +43,8 @@ All notable changes to this project will be documented in this file!
 
 ### Fixed
 
+- Fixed: AI Analysis with Gemini now tries again, up to three times, when the connection drops (for example '[SSL: UNEXPECTED_EOF_WHILE_READING]') instead of giving up at once. If it still fails, the message now explains that it is a network problem and suggests checking a VPN, proxy, firewall or antivirus.
+
 - Fixed: Clicking a connector in the Diagram now puts the red rectangle round the calling and called Tasks after you change 'Profiles per Line', not only at the default of 6. The Diagram was still using the connectors from before the change.
 
 - Fixed: The Map no longer lists global variables left over from a backup you loaded earlier in the same session, so a variable you had deleted from the file stops appearing. Loading a local file also no longer leaves the Map's source line reading 'From Android device' with a blank address.
