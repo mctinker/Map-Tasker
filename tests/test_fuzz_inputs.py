@@ -29,7 +29,7 @@ from hypothesis import strategies as st
 from maptasker.src import clireports
 from maptasker.src.analysis import mapask, timecomp
 from maptasker.src.core import getputer, scenelayout, timeline
-from maptasker.src.core.colrmode import set_color_mode
+from maptasker.src.core.colrmode import effective_colors, set_color_mode
 from maptasker.src.core.initparg import initialize_runtime_arguments
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.mapgen import taskerd
@@ -83,6 +83,78 @@ def test_a_spoiled_settings_file_is_read_as_far_as_it_makes_sense(data: bytes) -
     event(f"arguments: {type(arguments).__name__}")
     assert isinstance(arguments, dict)
     assert isinstance(colors, dict)
+
+
+# What a save is handed for the colours differs by caller -- the whole palette (an exit save), only what the user
+# changed (the Save button), nothing -- and the file means one thing whichever it was: the colours that differ from the
+# appearance mode's palette.  The properties below are that, for colours of every shape.
+_MODES = st.sampled_from(["dark", "light", "system"])
+_PALETTE_KEYS = sorted(set_color_mode("dark"))
+_COLOUR_NAMES = st.text(min_size=1, max_size=14)
+_COLOUR_KEYS = st.one_of(st.sampled_from(_PALETTE_KEYS), st.text(min_size=1, max_size=10))
+
+
+@st.composite
+def colour_holdings(draw: st.DrawFn) -> tuple[str, dict[str, str], dict[str, str]]:
+    """(the mode, the colours the user changed, and the same colours held another way: the whole palette under them)."""
+    mode = draw(_MODES)
+    changed = draw(st.dictionaries(_COLOUR_KEYS, _COLOUR_NAMES, max_size=8))
+    return mode, changed, {**set_color_mode(mode), **changed}
+
+
+def _saved_and_restored(mode: str, held: dict[str, str]) -> tuple[dict[str, str], dict[str, str]]:
+    """The [colors_to_use] table a save of `held` writes, and the colours a read of that file comes back with."""
+    import tomllib
+
+    with a_scratch_run(b"") as path:
+        prime_a_run()
+        target = path.with_name("MapTasker_Settings.toml")
+        arguments = initialize_runtime_arguments().as_dict()
+        arguments["appearance_mode"] = mode
+        getputer.save_arguments(arguments, dict(held), str(target), PrimeItems)
+        written = tomllib.loads(target.read_text(encoding="utf-8"))["colors_to_use"]
+        _, restored = getputer.read_toml_file(str(target), PrimeItems)
+        return written, restored
+
+
+@fuzz(150)
+@given(holding=colour_holdings())
+def test_the_colours_saved_come_back_as_they_were_and_the_file_holds_only_what_differs(
+    holding: tuple[str, dict[str, str], dict[str, str]],
+) -> None:
+    mode, changed, whole = holding
+    wanted = {**set_color_mode(mode), **changed}
+    palette = set_color_mode(mode)
+
+    written_whole, restored_whole = _saved_and_restored(mode, whole)
+    written_changed, restored_changed = _saved_and_restored(mode, changed)
+
+    event(f"{len(written_changed)} colours differ")
+    assert restored_whole == restored_changed == wanted, "the colours saved did not come back"
+    assert written_whole == written_changed, "the file depends on how the caller held the colours"
+    assert all(palette.get(name) != value for name, value in written_changed.items()), "a palette colour was written"
+    assert set(written_changed) <= set(changed)
+
+
+@fuzz(100)
+@given(holding=colour_holdings())
+def test_saving_what_was_read_writes_the_same_colours(holding: tuple[str, dict[str, str], dict[str, str]]) -> None:
+    """Restoring and saving again, as every session does, neither adds nor loses a colour."""
+    mode, changed, _ = holding
+    written, restored = _saved_and_restored(mode, changed)
+    written_again, restored_again = _saved_and_restored(mode, restored)
+
+    assert written_again == written
+    assert restored_again == restored
+
+
+@fuzz(150)
+@given(mode=_MODES, table=JSON_VALUES)
+def test_a_colour_table_of_any_kind_is_read_as_far_as_it_makes_sense(mode: str, table: object) -> None:
+    """Whatever stands where the colours go -- not a table, numbers for colours, a null key -- comes back as colours."""
+    colours = effective_colors(table, mode)
+    assert colours.keys() >= set_color_mode(mode).keys()
+    assert all(isinstance(name, str) and isinstance(value, str) and value for name, value in colours.items())
 
 
 # ##################################################################################

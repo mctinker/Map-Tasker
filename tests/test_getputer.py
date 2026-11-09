@@ -15,7 +15,7 @@ from pathlib import Path
 
 import pytest
 from maptasker.src.core import getputer
-from maptasker.src.core.colrmode import set_color_mode
+from maptasker.src.core.colrmode import color_overrides, effective_colors, set_color_mode
 from maptasker.src.core.initparg import ProgramArguments, initialize_runtime_arguments
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.core.sysconst import (
@@ -178,3 +178,88 @@ def test_nothing_selected_is_saved_as_nothing_in_any_language(
     restored, _ = getputer.save_restore_args({}, {}, to_save=False, state=PrimeItems)
 
     assert restored["single_project_name"] == ""
+
+
+# ##################################################################################
+# One meaning for [colors_to_use]: the colours that differ from the appearance mode's own palette
+# ##################################################################################
+def _saved_colors(tmp_path: Path) -> dict[str, str]:
+    import tomllib
+
+    return tomllib.loads((tmp_path / ARGUMENTS_FILE).read_text(encoding="utf-8"))["colors_to_use"]
+
+
+def test_the_file_keeps_only_the_colours_that_differ_from_the_modes_palette(
+    program_arguments: ProgramArguments, tmp_path: Path
+) -> None:
+    program_arguments.appearance_mode = "dark"
+    colors = {**set_color_mode("dark"), "project_color": "Red"}
+
+    getputer.save_restore_args(program_arguments, colors, to_save=True, state=PrimeItems)
+
+    assert _saved_colors(tmp_path) == {"project_color": "Red"}
+
+
+def test_every_way_of_holding_the_same_colours_saves_the_same_file(
+    program_arguments: ProgramArguments, tmp_path: Path
+) -> None:
+    """The whole palette (an exit save), only what the user changed (the Save button) and a palette with extras
+    in it all come to the same colours, so they write the same file."""
+    program_arguments.appearance_mode = "light"
+    changed = {"task_color": "Blue", "project_color": "Red"}
+    holdings = [{**set_color_mode("light"), **changed}, dict(changed), {**changed, "heading_color": "DarkSlateGray"}]
+
+    written = []
+    for held in holdings:
+        getputer.save_restore_args(program_arguments, held, to_save=True, state=PrimeItems)
+        written.append(_saved_colors(tmp_path))
+
+    assert written[0] == written[1] == written[2] == changed
+
+
+def test_a_file_saved_with_no_changed_colour_has_an_empty_table_and_restores_the_palette(
+    program_arguments: ProgramArguments, tmp_path: Path
+) -> None:
+    program_arguments.appearance_mode = "dark"
+
+    getputer.save_restore_args(program_arguments, {}, to_save=True, state=PrimeItems)
+    _, restored = getputer.save_restore_args({}, {}, to_save=False, state=PrimeItems)
+
+    assert _saved_colors(tmp_path) == {}
+    assert restored == set_color_mode("dark")
+
+
+def test_the_colours_restored_are_the_palette_of_the_saved_mode_with_the_changes_on_top(
+    program_arguments: ProgramArguments,
+) -> None:
+    program_arguments.appearance_mode = "light"
+    getputer.save_restore_args(program_arguments, {"project_color": "Red"}, to_save=True, state=PrimeItems)
+
+    _, restored = getputer.save_restore_args({}, {}, to_save=False, state=PrimeItems)
+
+    assert restored == {**set_color_mode("light"), "project_color": "Red"}
+
+
+def test_a_palette_saved_by_an_older_version_still_reads_as_the_same_colours(
+    program_arguments: ProgramArguments, tmp_path: Path
+) -> None:
+    """Older versions wrote the whole palette: to this version that is a long list of colours that are changes."""
+    palette = {**set_color_mode("dark"), "task_color": "Blue"}
+    import tomli_w
+
+    (tmp_path / ARGUMENTS_FILE).write_bytes(
+        tomli_w.dumps({"program_arguments": {"appearance_mode": "dark"}, "colors_to_use": palette}).encode("utf-8")
+    )
+
+    _, restored = getputer.save_restore_args({}, {}, to_save=False, state=PrimeItems)
+
+    assert restored == palette
+
+
+def test_something_in_the_colour_table_that_is_not_a_colour_is_not_kept() -> None:
+    spoiled = {"project_color": "Red", "task_color": 7, "msg": "corrupt", "scene_color": "", 3: "Blue"}
+
+    assert color_overrides(spoiled, "light") == {"project_color": "Red"}
+    assert effective_colors(spoiled, "light") == {**set_color_mode("light"), "project_color": "Red"}
+    assert effective_colors("not a table", "light") == set_color_mode("light")
+    assert effective_colors(None, 7) == set_color_mode("system")

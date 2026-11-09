@@ -6,7 +6,14 @@
 # colrmode: set the program colors based on color mode: dark or light                  #
 #                                                                                      #
 # MIT License   Refer to https://opensource.org/license/mit                            #
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, cast
+
 import darkdetect  # pyright: ignore[reportMissingTypeStubs]  (no stubs are published for it)
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
 
 
 def set_color_mode(appearance_mode: str) -> dict[str, str]:
@@ -63,3 +70,43 @@ def set_color_mode(appearance_mode: str) -> dict[str, str]:
         "highlight_color": "Yellow",
         "heading_color": "DarkSlateGray",
     }
+
+
+# What the settings file's [colors_to_use] means: the colours the user chose, laid over the palette of the
+# appearance mode the file was saved in -- and nothing else.  Saving writes only the colours that differ from that
+# palette (color_overrides); reading lays what the file holds over it (effective_colors).  So the section is empty
+# for someone who never changed a colour, a palette written by an older version is simply a long list of overrides,
+# and a colour the file does not mention is the mode's own rather than anything made up for it.
+def _mode_of(appearance_mode: object) -> str:
+    """The appearance mode to take a palette from: the one given, or "system" (the default) when there is none."""
+    return appearance_mode if isinstance(appearance_mode, str) and appearance_mode else "system"
+
+
+def _named_colors(colors: object) -> dict[str, str]:
+    """The entries of `colors` that are a colour named by text: what a hand-edited file or a crash can spoil is dropped.
+
+    "msg" is how a settings file that could not be read is reported (getputer.corrupted_file); it is not a colour.
+    """
+    if not isinstance(colors, dict):
+        return {}
+    entries = cast("dict[object, object]", colors)
+    return {
+        name: value
+        for name, value in entries.items()
+        if isinstance(name, str) and isinstance(value, str) and value and name != "msg"
+    }
+
+
+def effective_colors(saved: object, appearance_mode: object) -> dict[str, str]:
+    """The colours in force: the appearance mode's palette, with the colours saved for it laid over it."""
+    return {**set_color_mode(_mode_of(appearance_mode)), **_named_colors(saved)}
+
+
+def color_overrides(colors: Mapping[str, str] | object, appearance_mode: object) -> dict[str, str]:
+    """The colours that differ from the appearance mode's palette, which is all the settings file keeps of them.
+
+    Whatever a caller holds -- the whole palette, only the colours the user changed, nothing -- saves the same file
+    when it comes to the same colours, since the entries that equal the palette are not written.
+    """
+    palette = set_color_mode(_mode_of(appearance_mode))
+    return {name: value for name, value in sorted(_named_colors(colors).items()) if palette.get(name) != value}

@@ -18,7 +18,7 @@ from typing import TYPE_CHECKING, Any, cast
 
 from nicegui import context, run, ui
 
-from maptasker.src.core.colrmode import set_color_mode
+from maptasker.src.core.colrmode import color_overrides, set_color_mode
 from maptasker.src.core.config import DEFAULT_DISPLAY_DETAIL_LEVEL
 from maptasker.src.core.getputer import save_restore_args
 from maptasker.src.core.initparg import initialize_runtime_arguments
@@ -315,8 +315,10 @@ class SettingsEventHandlers(HandlerGroup):
                 self.color_reset_event()
                 return
 
-        # If no colors restored, let user know.
-        if not the_view.color_lookup:
+        # If no colors restored, let user know: the file holds only the colours that were changed, so what is
+        # in force being the mode's own palette is "none changed".
+        saved = temp_args if isinstance(temp_args, dict) else temp_args.as_dict()
+        if not color_overrides(the_view.color_lookup, saved.get("appearance_mode")):
             the_view.display_message_box(translate_string("Colors set to defaults."), "Green")
 
         # Restore progargs values

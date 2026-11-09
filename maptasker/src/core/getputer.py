@@ -24,7 +24,7 @@ if TYPE_CHECKING:
     from maptasker.src.core.primitem import RunState
 
 from maptasker.src.core import console
-from maptasker.src.core.colrmode import set_color_mode
+from maptasker.src.core.colrmode import color_overrides, effective_colors
 from maptasker.src.core.initparg import ProgramArguments, initialize_runtime_arguments
 from maptasker.src.core.maputil2 import log_startup_values, translate_string
 from maptasker.src.core.maputils import reset_named_objects
@@ -242,7 +242,7 @@ def save_arguments(
     reset_named_objects(state=state)
 
     guidance = {
-        "Guidance": "Modify this file as needed below the entries [program_arguments] and [colors_to_use].  Run 'maptasker -h' for details.",
+        "Guidance": "Modify this file as needed below the entries [program_arguments] and [colors_to_use], which lists only the colors you changed from the appearance mode's own.  Run 'maptasker -h' for details.",
     }
 
     # Make sure apikey is hidden
@@ -271,7 +271,9 @@ def save_arguments(
     settings = {
         **guidance,
         "program_arguments": dict(sorted(user_args.items())),  # Sort the program args first.
-        "colors_to_use": dict(sorted(colors_to_use.items())),  # Sort the colors next.
+        # The colours that differ from the appearance mode's palette -- see colrmode.  Every save comes through
+        # here, whatever it was handed: the whole palette, the colours the user changed, or none.
+        "colors_to_use": color_overrides(colors_to_use, user_args.get("appearance_mode")),
         "last_run": state.last_run,
     }
 
@@ -306,7 +308,8 @@ def read_toml_file(new_file: str, state: RunState) -> tuple[Settings, Settings]:
 
     Side Effects:
         - If the TOML file does not contain a "last_run" key, the last run date is set to yesterday (25 hours+).
-        - If the TOML file does not contain a "colors_to_use" key, the colors to use are set to blank.
+        - The colors returned are the ones in force: the palette of the saved appearance mode with the colors the file
+          holds laid over it (see colrmode).  A file with no [colors_to_use], or an empty one, is simply the palette.
         - If the TOML file does not contain a "program_arguments" key, the program arguments are initialized.
         - If the TOML file is corrupted or does not exist, the function calls the "corrupted_file" function.
 
@@ -316,14 +319,7 @@ def read_toml_file(new_file: str, state: RunState) -> tuple[Settings, Settings]:
     with open(new_file, "rb") as f:
         # Setup old date if date last used is not in TROML settings file.  Catch all possible errors with TOML file.
         try:
-            # Colors to use
             settings = tomllib.load(f)
-            try:
-                colors_to_use = settings["colors_to_use"]  # Get the colors to use
-            except KeyError:
-                colors_to_use = set_color_mode(
-                    "",
-                )  # If this hadn't been previously saved, set it to blank
 
             # Get program arguments
             try:
@@ -348,6 +344,9 @@ def read_toml_file(new_file: str, state: RunState) -> tuple[Settings, Settings]:
                 # coming up with defaults and then saving them back over the file.
                 logger.error(f"No [program_arguments] found in {new_file}.  Falling back to default settings.")
                 program_arguments = initialize_runtime_arguments().as_dict()
+            # The colours in force: the saved appearance mode's palette with the colours saved for it laid over it.
+            # A file with no [colors_to_use] (or an empty one) is simply the palette.
+            colors_to_use = effective_colors(settings.get("colors_to_use"), program_arguments.get("appearance_mode"))
             try:
                 state.last_run = settings["last_run"]  # Get the last run date
             except KeyError:
@@ -388,7 +387,7 @@ def read_arguments(
         program_arguments, colors_to_use = read_toml_file(new_file, state=state)
     else:
         program_arguments = state.program_arguments
-        colors_to_use = set_color_mode(program_arguments.appearance_mode)
+        colors_to_use = effective_colors({}, program_arguments.appearance_mode)
 
     # A run always starts out not doing any of the transient things, whatever a settings
     # file written by an older version (or edited by hand) claims.

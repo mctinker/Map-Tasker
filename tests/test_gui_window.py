@@ -310,6 +310,21 @@ async def test_a_setting_of_the_wrong_kind_is_left_as_it_was_and_the_rest_is_res
         assert _checkbox(user, "Underline").value is True
 
 
+async def test_a_file_with_one_changed_colour_leaves_every_other_colour_as_the_mode_has_it(tmp_path) -> None:
+    """The GUI saves only the colours that were changed.  Restoring such a file used to find the rest "missing" and
+    set every one of them to turquoise, with a message for each."""
+    (tmp_path / ARGUMENTS_FILE).write_bytes(
+        b'[program_arguments]\nappearance_mode = "light"\ndebug = false\n\n[colors_to_use]\nproject_color = "Red"\n'
+    )
+
+    async with _open_window() as (user, gui):
+        light = set_color_mode("light")
+        assert gui.color_lookup == {**light, "project_color": "Red"}
+        assert not user.notify.contains("missing"), user.notify.messages
+        assert "turquoise" not in gui.color_lookup.values()
+        assert not user.notify.contains("Colors set to defaults.")
+
+
 async def test_a_file_with_no_colours_restores_its_settings_and_says_the_colours_are_the_defaults(tmp_path) -> None:
     """The GUI saves only the colours that were changed, so an empty table is a file saved with none."""
     (tmp_path / ARGUMENTS_FILE).write_bytes(_SETTINGS["an empty colour table"])
