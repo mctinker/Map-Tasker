@@ -383,7 +383,7 @@ def conditions_to_name(
 
     # Handle directory hyperlink
     if config.directory:
-        add_directory_item("profiles", new_profile_name, config=config, state=state)
+        add_directory_item("profiles", new_profile_name, state=state)
 
     # Make the conditions pretty
     if config.pretty:
@@ -470,7 +470,7 @@ def build_profile_line(
 
     # Handle directory hyperlink
     if config.directory:
-        add_directory_item("profiles", profile_name, config=config, state=state)
+        add_directory_item("profiles", profile_name, state=state)
 
     # Get the Profile's conditions
     if config.conditions and (profile_conditions := condition.parse_profile_condition(profile, state=state)):

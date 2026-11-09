@@ -164,9 +164,7 @@ def process_projects_and_their_profiles(
     # Processing Tasker Objects: Single Unnamed Tasks, Projects, Profiles, Tasks or Scenes
 
     # Process unnamed Task
-    if (UNNAMED_ITEM in config.single_task_name and config.list_unnamed_items) and state.tasker_root_elements[
-        "all_tasks_by_name"
-    ]:
+    if UNNAMED_ITEM in config.single_task_name and state.tasker_root_elements["all_tasks_by_name"]:
         _output_single_unnamed_task(config, state=state)
 
     # Process Projects only if there are Projects
@@ -746,7 +744,7 @@ def get_profile_details_and_output(
 
     # If doing a directory, save the project name for it
     if config.directory:
-        add_directory_item("projects", project_name, config=config, state=state)
+        add_directory_item("projects", project_name, state=state)
 
     # Get any Project launch details
     launcher_task_info = get_launcher_task(project, project_name)

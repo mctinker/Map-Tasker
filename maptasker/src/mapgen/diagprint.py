@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any
 from maptasker.src.core.elemvals import get_ids
 from maptasker.src.core.mapjump import SCENE, TASK, Target
 from maptasker.src.core.maputil2 import translate_string
-from maptasker.src.core.sysconst import SCENE_TASK_TYPES, UNNAMED_ITEM
+from maptasker.src.core.sysconst import SCENE_TASK_TYPES
 from maptasker.src.core.xmldata import tag_in_type
 from maptasker.src.mapgen.diagcnst import angle, blank, line_left_arrow, line_right_arrow, task_delimeter
 from maptasker.src.mapgen.diagrecord import BOX_WALL, flush_boxes, flush_tasks, note_box, note_task
@@ -242,8 +242,6 @@ def print_all_tasks(
 
     # Now process each Task in the Profile.
     for num, task in enumerate(tasks):
-        if UNNAMED_ITEM in task["name"]:
-            continue
         # Determine if this is an entry/exit combo.
         task_type = (" (entry)" if num == 0 else " (exit)") if tasks_length == 2 else ""
 
@@ -260,7 +258,9 @@ def print_all_tasks(
         task["name"] = tname
 
         # Is it in the master list of all Task names in the XML?
-        task_name = state.tasker_root_elements["all_tasks_by_name"][tname]
+        # An unnamed Task is drawn like any other, but the name it is listed under in a Profile is not always the one the
+        # table of Tasks holds it by, so a miss is not an error.
+        task_name = state.tasker_root_elements["all_tasks_by_name"].get(tname)
         if task_name:
             prime_task = task_name
             # Now see if this Task has any "called_by" Tasks.

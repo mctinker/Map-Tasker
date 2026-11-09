@@ -130,7 +130,7 @@ def search_lists(search_string: str, list_of_lists: list[Any]) -> bool:
 
 
 # Add directory item (Project/Profile/Task/Scene) to our dictionary of items
-def add_directory_item(key: str, name: str, config: RunConfig, state: RunState) -> None:
+def add_directory_item(key: str, name: str, state: RunState) -> None:
     """
     We are doing a directory.  Add the Project/Profile/Task/Scene name and hyperlink name to our dictionary of items
         Args:
@@ -139,11 +139,10 @@ def add_directory_item(key: str, name: str, config: RunConfig, state: RunState) 
                 PrimeItems.directory_items"]["directory_head"]
                 where "directory_head is "project", "profile", "task", or "scene"
             name (str): name of the Project/Profile/Task/Scene
-            config (RunConfig): the run's settings (list_unnamed_items)
     """
-    # If it is an unnamed task, and we are not doing the list of unnamed tasks, then skip it.
-    if UNNAMED_ITEM in name and not config.list_unnamed_items:
-        return
+    # An unnamed Task or Profile is listed like any other: the 'List Unnamed Items' checkbox is about what the
+    # 'Specific Name' pulldowns offer, and the Map's directory is not one of them.  (The bare placeholder "Unnamed"
+    # is no entry at all -- see below.)
     # Clean up the name
     # name = name.replace(" (Scene)", "")
     # Only set values if we haven't already done this named item

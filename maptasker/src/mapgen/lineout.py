@@ -141,12 +141,7 @@ class LineOut:
 
         # Re-add the directory item
         if self.settings.directory:
-            add_directory_item(
-                "projects",
-                project_name,
-                current_config(self.state) if self._config is None else self._config,
-                state=self.state,
-            )
+            add_directory_item("projects", project_name, state=self.state)
 
         # Start Project list
         self.add_line_to_output(

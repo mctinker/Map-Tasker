@@ -1225,3 +1225,61 @@ def test_the_script_that_follows_a_tag_is_in_the_interaction_script(noted: tuple
 def test_a_tag_is_sent_to_the_browser_as_text() -> None:
     assert '"tag", "flaky"' in diagintr.command_js("c1", "tag", "flaky")
     assert '"tag", ""' in diagintr.command_js("c1", "tag", "")
+
+
+# ##################################################################################
+# Unnamed Tasks are drawn like any other.
+# ##################################################################################
+def test_an_unnamed_task_is_drawn_in_its_profile_like_a_named_one(tmp_path: object) -> None:
+    """The 'List Unnamed Items' checkbox is about what the pulldowns offer; the Diagram is not one of them.
+
+    It used to leave out every Task whose name is the one made up for it, so a configuration full of them
+    showed Profiles with half their Tasks missing.
+    """
+    tables = _load(_MODEL_XML, {})
+    made_up = "Flash Text=hi.99 (Unnamed)"
+    lines = _render(
+        tmp_path,
+        {
+            "Home": {
+                "Wake Up": [
+                    {"xml": tables["all_tasks"]["20"]["xml"], "name": "Backup"},
+                    {"xml": tables["all_tasks"]["24"]["xml"], "name": made_up},
+                ],
+            },
+        },
+    )
+
+    text = "\n".join(lines)
+
+    assert "Backup" in text
+    assert made_up in text
+
+
+def test_an_unnamed_task_the_table_of_tasks_does_not_know_by_that_name_does_not_break_the_diagram(
+    tmp_path: object,
+) -> None:
+    """A Profile lists an unnamed Task as 'Unnamed<id>' -- see tasks.entry_or_exit_task -- which the table does not hold."""
+    tables = _load(_MODEL_XML, {})
+    assert "Unnamed77" not in PrimeItems.tasker_root_elements["all_tasks_by_name"]
+
+    lines = _render(
+        tmp_path,
+        {"Home": {"Wake Up": [{"xml": tables["all_tasks"]["20"]["xml"], "name": "Unnamed77"}]}},
+    )
+
+    assert any("Unnamed77" in line for line in lines)
+
+
+@pytest.mark.parametrize("checkbox", [True, False])
+def test_the_checkbox_makes_no_difference_to_the_diagram(tmp_path: object, checkbox: bool) -> None:
+    tables = _load(_MODEL_XML, {})
+    PrimeItems.program_arguments.list_unnamed_items = checkbox
+    made_up = "Flash Text=hi.99 (Unnamed)"
+
+    lines = _render(
+        tmp_path,
+        {"Home": {"No Profile": [{"xml": tables["all_tasks"]["24"]["xml"], "name": made_up}]}},
+    )
+
+    assert any(made_up in line for line in lines)

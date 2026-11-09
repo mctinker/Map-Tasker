@@ -208,9 +208,9 @@ def add_dictionary_and_twisty(
         # A Task that is not in the file (Health Check: BROKEN-SCENE-TASK) has no name to list.
         if config.directory and the_item in state.tasker_root_elements["all_tasks"]:
             task_name = state.tasker_root_elements["all_tasks"][the_item]["name"]
-            add_directory_item("tasks", task_name, config=config, state=state)
+            add_directory_item("tasks", task_name, state=state)
     elif config.directory:
-        handle_directory(list_type, the_item, the_task, state=state, config=config)
+        handle_directory(list_type, the_item, the_task, state=state)
     elif "Task:" in list_type:
         handle_task_hyperlink(the_item, blank, state=state)
 
@@ -248,9 +248,7 @@ def handle_task(list_type: str, the_item: str, blank: str, config: RunConfig, st
     return temp_item, temp_list
 
 
-def handle_directory(
-    list_type: str, the_item: str, the_task: Element | None, config: RunConfig, state: RunState
-) -> None:
+def handle_directory(list_type: str, the_item: str, the_task: Element | None, state: RunState) -> None:
     """
     Handle the directory by processing tasks or adding scene directories.
 
@@ -265,9 +263,9 @@ def handle_directory(
     if "Task:" in list_type:
         # A Scene has no Task element; a Task always has its own (see item_anchor).
         if the_task is not None:
-            process_task_directory(the_task, state=state, config=config)
+            process_task_directory(the_task, state=state)
     elif list_type == "Scene:":
-        add_scene_directory(the_item, config=config, state=state)
+        add_scene_directory(the_item, state=state)
 
 
 def handle_task_hyperlink(the_item: str, blank: str, state: RunState) -> None:
@@ -334,7 +332,7 @@ def add_task_hyperlink(task_name: str, display_name: bool, blank: str, state: Ru
     )
 
 
-def process_task_directory(the_task: Element, config: RunConfig, state: RunState) -> None:
+def process_task_directory(the_task: Element, state: RunState) -> None:
     """
     Process the task directory by adding the task name to the directory items.
 
@@ -347,17 +345,17 @@ def process_task_directory(the_task: Element, config: RunConfig, state: RunState
     task_id = the_task.attrib.get("sr", "")[4:]
     task_name = state.tasker_root_elements["all_tasks"].get(task_id, {}).get("name", "")
     if task_name:
-        add_directory_item("tasks", task_name, config=config, state=state)
+        add_directory_item("tasks", task_name, state=state)
 
 
-def add_scene_directory(the_item: str, config: RunConfig, state: RunState) -> None:
+def add_scene_directory(the_item: str, state: RunState) -> None:
     """
     Add a scene directory item.
 
     Args:
         the_item (str): The scene item to add to the directory.
     """
-    add_directory_item("scenes", the_item, config=config, state=state)
+    add_directory_item("scenes", the_item, state=state)
 
 
 def add_directory_hyperlink(state: RunState) -> None:

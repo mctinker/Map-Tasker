@@ -79,7 +79,7 @@ def test_an_unnamed_task_named_after_an_if_is_safe_too() -> None:
 
 def test_the_directory_anchor_is_escaped() -> None:
     """The directory builds the anchor AND the hyperlink from one name."""
-    add_directory_item("tasks", NAME_WITH_ANGLE_BRACKET, current_config(state=PrimeItems), state=PrimeItems)
+    add_directory_item("tasks", NAME_WITH_ANGLE_BRACKET, state=PrimeItems)
 
     assert PrimeItems.directory_items["current_item"] == "tasks_System_&gt;&gt;_Say_Response"
     assert PrimeItems.directory_items["tasks"][0][0] == "System_&gt;&gt;_Say_Response"
@@ -92,7 +92,7 @@ def test_the_hyperlink_and_the_anchor_still_agree() -> None:
     anchor from the name written beside it, so the two have to survive escaping alike --
     a browser reads "&gt;" in both as the same character.
     """
-    add_directory_item("tasks", NAME_WITH_ANGLE_BRACKET, current_config(state=PrimeItems), state=PrimeItems)
+    add_directory_item("tasks", NAME_WITH_ANGLE_BRACKET, state=PrimeItems)
     add_task_hyperlink(NAME_WITH_ANGLE_BRACKET, display_name=True, blank="&nbsp;", state=PrimeItems)
 
     href_name = PrimeItems.directory_items["tasks"][0][0]

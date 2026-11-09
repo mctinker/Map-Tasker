@@ -151,7 +151,7 @@ def test_an_unnamed_task_is_counted_on_the_state_it_is_read_from() -> None:
 def test_a_directory_item_is_added_to_the_state_it_is_given() -> None:
     state = RunState()
 
-    dirout.add_directory_item("tasks", "Remind Me", current_config(state=PrimeItems), state=state)
+    dirout.add_directory_item("tasks", "Remind Me", state=state)
 
     assert state.directory_items["tasks"] == [["Remind_Me", "Remind Me"]]
     assert PrimeItems.directory_items["tasks"] == []

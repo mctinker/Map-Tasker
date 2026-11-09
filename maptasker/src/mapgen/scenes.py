@@ -656,7 +656,7 @@ def process_tasks(child: Element, tasks_found: list[Any], config: RunConfig, sta
                 # Add the Scene Task to the directory if unnamed.
                 if "(Unnamed)" in task_name:
                     task_name = adjust_name_and_add_to_directory(
-                        task_name, scene_task_id, TASK_NAME_MAX_LENGTH, state=state, config=config
+                        task_name, scene_task_id, TASK_NAME_MAX_LENGTH, state=state
                     )
 
                 # If Task is related to the scene Properties, some of the names change.
@@ -688,7 +688,6 @@ def adjust_name_and_add_to_directory(
     task_name: str,
     task_id: str,
     max_length: int,
-    config: RunConfig,
     state: RunState,
 ) -> str:
     """
@@ -737,7 +736,7 @@ def adjust_name_and_add_to_directory(
                 break
 
     # Add the Task to the directory with '(Scene)' appended.
-    add_directory_item("tasks", f"{task_name} (Scene)", config=config, state=state)
+    add_directory_item("tasks", f"{task_name} (Scene)", state=state)
     return task_name
 
 
@@ -887,7 +886,7 @@ def process_scene(
 
     # Handle directory hyperlink
     if config.directory:
-        add_directory_item("scenes", my_scene, config=config, state=state)
+        add_directory_item("scenes", my_scene, state=state)
 
     # Go through all the children of the Scene looking for width/height, 'click' tasks and other details.
     get_details(scene, tasks_found, config, indentation, anchors, state=state)
