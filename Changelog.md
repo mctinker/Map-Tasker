@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file!
 
-## [15.2.0] ??-Nov-2026  # FIX
+## [15.2.0] 10-Nov-2026
 
 ### Added
 
@@ -22,27 +22,38 @@ All notable changes to this project will be documented in this file!
 
 - Changed: The note that Insert Requirements adds to a TaskerNet description now says that an action missing from MapTasker's list "may still need something", instead of the confusing "is not known to need nothing".
 - Changed: The Map's directory and the Diagram now include unnamed Profiles and Tasks whatever the 'List Unnamed Items' checkbox says, where the Diagram used to leave out every unnamed Task. The checkbox now only decides what the four 'Specific Name' pulldowns offer.
+
 - Changed: Loading a backup and building the Map is about 20% faster on large configurations; one 13 MB backup went from about 3 seconds to about 2.3. A backup that declares an XML entity is still refused with a message.
+
 - Changed: The "Go to top" links in the Map are now blue and underlined, like the Map's other links, so they are easy to see as links.
+
 - Changed: List Helper Tasks now shows "Getting the list from Tasker.  Please stand by..." while it waits for the phone, which can take several seconds.
+
 - Changed: In Health Check and Task Flow, an 'If' or 'For' that is never closed before its Task ends is now a warning instead of an error, since the end of the Task closes it.
+
 - Changed: The right-hand panel's report buttons are now grouped under three sections instead of two: 'Compare & History', 'Analyze' and a new 'Simulate & Verify' that holds What Fires When?, Task Stepper, Task Tests, Missing Resources and Live Run Monitor. This makes the Analyze list shorter and puts the buttons that check the phone together.
+
 - Changed: Opening a very large Task for editing, one with 200 or more actions, now shows 'The task actions are being captured.  Please stand by...' until its actions are on screen, so the wait no longer looks like a hang.
 
 ### Removed
 
 - Removed: The 'MapTasker Import Profile' and 'MapTasker Open Tasker' helper Tasks are no longer put on your phone, because nothing in MapTasker used them any more. If your phone already has them, they now show up as old helper Tasks that you can delete.
+
 - Removed: The four 'MapTasker Send ...' helper Tasks (Profile, Project, Scene and Task) are no longer put on your phone, because the intent they sent only opened Tasker on its default Project and never showed an import screen. If your phone already has them, 'List Helper Tasks' now names them as old ones you can delete.
 
 ### Fixed
 
 - Fixed: Clicking a connector in the Diagram now puts the red rectangle round the calling and called Tasks after you change 'Profiles per Line', not only at the default of 6. The Diagram was still using the connectors from before the change.
+
 - Fixed: The Map no longer lists global variables left over from a backup you loaded earlier in the same session, so a variable you had deleted from the file stops appearing. Loading a local file also no longer leaves the Map's source line reading 'From Android device' with a blank address.
+
 - Fixed: Importing or saving a Task no longer refuses If conditions that Tasker accepts: array references such as %list(#) or %list(), and values that are regular expressions or any other text, such as .apk$, Success|success, 1,2 or Third Party. The 85 conditions it wrongly refused in 'ADB App Manager' now pass.
+
 - Fixed: On a phone with a large Tasker configuration, MapTasker now waits as long as the phone needs for its lists and lookups, instead of giving up after five or thirty seconds and then importing a Task that was already there. It remembers the lists for the session, tells you when the phone is going to take a while, and waits longer after a timeout.
+
 - Fixed: Changing one color and pressing Save no longer turns every other color turquoise the next time the window opens. The settings file now keeps only the colors you changed from the light or dark palette, whichever way it is saved.
+
 - Fixed: In the Diagram, two connectors that cover some of the same lines are no longer drawn down the same column, where they looked like one line. Clicking such a connector now highlights only that connector, and Jump to End goes to the Task it really ends at.
-- Fixed:
 
 ### Known Issues
 
@@ -52,7 +63,7 @@ you have closed all pre-existing MapTasker browser tabs and you still get this e
       `killall_port8080.sh`
 
 * The icon list is built from the configuration you have loaded, so an icon used nowhere in it is not offered; type its name.  The Application list can be topped up from the device ('App not listed?'), but until it is, it likewise holds only what your configuration already names.
-* Applications fetched from the device come back without their activity class.  MapTasker asks Tasker for the activity of every installed app as a bulk list, and uses it only if it lines up one-for-one with the packages -- measured against a real device, it does not, so it is discarded rather than pairing every app with some other app's activity.  Names are not affected: those are looked up one app at a time, so they are always the right ones.  The activity is filled in from your own configuration for any app it already names, and an action that needs one for an app it does not (Launch App, say) has to have it typed in.
+* Applications fetched from the Android device come back without their activity class.  MapTasker asks Tasker for the activity of every installed app as a bulk list, and uses it only if it lines up one-for-one with the packages -- measured against a real device, it does not, so it is discarded rather than pairing every app with some other app's activity.  Names are not affected: those are looked up one app at a time, so they are always the right ones.  The activity is filled in from your own configuration for any app it already names, and an action that needs one for an app it does not (Launch App, say) has to have it typed in.
 
 
 ## Older History Logs
