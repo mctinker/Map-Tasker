@@ -1,8 +1,18 @@
 
                 const outerContainer = document.getElementById("__SCROLL_AREA_ID__");
-                if (!outerContainer || outerContainer.dataset.connectorClickWired) return;
+                if (!outerContainer) return;
+                // Which Tasks each connector joins is for THIS drawing of the Diagram, and the
+                // Diagram is drawn again whenever "Profiles per Line" changes -- which renumbers
+                // every connector.  So it is stored where each run can replace it, before the
+                // once-only wiring below returns: the handlers read it at click time, and a
+                // table captured by the first run would name connectors that no longer exist.
+                const tasksByContainer = (window.mtConnectorTasks = window.mtConnectorTasks || {});
+                tasksByContainer["__SCROLL_AREA_ID__"] = __CONNECTOR_TASKS__;
+                if (outerContainer.dataset.connectorClickWired) return;
                 outerContainer.dataset.connectorClickWired = "1";
-                const connectorTasks = __CONNECTOR_TASKS__;
+                function tasksOf(id) {
+                    return (tasksByContainer["__SCROLL_AREA_ID__"] || {})[id] || [];
+                }
 __REVEAL_ANCESTORS_JS__
 
                 // Quasar's own q-scroll-area styling sets "contain: strict" on outerContainer,
@@ -24,7 +34,7 @@ __REVEAL_ANCESTORS_JS__
                     const row = parseInt(endLine.dataset.line, 10);
                     let best = null;
                     let bestGap = Infinity;
-                    (connectorTasks[id] || []).forEach((anchor) => {
+                    tasksOf(id).forEach((anchor) => {
                         outerContainer.querySelectorAll('.mt-dnode[data-anchor="' + anchor + '"]').forEach((el) => {
                             const line = el.closest(".mt-dline");
                             const gap = line ? Math.abs(parseInt(line.dataset.line, 10) - row) : Infinity;
@@ -46,7 +56,7 @@ __REVEAL_ANCESTORS_JS__
                         const line = el.closest(".mt-dline");
                         return line ? parseInt(line.dataset.line, 10) : NaN;
                     });
-                    (connectorTasks[id] || []).forEach((anchor) => {
+                    tasksOf(id).forEach((anchor) => {
                         let best = null;
                         let bestGap = Infinity;
                         outerContainer.querySelectorAll('.mt-dnode[data-anchor="' + anchor + '"]').forEach((el) => {

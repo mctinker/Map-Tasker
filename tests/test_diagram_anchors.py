@@ -1021,6 +1021,30 @@ def test_the_chain_gesture_is_taken_over_before_the_browser_selects_text() -> No
     assert "if (selection && !selection.isCollapsed) selection.removeAllRanges();" in script
 
 
+def test_a_redrawn_diagram_gives_the_connector_script_its_new_connectors() -> None:
+    """Changing Profiles per Line redraws the Diagram and renumbers every connector.
+
+    The script wires its click handler once per view, so the table of which Tasks each connector
+    joins has to be replaced on every run and read at click time.  A table captured by the first
+    run named connectors that were gone, and no Task was boxed in red -- except at the default
+    layout, which is the one the first run had drawn.
+    """
+    from maptasker.src.core import assettext
+
+    script = assettext.render(
+        "js/connector_highlighting.js",
+        SCROLL_AREA_ID="c1",
+        CONNECTOR_TASKS=json.dumps({"7": ["mt-task-20"]}),
+        REVEAL_ANCESTORS_JS="",
+    )
+
+    stored = script.index('tasksByContainer["c1"] = {"7": ["mt-task-20"]};')
+    guard = script.index("if (outerContainer.dataset.connectorClickWired) return;")
+    assert stored < guard
+    assert "const connectorTasks" not in script
+    assert script.count("tasksOf(id).forEach") == 2
+
+
 def test_the_interaction_script_carries_the_model_and_its_class_names() -> None:
     """The browser acts entirely on what is handed to it here; nothing is looked up twice."""
     model = {"nodes": [{"anchor": "a"}], "regions": [], "edges": []}
