@@ -114,9 +114,14 @@ def test_a_wait_of_ten_seconds_or_more_is_worth_telling_the_person() -> None:
 # ##################################################################################
 @pytest.fixture
 def phone(monkeypatch: pytest.MonkeyPatch) -> Iterator[FakeTasker]:
-    """A listening phone, and waits short enough for a test: a lookup waits a tenth of a second to begin with."""
+    """A listening phone, and waits short enough for a test: a lookup waits 0.3 seconds to begin with.
+
+    The margins below are wide on purpose: a loaded CI runner (macOS, once) took longer than fifty milliseconds to
+    answer a request that was meant to arrive inside its wait.  An answer is never early, so the failing side of each
+    test is exact; it is the succeeding side that needs room.
+    """
     monkeypatch.setattr(maputil2, "AUTH_KEY_RETRY_SECONDS", 0)
-    monkeypatch.setitem(devicewait.BASE_WAIT_SECONDS, devicewait.LOOKUP, 0.1)
+    monkeypatch.setitem(devicewait.BASE_WAIT_SECONDS, devicewait.LOOKUP, 0.3)
     maputil2._auth_keys.clear()
     fake = FakeTasker().up()
     yield fake
@@ -126,25 +131,25 @@ def phone(monkeypatch: pytest.MonkeyPatch) -> Iterator[FakeTasker]:
 
 def test_a_phone_that_is_slow_is_waited_for_longer_each_time_it_is_not_waited_long_enough(phone: FakeTasker) -> None:
     phone.tasks = {"Wake Up"}
-    phone.list_seconds = 0.3
+    phone.list_seconds = 0.7
 
     asked = [deviceverify.task_names_on_device(phone.address, phone.port, ["Wake Up"]) for _ in range(3)]
 
-    assert [code for code, _, _ in asked] == [8, 8, 0], "waits of 0.1, 0.2 and 0.4 seconds against an answer in 0.3"
+    assert [code for code, _, _ in asked] == [8, 8, 0], "waits of 0.3, 0.6 and 1.2 seconds against an answer in 0.7"
     assert "Timeout error" in asked[0][1]
-    assert "Waited 0.1 seconds" in asked[0][1]
-    assert "will wait 0.2 seconds" in asked[0][1]
+    assert "Waited 0.3 seconds" in asked[0][1]
+    assert "will wait 0.6 seconds" in asked[0][1]
     assert asked[2][2] == ["Wake Up"]
 
 
 def test_a_phone_that_has_answered_slowly_is_not_waited_for_in_vain_again(phone: FakeTasker) -> None:
     phone.tasks = {"Wake Up"}
-    phone.list_seconds = 0.15
+    phone.list_seconds = 0.4
 
     first = deviceverify.task_names_on_device(phone.address, phone.port, ["Wake Up"])
-    assert first[0] == 8, "0.15 seconds against a wait of 0.1"
+    assert first[0] == 8, "0.4 seconds against a wait of 0.3"
     assert deviceverify.task_names_on_device(phone.address, phone.port, ["Wake Up"])[0] == 0
-    assert devicewait.wait_for(phone.address, phone.port, "api/tasks", named=True) >= 3 * 0.15
+    assert devicewait.wait_for(phone.address, phone.port, "api/tasks", named=True) >= 3 * 0.4
 
 
 # ##################################################################################
