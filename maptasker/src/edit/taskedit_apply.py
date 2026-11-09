@@ -96,6 +96,10 @@ def validate_arg_values(
 # A Tasker variable name (the part after '%'): 3+ letters/digits/underscores,
 # not starting or ending with an underscore.
 _IF_VARIABLE_NAME_RE = re.compile(r"^(?!_)[A-Za-z0-9_]{3,}(?<!_)$")
+# The name a field that starts with '%' begins with: what follows it is not part of the name.  An array is written
+# %name(index) -- %name(#) is how many elements it has, %name() all of them, %name(2) the second -- and a field
+# may go on after the variable with anything else.
+_LEADING_VARIABLE_NAME_RE = re.compile(r"%([A-Za-z0-9_]*)")
 
 # Operator labels (see IF_CONDITION_OPERATORS) that test mere existence, so the
 # Value field is legitimately empty.
@@ -109,12 +113,13 @@ def validate_if_condition_values(
 ) -> list[str]:
     """Validates an 'If' action's pending Target/Operator/Value field values:
 
-    1. Target must be set: plain alphanumeric text, or a %variable.
+    1. Target must be set: any text.
     2. Unless the Operator is 'Is Set'/'Not Set' (which test existence alone),
-       Value must be set, to either of those same two forms.
-    3. A %variable Target or Value must name a valid Tasker variable: 3 or
-       more letters/digits/underscores after the '%', not starting or ending
-       with '_'.
+       Value must be set, to any text -- a regex included.
+    3. A Target or Value that starts with a %variable must name a valid Tasker
+       variable: 3 or more letters/digits/underscores after the '%', not
+       starting or ending with '_'.  An array reference, %name(#), %name() or
+       %name(2), is a variable.
 
     No-op for an If whose condition isn't editable (no/multiple Conditions --
     see _build_if_action_args' read-only fallback). Falls back to an arg's
@@ -142,21 +147,24 @@ def validate_if_condition_values(
 
 
 def _validate_condition_field(field_name: str, field_value: str) -> list[str]:
-    """The rule both an If condition's Target and its Value obey: plain
-    alphanumeric text, or a %variable naming a valid Tasker variable (3+
-    letters/digits/underscores after the '%', not starting or ending with
-    '_'). field_name ('Target'/'Value') names the offending field in the
-    message. Assumes an already-stripped, non-empty field_value.
+    """The rule both an If condition's Target and its Value obey.
+
+    Tasker takes any text on either side of a condition -- a regex such as 'Success|success' or '.apk$', a list such
+    as '1,2', a phrase such as 'Third Party' -- so the text is not restricted.  The one thing checked is the
+    variable a field starts with, if it starts with one: its name (the part after the '%', before any '(' that
+    makes it an array reference like %ld_selected(#)) must be a name Tasker allows (3+ letters/digits/underscores,
+    not starting or ending with '_').  field_name ('Target'/'Value') names the offending field in the message.
+    Assumes an already-stripped, non-empty field_value.
     """
     if field_value.startswith("%"):
-        if not _IF_VARIABLE_NAME_RE.match(field_value[1:]):
+        match = _LEADING_VARIABLE_NAME_RE.match(field_value)
+        name = match.group(1) if match else ""
+        if not _IF_VARIABLE_NAME_RE.match(name):
             message = (
-                f"The If condition's {field_name} '{field_value}' is not a valid variable: the name after '%' "
-                "must be 3 or more letters, digits, or underscores, and cannot start or end with '_'."
+                f"The If condition's {field_name} '{field_value}' does not start with a valid variable: the name "
+                "after '%' must be 3 or more letters, digits, or underscores, and cannot start or end with '_'."
             )
             return [message]
-    elif not field_value.isalnum():
-        return [f"The If condition's {field_name} '{field_value}' must be alphanumeric, or a %variable."]
     return []
 
 
@@ -165,12 +173,13 @@ def validate_condition_fields(target: str, operator_label: str, value: str) -> l
     (validate_if_condition_values) and a per-action If condition
     (set_action_condition):
 
-    1. Target must be set: plain alphanumeric text, or a %variable naming a
-       valid Tasker variable (3+ letters/digits/underscores after the '%',
-       not starting or ending with '_').
+    1. Target must be set: any text, or a %variable naming a valid Tasker
+       variable (3+ letters/digits/underscores after the '%', not starting or
+       ending with '_'), array reference included.
     2. Unless the Operator tests existence alone ('Is Set'/'Not Set'), Value
-       must be set, to either of those same two forms -- comparing a variable
-       against another variable (e.g. %DATE) is legitimate in Tasker.
+       must be set, to any text -- a regex such as 'Success|success' or
+       '.apk$', a list such as '1,2' -- or a %variable as above; comparing a
+       variable against another variable (e.g. %DATE) is legitimate in Tasker.
     """
     target = target.strip()
     value = value.strip()
