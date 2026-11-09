@@ -1,10 +1,12 @@
 """Talking to the Android device from the window: the address it was last given, whether it answers, and the notice that a phone prompt is coming."""
 
+import contextlib
 from typing import TYPE_CHECKING
 
 from nicegui import run, ui
 
 # Keep your existing logic imports (e.g., from maptasker.src.core.aiutils import ...)
+from maptasker.src.core import devicewait
 from maptasker.src.core.getputer import save_restore_args
 from maptasker.src.core.maputil2 import http_request, suppress_logged, translate_string
 from maptasker.src.core.sysconst import (
@@ -13,6 +15,8 @@ from maptasker.src.core.sysconst import (
 from maptasker.src.gui.guistate import remember_setting
 
 if TYPE_CHECKING:
+    from collections.abc import Generator
+
     from maptasker.src.gui.userintr import MyGui
 
 
@@ -146,6 +150,38 @@ def remember_android_address(gui: "MyGui", ipaddr: str, port: str) -> None:
     if unchanged:
         return
     save_restore_args(gui.state.program_arguments, gui.state.colors_to_use, to_save=True, state=gui.state)
+
+
+def phone_wait_line(ip_address: str, ip_port: str, route: str = "api/tasks", *, named: bool = False) -> str:
+    """A sentence saying a request to this phone can take a while, with how long it will be waited for; "" if not."""
+    wait = devicewait.long_wait(ip_address, ip_port, route, named=named)
+    if wait is None:
+        return ""
+    return (
+        f"  {translate_string('The phone can take a while to answer this, with a large configuration or when busy.')}"
+        f" ({translate_string('waiting up to')} {wait:g} {translate_string('seconds')})"
+    )
+
+
+@contextlib.contextmanager
+def waiting_for_phone(
+    ip_address: str, ip_port: str, route: str = "api/tasks", *, named: bool = False
+) -> "Generator[None]":
+    """Put a status line on screen while the phone is asked something it will take a while over.
+
+    So that a long wait is not taken for a hang: nothing is shown when the wait will be short.  The line is taken
+    down when the block ends, however it ends.
+    """
+    line = phone_wait_line(ip_address, ip_port, route, named=named)
+    notice = (
+        ui.notification(line.strip(), type="ongoing", spinner=True, timeout=None, multi_line=True) if line else None
+    )
+    try:
+        yield
+    finally:
+        if notice is not None and not getattr(notice, "is_deleted", False):
+            with suppress_logged("Dismissing the waiting notice"):
+                notice.dismiss()
 
 
 def remember_android_address_fields(

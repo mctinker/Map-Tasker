@@ -358,7 +358,7 @@ def _ask_scenes(
     if not wanted:
         return
     progress("Asking Tasker for the Scenes it has")
-    return_code, message, listed = fetch_tasker_object_names(ip_address, ip_port, state=state)
+    return_code, message, listed = fetch_tasker_object_names(ip_address, ip_port, state=state, fresh=True)
     if return_code != 0:
         outcome.errors.append(f"Scenes: {message}")
         return

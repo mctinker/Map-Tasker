@@ -24,7 +24,7 @@ import requests
 from requests.exceptions import ConnectionError as RequestsConnectionError
 from requests.exceptions import InvalidSchema, RequestException, Timeout
 
-from maptasker.src.core import clock
+from maptasker.src.core import clock, devicecache, devicewait
 from maptasker.src.core.presave import backup_local_file
 from maptasker.src.core.primitem import PrimeItems, RunState
 from maptasker.src.core.sysconst import MY_VERSION, NOW_TIME, logger, logging
@@ -251,21 +251,13 @@ def _warn_if_on_event_loop(url: str) -> None:
     )
 
 
-# How long each kind of request to the Android device waits for an answer, in seconds.
-_READ_TIMEOUT_SECONDS = 5
-# Asking for a key puts an approval prompt on the device, and the request is not answered until
-# the user has dealt with it.  Thirty seconds is how long the Tasker HTTP API's own 'GET Auth'
-# Task is given to answer (see LIST_READ_TIMEOUT_SECONDS), so waiting any less gives up on a
-# request the device is still working on.
-_AUTH_TIMEOUT_SECONDS = 30
-_WRITE_TIMEOUT_SECONDS = 15
-_DELETE_TIMEOUT_SECONDS = 10
-# A request Tasker answers by working through its whole configuration -- GET api/tasks with no
-# name, which looks up every Task one by one.  Measured at 4.5 seconds for ~500 Tasks on an
-# idle phone, and past 5 whenever the phone is still busy with the request before it, so the
-# ordinary read timeout failed it on devices that were answering perfectly well.  Thirty is
-# the Tasker HTTP API's own limit for answering a request.
-LIST_READ_TIMEOUT_SECONDS = 30
+# How long each kind of request to the Android device waits for an answer is decided in devicewait, which also
+# scales it to the phone: these are the waits for a phone nothing is known about.
+_READ_TIMEOUT_SECONDS = devicewait.BASE_WAIT_SECONDS[devicewait.READ]
+_AUTH_TIMEOUT_SECONDS = devicewait.BASE_WAIT_SECONDS[devicewait.AUTH]
+_WRITE_TIMEOUT_SECONDS = devicewait.BASE_WAIT_SECONDS[devicewait.WRITE]
+_DELETE_TIMEOUT_SECONDS = devicewait.BASE_WAIT_SECONDS[devicewait.DELETE]
+LIST_READ_TIMEOUT_SECONDS = devicewait.BASE_WAIT_SECONDS[devicewait.LIST]
 
 # What Tasker's HTTP Server Example lets through in a 'name=' filter.  Its handlers pick the
 # names out of the request path with (?:\?|&)name=([\w%+-]+) and URL-decode them afterwards, so
@@ -357,12 +349,24 @@ def _not_running_hint(route: str) -> str:
     return f"  Check that the Tasker '{_project_for(route)}' project is installed and running on the Android device."
 
 
+def _slow_phone_hint(device: tuple[str, str] | None, route: str, method: str, named: bool, waited: float) -> str:
+    """The sentence that tells a timeout on a slow phone from a phone that is not there: how long, and what happens next."""
+    if device is None or not waited:
+        return ""
+    later = devicewait.wait_for(*device, route, method=method, named=named)
+    more = f"  The next request of this kind will wait {later:g} seconds." if later > waited else ""
+    return f"  Waited {waited:g} seconds; a phone with a large configuration can be slow to answer.{more}"
+
+
 def _device_call(
     method: str,
     url: str,
     *,
     unreachable: str = "Unable to reach Android device.",
     timed_out: str = "",
+    device: tuple[str, str] | None = None,
+    route: str = "",
+    named: bool = False,
     **request_arguments: object,
 ) -> tuple[requests.Response | None, str, bool]:
     """Make one request to the Android device: (response, "", True) or (None, error_message, retryable).
@@ -378,10 +382,18 @@ def _device_call(
     URL, which asking again will never fix, and for a timeout: the device may still be working on the
     request, so asking again starts a second piece of work beside the first rather than waiting for it.
 
+    `device` ((address, port)) and `route` say whose request this is and what kind: when they are given and the
+    caller names no timeout of its own, devicewait decides how long to wait (more for a phone that has been slow,
+    and for a configuration that is large), and how long the phone takes to answer -- or that it did not -- is
+    remembered there for the next request.
+
     Callers test `response is None`, never the response's truth: requests.Response is falsy for any
     status of 400 or more, so truth-testing it would send every HTTP error down the failure branch.
     """
     _warn_if_on_event_loop(url)
+    if device is not None and request_arguments.get("timeout") is None:
+        request_arguments["timeout"] = devicewait.wait_for(*device, route, method=method, named=named)
+    started = time.monotonic()
     with suppress_stdout():  # Suppress any errors (system IMK)
         try:
             # A new connection for every request, never a pooled requests.Session.  Tasker's HTTP
@@ -395,13 +407,24 @@ def _device_call(
         except RequestsConnectionError:
             error_message, retryable = f"Request failed for url: {url} .  Connection error! {unreachable}", True
         except Timeout:
-            error_message, retryable = f"Request failed for url: {url} .  Timeout error.{timed_out}", False
+            waited = float(cast("float", request_arguments.get("timeout") or 0))
+            if device is not None:
+                devicewait.record(*device, route, waited, method=method, named=named, timed_out=True)
+            error_message, retryable = (
+                (
+                    f"Request failed for url: {url} .  Timeout error.{_slow_phone_hint(device, route, method, named, waited)}"
+                    f"{timed_out}"
+                ),
+                False,
+            )
         except RequestException as e:
             # The base of everything requests raises, the three above included.
             error_message, retryable = f"Request failed for url: {url}, error: {e} .", True
         else:
             if response is None:
                 return None, f"Request failed for url: {url} ...no response from the Android device.", True
+            if device is not None:
+                devicewait.record(*device, route, time.monotonic() - started, method=method, named=named)
             return response, "", True
 
     logger.debug(error_message)
@@ -446,7 +469,7 @@ def http_request(
     request_name: str,
     request_parm: str,
     auth_key: str = "",
-    timeout: float = _READ_TIMEOUT_SECONDS,
+    timeout: float | None = None,
 ) -> tuple[int, bytes | str]:
     """
     Issue HTTP Request to get the backup XML file from the Android device.
@@ -457,8 +480,8 @@ def http_request(
         :param auth_key: API key from get_android_auth_key(), sent as the raw
         'Authorization' header value (no "Bearer " prefix) -- required by the
         newer 'api/*' endpoints (e.g. api/tasks), unused by the plain 'file' one
-        :param timeout: seconds to wait for the answer -- LIST_READ_TIMEOUT_SECONDS for a
-        request the device answers by going through its whole configuration
+        :param timeout: seconds to wait for the answer, or None to let devicewait decide -- which gives a
+        request the device answers by going through its whole configuration far longer than a file read
         :return: return code, response: eitherr text string with error message or the
         contents of the backup file
 
@@ -485,7 +508,7 @@ def _get_once(
     request_name: str,
     request_parm: str,
     auth_key: str,
-    timeout: float,
+    timeout: float | None,
 ) -> tuple[int, int, bytes | str]:
     """One GET to the device: (HTTP status or 0 if there was none, return code, content or message)."""
     # Something like: 192.168.0.210:1821/file/path/to/backup.xml?download=1
@@ -495,6 +518,9 @@ def _get_once(
         url,
         headers=_auth_headers(auth_key),
         timeout=timeout,
+        device=(ip_address, ip_port),
+        route=request_name,
+        named="name=" in request_parm,
         unreachable="Unable to get XML from Android device.",
         timed_out=_not_running_hint(request_name),
     )
@@ -769,7 +795,7 @@ def http_post_request(
     file_content: bytes,
     auth_key: str = "",
     content_type: str = "",
-    timeout: float = _WRITE_TIMEOUT_SECONDS,
+    timeout: float | None = None,
 ) -> tuple[int, bytes | str]:
     """
     Issue HTTP POST request to write a file (e.g. a standalone Task .tsk.xml) to the
@@ -786,7 +812,7 @@ def http_post_request(
         api/tasks takes a JSON task object and is entitled to be told so -- see
         devicetask.run_task_on_android, the one caller that passes this.  Left empty, no
         Content-Type header is sent at all, exactly as before.
-        :param timeout: seconds to wait for the answer.  api/tasks answers only once the Task
+        :param timeout: seconds to wait for the answer, or None to let devicewait decide.  api/tasks answers only once the Task
         it runs has finished, so a Task run for its result (devicetask.run_task_for_result)
         waits longer than a write does.
         :return: return code, response: either a text string with an error message or
@@ -799,9 +825,15 @@ def http_post_request(
         data=file_content,
         headers=_auth_headers(auth_key, content_type),
         timeout=timeout,
+        device=(ip_address, ip_port),
+        route=request_name,
         unreachable="Unable to post XML to Android device.",
         timed_out=_not_running_hint(request_name),
     )
+    if request_name.strip("/") == "api/import":
+        # An import is what changes what the phone has -- even one that timed out may have gone through -- so
+        # nothing kept from before it can be trusted (see devicecache).
+        devicecache.forget(ip_address, ip_port)
     if response is None:
         return 8, error_message
 
@@ -870,7 +902,8 @@ def http_upload_request(
         url,
         params={"location": location},
         files={filename: (filename, file_content, "application/octet-stream")},
-        timeout=_WRITE_TIMEOUT_SECONDS,
+        device=(ip_address, ip_port),
+        route="upload",
         timed_out=_not_running_hint("upload"),
     )
     if response is None:
@@ -911,7 +944,8 @@ def http_delete_request(
         "delete",
         url,
         headers=_auth_headers(auth_key),
-        timeout=_DELETE_TIMEOUT_SECONDS,
+        device=(ip_address, ip_port),
+        route="api/file",
         timed_out=_not_running_hint("api/file"),
     )
     if response is None:

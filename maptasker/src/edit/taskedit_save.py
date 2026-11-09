@@ -11,7 +11,6 @@ from maptasker.src.core import editcommon, piiscan
 from maptasker.src.core.editcommon import set_child_text as _set_child_text
 from maptasker.src.core.editcommon import touch_project_mdate
 from maptasker.src.core.maputil2 import (
-    LIST_READ_TIMEOUT_SECONDS,
     http_post_request,
     http_request,
     request_with_auth_key,
@@ -256,9 +255,9 @@ def verify_task_on_android(
     Returns True if the GET succeeded and returned at least one Task named
     task_name, False otherwise.
 
-    timeout: how long to wait for the answer; None is the usual few seconds.  A caller that acts on a False
-    (install_task_on_android imports the Task when it is not there) has to give a slow phone time to answer, or
-    "did not answer in time" is taken for "is not there".
+    timeout: how long to wait for the answer; None lets devicewait decide, which gives a slow phone, and a large
+    configuration, the time they need.  A caller that acts on a False (install_task_on_android imports the Task when
+    it is not there) has to give the phone that time, or "did not answer in time" is taken for "is not there".
     """
     # A name the filter cannot carry (see maputil2.tasker_name_query) is looked for in the
     # whole list, which the device takes seconds to produce.
@@ -270,7 +269,7 @@ def verify_task_on_android(
         "api/tasks",
         query or "",
         auth_key,
-        **({"timeout": timeout} if timeout else {} if query else {"timeout": LIST_READ_TIMEOUT_SECONDS}),
+        **({"timeout": timeout} if timeout else {}),
     )
     if return_code != 0:
         return False

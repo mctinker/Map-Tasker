@@ -127,7 +127,7 @@ def _server_project(device: Device) -> Outcome:
 
 
 def _lists(device: Device) -> Outcome:
-    from maptasker.src.core.maputil2 import LIST_READ_TIMEOUT_SECONDS, auth_key_for, http_request
+    from maptasker.src.core.maputil2 import auth_key_for, http_request
 
     code, key = auth_key_for(device.address, device.port)
     if code != 0:
@@ -137,9 +137,7 @@ def _lists(device: Device) -> Outcome:
         # The whole list: the phone goes through its whole configuration, which takes more than the usual five seconds
         # (measured on a real phone: Tasks and Profiles both timed out at five, and Profiles again at thirty).
         started = time.monotonic()
-        code, response = http_request(
-            device.address, device.port, "", endpoint, "", key, timeout=LIST_READ_TIMEOUT_SECONDS
-        )
+        code, response = http_request(device.address, device.port, "", endpoint, "", key)
         took.append(f"{endpoint} {time.monotonic() - started:.1f}s")
         if code != 0:
             problems.append(f"{endpoint}: {response}")

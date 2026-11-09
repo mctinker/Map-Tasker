@@ -44,9 +44,11 @@ from maptasker.src.gui.guiutils import update_tasker_object_menus
 from maptasker.src.gui.guiutils_android import (
     android_address_defaults,
     notify_watch_android_device,
+    phone_wait_line,
     ping_android_device,
     remember_android_address,
     remember_android_address_fields,
+    waiting_for_phone,
 )
 from maptasker.src.gui.guiwins import build_save_to_android_dialog
 from maptasker.src.gui.guiwins_dialogs import (
@@ -319,7 +321,8 @@ class AndroidEventHandlers(HandlerGroup):
         # The key fetch and the GET take a few seconds, so say so: a status line with no timeout, taken down
         # when the answer is in.  See install_server_event's identical note.
         pending = ui.notification(
-            translate_string("Getting the list from Tasker.  Please stand by..."),
+            translate_string("Getting the list from Tasker.  Please stand by...")
+            + phone_wait_line(ip_address, ip_port),
             type="ongoing",
             timeout=None,
             multi_line=True,
@@ -590,9 +593,10 @@ class AndroidEventHandlers(HandlerGroup):
         # the import once more from the file now sitting in /Tasker/tasks (see
         # taskedit_save.save_task_to_android_directory's docstring for why a retry, not a
         # different endpoint, is the only fallback that can help).
-        confirmed = await run.io_bound(
-            devicetask.confirm_task_on_android, ip_address, ip_port, task_name, auth_key, state=self.state
-        )
+        with waiting_for_phone(ip_address, ip_port, named=True):
+            confirmed = await run.io_bound(
+                devicetask.confirm_task_on_android, ip_address, ip_port, task_name, auth_key, state=self.state
+            )
         if confirmed is None:  # cancelled -- see the note at the top of this file
             return False
         if confirmed:

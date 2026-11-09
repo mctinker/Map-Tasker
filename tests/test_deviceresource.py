@@ -343,7 +343,7 @@ def _check(
     monkeypatch.setattr(
         deviceresource,
         "fetch_tasker_object_names",
-        lambda _ip, _port, state: (8, scenes_fail, {}) if scenes_fail else (0, "", {"Scene": scenes}),
+        lambda _ip, _port, state, **_k: (8, scenes_fail, {}) if scenes_fail else (0, "", {"Scene": scenes}),
     )
     outcome = deviceresource.check_device(*ADDRESS, resrefs.collect(PrimeItems), refresh_apps=refresh, state=PrimeItems)
     return outcome, apps

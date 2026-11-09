@@ -583,6 +583,8 @@ strict = [
     "maptasker/src/core/console.py",
     "maptasker/src/core/debug.py",
     "maptasker/src/core/deprecate.py",
+    "maptasker/src/core/devicecache.py",
+    "maptasker/src/core/devicewait.py",
     "maptasker/src/core/dirout.py",
     "maptasker/src/core/editcommon.py",
     "maptasker/src/core/elemvals.py",

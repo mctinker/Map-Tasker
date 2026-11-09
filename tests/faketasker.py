@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import json
 import threading
+import time
 from email import message_from_bytes
 from email.policy import HTTP
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -45,6 +46,7 @@ class FakeTasker:
         self.refuse_auth = 0
         self.reject_keys = 0
         self.slow_reads: dict[str, int] = {}  # path -> reads that answer 404 before the file shows
+        self.list_seconds = 0.0  # how long a Task, Profile or Scene list or lookup takes to answer: a big configuration
         self.import_answers = 200
         self.import_script: list[int] = []  # the next imports' statuses, one each, before import_answers applies
         self.ignored_imports: set[str] = set()  # names Tasker answers 200 for and does not commit
@@ -230,6 +232,7 @@ class FakeTasker:
         return request._answer(200, (returned or "%return") + "\n")
 
     def _list(self, request: Any, path: str, query: dict[str, list[str]]) -> None:
+        time.sleep(self.list_seconds)
         held = {"/api/tasks": self.tasks, "/api/profiles": self.profiles, "/api/scenes": self.scenes}[path]
         wanted = query.get("name")
         names = sorted(name for name in held if not wanted or name in wanted)

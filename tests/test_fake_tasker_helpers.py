@@ -11,7 +11,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import pytest
-from maptasker.src.core import maputil2
+from maptasker.src.core import devicewait, maputil2
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.device import (
     devicecheck,
@@ -77,6 +77,29 @@ def test_the_objects_tasker_has_are_listed_by_kind(phone: FakeTasker) -> None:
         "Task": ["Opener", "Closer"],
     }
     assert devicetask.OBJECT_LIST_TASK_NAME in phone.tasks
+
+
+def test_the_objects_tasker_has_are_listed_once_per_session_and_their_number_is_learned(phone: FakeTasker) -> None:
+    phone.writes(
+        devicetask.OBJECT_LIST_TASK_NAME,
+        "/Tasker/maptasker_objects.txt",
+        _objects(f"Home{JOIN}Work", f"Morning{JOIN}Night", "%mtscenes", f"Opener{JOIN}Closer{JOIN}Third"),
+        installed=False,
+    )
+
+    def ask(**kwargs: bool) -> tuple[int, str, dict[str, list[str]]]:
+        return devicetask.fetch_tasker_object_names(phone.address, phone.port, state=PrimeItems, **kwargs)
+
+    code, _message, names = ask()
+    runs = len(phone.seen("POST", "/api/tasks"))
+
+    assert code == 0
+    assert ask() == (0, "", names)
+    assert len(phone.seen("POST", "/api/tasks")) == runs, "the second asked nothing of the phone"
+    ask(fresh=True)
+    assert len(phone.seen("POST", "/api/tasks")) == runs + 1
+    assert devicewait.size_of(phone.address, phone.port, "tasks") == 3
+    assert devicewait.size_of(phone.address, phone.port, "profiles") == 2
 
 
 @pytest.mark.parametrize(

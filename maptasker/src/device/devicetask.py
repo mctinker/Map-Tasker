@@ -18,9 +18,9 @@ import time
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from maptasker.src.core import devicecache, devicewait
 from maptasker.src.core.editcommon import sanitize_filename
 from maptasker.src.core.maputil2 import (
-    LIST_READ_TIMEOUT_SECONDS,
     auth_key_for,
     held_auth_key,
     http_delete_request,
@@ -367,6 +367,10 @@ def _run_task_through_helper(
         return TaskRunResult(ok=False, error=message, seconds=time.monotonic() - started)
 
     return_code, message, listed = fetch_tasker_object_names(ip_address, ip_port, state=state)
+    if return_code == 0 and task_name not in listed.get("Task", []):
+        # What is kept is a ten-minute-old answer to someone who has just made the Task on the phone: only a miss is asked
+        # again, since a hit cannot be wrong in a way that matters.
+        return_code, message, listed = fetch_tasker_object_names(ip_address, ip_port, state=state, fresh=True)
     if return_code != 0:
         return failed(f"Could not check that Tasker has '{task_name}': {message}")
     if task_name not in listed.get("Task", []):
@@ -429,6 +433,10 @@ def confirm_task_on_android(
         return taskedit_save.verify_task_on_android(ip_address, ip_port, task_name, auth_key, timeout=timeout)
 
     return_code, message, listed = fetch_tasker_object_names(ip_address, ip_port, state=state)
+    if return_code == 0 and task_name not in listed["Task"]:
+        # Only a miss is asked again (see _run_task_through_helper): a miss is what a Task added since means, and what a
+        # Task imported a moment ago would be -- though every import drops what is kept, so that one is asked anyway.
+        return_code, message, listed = fetch_tasker_object_names(ip_address, ip_port, state=state, fresh=True)
     if return_code != 0:
         logger.info(f"Could not list Tasker's objects to confirm '{task_name}': {message}")
         return False
@@ -458,11 +466,9 @@ def install_task_on_android(
     an old name could never be installed.
     """
 
-    # Given the longest a phone is allowed to take: a phone busy with an earlier request answers late, and a late
+    # Given the time this phone needs (devicewait): a phone busy with an earlier request answers late, and a late
     # answer taken for "not there" imports the Task again, which Tasker refuses with a 400 (measured, 2026-11-03).
-    if confirm_task_on_android(
-        ip_address, ip_port, task_name, auth_key, state=state, timeout=LIST_READ_TIMEOUT_SECONDS
-    ):
+    if confirm_task_on_android(ip_address, ip_port, task_name, auth_key, state=state):
         return 0, ""
 
     built = builder()
@@ -486,7 +492,6 @@ def install_task_on_android(
             task_name,
             held_auth_key(ip_address, ip_port) or auth_key,
             state=state,
-            timeout=LIST_READ_TIMEOUT_SECONDS,
         ):
             return 0, ""
         return return_code, str(result)
@@ -706,12 +711,18 @@ def parse_object_list_payload(text: str) -> tuple[dict[str, list[str]], str]:
     return names, ""
 
 
-def fetch_tasker_object_names(ip_address: str, ip_port: str, state: RunState) -> tuple[int, str, dict[str, list[str]]]:
+def fetch_tasker_object_names(
+    ip_address: str, ip_port: str, state: RunState, *, fresh: bool = False
+) -> tuple[int, str, dict[str, list[str]]]:
     """Every Project, Profile, Scene and Task Tasker has, by name.  (0, "", by kind) or (code, why, {}).
 
     The exchange fetch_file_list_from_device runs, for the object-listing Task: key, install if
-    missing, clear the previous answer, run, wait, parse.  Nothing cached -- the answer is wanted
-    right before a save, which is exactly when an old one is most likely to be wrong.
+    missing, clear the previous answer, run, wait, parse.
+
+    Kept for the session (devicecache): a run of the helper through a large configuration takes seconds, and the
+    same list is wanted repeatedly.  What is kept is dropped by any import MapTasker sends and after ten minutes,
+    and `fresh` asks the phone again -- for a caller about to act on the answer after something it cannot see was
+    done on the phone, or one that is itself the check (the device check).
 
     Blocking; a caller on the GUI thread must use run.io_bound.
     """
@@ -720,6 +731,14 @@ def fetch_tasker_object_names(ip_address: str, ip_port: str, state: RunState) ->
     ip_port = ip_port.strip()
     if not ip_address or not ip_port:
         return 8, "An Android IP address and port are needed.", {}
+
+    return devicecache.cached(
+        ip_address, ip_port, "object names", lambda: _ask_for_object_names(ip_address, ip_port, state), fresh=fresh
+    )
+
+
+def _ask_for_object_names(ip_address: str, ip_port: str, state: RunState) -> tuple[int, str, dict[str, list[str]]]:
+    """The request behind fetch_tasker_object_names."""
 
     return_code, auth_key = auth_key_for(ip_address, ip_port)
     if return_code != 0:
@@ -762,4 +781,7 @@ def fetch_tasker_object_names(ip_address: str, ip_port: str, state: RunState) ->
     names, error = parse_object_list_payload(text)
     if error:
         return 8, error, {}
+    # What the phone has, which is what its lists and lookups are given time for (devicewait).
+    for kind, objects in (("Profile", "profiles"), ("Scene", "scenes"), ("Task", "tasks")):
+        devicewait.note_size(ip_address, ip_port, objects, len(names.get(kind, [])))
     return 0, "", names

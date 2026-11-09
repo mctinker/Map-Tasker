@@ -33,6 +33,7 @@ All notable changes to this project will be documented in this file!
 
 ### Fixed
 
+- Fixed: On a phone with a large Tasker configuration, MapTasker now waits as long as the phone needs for its lists and lookups, instead of giving up after five or thirty seconds and then importing a Task that was already there. It remembers the lists for the session, tells you when the phone is going to take a while, and waits longer after a timeout.
 - Fixed: Changing one color and pressing Save no longer turns every other color turquoise the next time the window opens. The settings file now keeps only the colors you changed from the light or dark palette, whichever way it is saved.
 - Fixed: In the Diagram, two connectors that cover some of the same lines are no longer drawn down the same column, where they looked like one line. Clicking such a connector now highlights only that connector, and Jump to End goes to the Task it really ends at.
 - Fixed:

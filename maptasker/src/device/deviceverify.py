@@ -8,11 +8,12 @@ the phone).  Blocking; a caller on the GUI's event loop must hand it to run.io_b
 from __future__ import annotations
 
 import json
+import time
 from typing import Any, cast
 from urllib.parse import quote
 
+from maptasker.src.core import devicecache, devicewait
 from maptasker.src.core.maputil2 import (
-    LIST_READ_TIMEOUT_SECONDS,
     auth_key_for,
     device_address,
     http_request,
@@ -158,10 +159,16 @@ def await_import(
         if return_code != 0:
             return return_code, auth_key
 
+    # The time to give a person is a time, not a count of polls: each poll can take as long as the phone needs
+    # to answer (a phone with a large configuration takes many seconds over one), and a count of them would
+    # stretch two minutes into a quarter of an hour.
+    deadline = time.monotonic() + attempts * RESULT_POLL_SECONDS
     for _ in spaced_attempts(attempts, RESULT_POLL_SECONDS):
         present = verify_names_on_android(ip_address, ip_port, endpoint, sorted(wanted), auth_key)
         if present is not None and wanted <= present:
             return 0, f"{subject} is now in Tasker on {device_address(ip_address, ip_port)}."
+        if time.monotonic() >= deadline:
+            break
 
     waiting = f"  The file is on the device at {staged_at} and can still be imported by hand." if staged_at else ""
     return 8, (
@@ -170,8 +177,11 @@ def await_import(
     )
 
 
-def fetch_task_names_from_device(ip_address: str, ip_port: str) -> tuple[int, str, list[str]]:
+def fetch_task_names_from_device(ip_address: str, ip_port: str, *, fresh: bool = False) -> tuple[int, str, list[str]]:
     """Every Task Tasker knows about, by name.  (0, "", names) or (return_code, message, []).
+
+    Kept for the session (devicecache) -- it is the slow request, and the same list is asked for again and again --
+    until an import changes it or `fresh` asks for it again.
 
     GET /api/tasks with NO name filter, which is the whole list: the server example's handler
     matches 'name=' out of the request path and, when there is none, sets its working list to
@@ -180,8 +190,8 @@ def fetch_task_names_from_device(ip_address: str, ip_port: str) -> tuple[int, st
     JSON array of {"name":..., "running":...} that verify_names_on_android reads a filtered
     version of.
 
-    Slow, because the handler looks every Task up one at a time before it answers -- see
-    maputil2.LIST_READ_TIMEOUT_SECONDS.  To ask about particular Tasks, task_names_on_device.
+    Slow, because the handler looks every Task up one at a time before it answers -- see devicewait for how long it
+    is given.  To ask about particular Tasks, task_names_on_device.
 
     Blocking, like every other call here; a caller on the GUI thread must use run.io_bound.
     """
@@ -190,6 +200,14 @@ def fetch_task_names_from_device(ip_address: str, ip_port: str) -> tuple[int, st
     ip_port = ip_port.strip()
     if not ip_address or not ip_port:
         return 8, "An Android IP address and port are needed.  Set them under 'Get XML from Android Device'.", []
+
+    return devicecache.cached(
+        ip_address, ip_port, "task names", lambda: _ask_for_task_names(ip_address, ip_port), fresh=fresh
+    )
+
+
+def _ask_for_task_names(ip_address: str, ip_port: str) -> tuple[int, str, list[str]]:
+    """The request behind fetch_task_names_from_device."""
 
     return_code, auth_key = auth_key_for(ip_address, ip_port)
     if return_code != 0:
@@ -202,7 +220,6 @@ def fetch_task_names_from_device(ip_address: str, ip_port: str) -> tuple[int, st
         TASKS_ENDPOINT,
         "",
         auth_key,
-        timeout=LIST_READ_TIMEOUT_SECONDS,
     )
     if return_code != 0:
         return return_code, str(response), []
@@ -214,6 +231,7 @@ def fetch_task_names_from_device(ip_address: str, ip_port: str) -> tuple[int, st
     if (entries := _entries(reported)) is None:
         return 8, "The device's Task list was not the list of Tasks it should be.", []
 
+    devicewait.note_size(ip_address, ip_port, "tasks", len(entries))
     return 0, "", [entry.get("name", "") for entry in entries]
 
 

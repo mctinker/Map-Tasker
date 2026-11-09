@@ -2766,16 +2766,18 @@ def test_a_task_name_the_filter_cannot_carry_reads_the_whole_list(tasker_device:
 
 def test_the_whole_task_list_is_given_time_to_arrive(monkeypatch: pytest.MonkeyPatch) -> None:
     """Measured at 4.5 seconds for ~500 Tasks on an idle phone: the ordinary 5-second read timeout
-    is not enough for it."""
+    is not enough for it.  The wait is decided by devicewait, and it reaches the request."""
     from maptasker.src.core import maputil2
 
     timeouts: list = []
 
-    def fake_http_request(*_args: Any, **kwargs: Any) -> tuple[int, bytes]:
-        timeouts.append(kwargs.get("timeout"))
-        return 0, b"[]"
+    class _Requests:
+        @staticmethod
+        def get(_url: str, **kwargs: Any) -> _FakeResponse:
+            timeouts.append(kwargs.get("timeout"))
+            return _FakeResponse(200, b"[]")
 
-    monkeypatch.setattr(deviceverify, "http_request", fake_http_request)
+    monkeypatch.setattr(maputil2, "requests", _Requests)
     monkeypatch.setattr(deviceverify, "auth_key_for", lambda *_args: (0, "KEY"))
 
     deviceverify.fetch_task_names_from_device("192.168.0.210", "1821")

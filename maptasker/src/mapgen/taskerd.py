@@ -7,7 +7,7 @@
 #                                                                                      #
 import defusedxml.ElementTree as ET
 
-from maptasker.src.core import timeline
+from maptasker.src.core import devicewait, timeline
 from maptasker.src.core.mtexcept import MapTaskerError
 from maptasker.src.core.primitem import RunState
 from maptasker.src.core.xmldata import parse_tasker_xml
@@ -77,6 +77,10 @@ def get_the_xml_data(state: RunState) -> None:
     timeline.record(file_to_parse, state=state)
 
     build_tasker_tables(state=state)
+    # How much there is, which is the best guess at how long the phone's lists will take when this is its
+    # configuration (see devicewait): a phone that has answered is believed over this.
+    for table_name, objects in (("all_profiles", "profiles"), ("all_scenes", "scenes"), ("all_tasks", "tasks")):
+        devicewait.assume_size(objects, len(state.tasker_root_elements[table_name]))
     # The highest Task/Profile id as the file has it, before this session adds anything -- the
     # floor taskedit.next_unique_task_or_profile_id keeps new ids clear of (see
     # NEW_OBJECT_ID_HEADROOM).  Here rather than in build_tasker_tables, which an undo also

@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pytest
-from maptasker.src.core import objnotes, outdir
+from maptasker.src.core import devicecache, devicewait, objnotes, outdir
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.core.sysconst import NOTES_FILE
 
@@ -94,3 +94,18 @@ def _no_designer_outlives_its_test() -> Iterator[None]:
     canvas = sys.modules.get("maptasker.src.gui.guiwins_canvas")  # Not imported, so nothing to empty.
     if canvas is not None:
         canvas._ACTIVE_CANVASES.clear()
+
+
+@pytest.fixture(autouse=True)
+def _a_test_starts_knowing_nothing_about_any_phone() -> Iterator[None]:
+    """Forget what the last test learned of how slow a phone is, and the lists it kept.
+
+    Both are kept for the session (devicewait, devicecache), and a test is not a session: a fake phone that answered
+    slowly in one test would otherwise be waited for longer in the next, and a list kept by one would be handed to
+    the next as if the phone had just answered it.
+    """
+    devicewait.reset()
+    devicecache.reset()
+    yield
+    devicewait.reset()
+    devicecache.reset()

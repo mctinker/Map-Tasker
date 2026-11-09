@@ -116,7 +116,8 @@ def stale_helper_tasks_on_device(
     to delete in Tasker, and which to leave alone.  Reported rather than acted on -- see the
     section comment for why deleting them from here is not possible.
     """
-    return_code, message, names = fetch_task_names_from_device(ip_address, ip_port)
+    # Fresh: the button that asks for this is pressed to see what the phone has now.
+    return_code, message, names = fetch_task_names_from_device(ip_address, ip_port, fresh=True)
     if return_code != 0:
         return return_code, message, [], []
     current, stale = classify_helper_tasks(names, state=state)
@@ -269,7 +270,8 @@ def _helper_project_on_device(ip_address: str, ip_port: str, state: RunState) ->
     be a Task the Project carries that Tasker already has, which is the one thing that makes the
     import fail (see the section comment).
     """
-    return_code, message, listed = fetch_tasker_object_names(ip_address, ip_port, state=state)
+    # Fresh: this is asked right after the user has been told to import the Project by hand.
+    return_code, message, listed = fetch_tasker_object_names(ip_address, ip_port, state=state, fresh=True)
     if return_code != 0:
         logger.info(f"Could not list the device's Projects: {message}")
         return None

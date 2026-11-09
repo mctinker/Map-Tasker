@@ -156,7 +156,7 @@ def check_tasker_for_existing(
     # maputil2.tasker_name_matchable) -- the endpoints would report '$New Task' missing when it is there.
     unmatchable = any(not tasker_name_matchable(name) for names in wanted.values() for name in names)
     if "Project" in wanted or unmatchable:
-        return_code, message, listed = fetch_tasker_object_names(ip_address, ip_port, state=state)
+        return_code, message, listed = fetch_tasker_object_names(ip_address, ip_port, state=state, fresh=True)
         if return_code != 0:
             return TaskerCheck(sent, {}, dict.fromkeys(wanted, message))
         return TaskerCheck(sent, {kind: _found_in(names, listed[kind]) for kind, names in wanted.items()}, {})
