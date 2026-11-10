@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file!
 ### Fixed
 
 - Fixed: Named Tasks that are not called by any Profile, and that no Project lists, are now in the Map's directory. They were written at the end of the Map but left out of the directory, so there was no link to them.
+- Fixed: A connector in the Diagram view is no longer broken into pieces, so Jump to Start and Jump to End reach its ends, when a Task without a name is called after an action that has a label (such as an 'If'). The name made up for that Task had a line break in it, which split its line in two and pushed every connector passing it out of line.
 
 ### Known Issues
 

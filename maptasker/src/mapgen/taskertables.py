@@ -62,6 +62,7 @@ def move_xml_to_table(all_xml: list[Element], get_id: bool, name_qualifier: str)
 # used below to turn an unnamed Anchor Task into a readable name.  Was a local in
 # get_the_xml_data until build_tasker_tables was split out of it.
 _ANCHOR_LABEL = "Anchor ...with label:\n"
+_LINE_BREAKS = re.compile(r"\s*[\r\n]+\s*")
 
 
 def _load_root_tables(state: RunState) -> None:
@@ -137,6 +138,11 @@ def _index_tasks_by_name(state: RunState) -> None:
             # Handle special case of 'Anchor ...with label:\n'
             if _ANCHOR_LABEL in first_action:
                 first_action = 'Anchor "' + first_action.split(_ANCHOR_LABEL, 1)[1]
+            # Any other action carrying a label arrives with a line break after "with label:" as
+            # well (e.g. an 'If' with one).  A name is one line: a break left in it split the
+            # Task's line in the Diagram in two, dropping every connector passing the Task out
+            # of line from there on.
+            first_action = _LINE_BREAKS.sub(" ", first_action)
 
             # Put the new name back into PrimeItems.tasker_root_elements["all_tasks"]
             value["name"] = f"{first_action.rstrip()}.{key!s} (Unnamed)"

@@ -169,6 +169,26 @@ def test_unnamed_anchor_task_is_named_for_its_label() -> None:
     assert "...with label:" not in name
 
 
+def test_unnamed_task_name_is_one_line_when_its_first_action_has_a_label() -> None:
+    """Any action can carry a label, and Tasker's text for one puts a line break after "with label:".
+
+    A name with a line break in it split the Task's line in the Diagram in two, and every
+    connector passing that Task was out of line from there on -- which broke the connector
+    into pieces, so clicking it highlighted only one of them.
+    """
+    labelled_if = (
+        '<Action sr="act0"><code>37</code><label>received torch command</label>'
+        '<ConditionList sr="if"><Condition sr="c0"><lhs>%torch</lhs><op>8</op><rhs>0</rhs></Condition>'
+        "</ConditionList></Action>"
+    )
+    tables = _build(f'<Task sr="task1112"><id>1112</id>{labelled_if}</Task>')
+    name = tables["all_tasks"]["1112"]["name"]
+
+    assert name.endswith(".1112 (Unnamed)")
+    assert not any(character in name for character in "\r\n")
+    assert list(tables["all_tasks_by_name"]) == [name]
+
+
 def test_task_with_no_first_action_still_gets_a_name() -> None:
     """An empty Task, and one whose actions do not start at act0, both have no first
     action to be named after.  They still need a name: it is the key of the by-name
