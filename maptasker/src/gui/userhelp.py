@@ -290,12 +290,12 @@ VARIABLE_HELP_TEXT = (
 )
 SIMILAR_HELP_TEXT = (
     "- Refactor > Near-duplicates: Find Tasks that were copied and pasted with small differences.  Find looks at"
-    " every Task's actions and lists the runs of actions that two or more Tasks share, the ones that would save the"
-    " most first; 'Smallest run' is how many actions in a row count.  Choose one and Preview: the shared actions"
+    " every Task's actions and lists the groups of actions in a row that two or more Tasks share, the ones that would save"
+    " the most first; 'Fewest actions' is how many in a row count.  Choose one and Preview: the shared actions"
     " become one new Task, and each Task that held them calls it from the place they were, so what runs and in what"
     " order is unchanged.  Labels and collapsed state are ignored when comparing.  A Task that is made of nothing but"
-    " the run is used as the shared Task instead of making another.  A Task with a Goto is left out, and a run that"
-    " would cut an If or For block in half is offered only for the part that does not.  The preview names local"
+    " the shared actions is used as the shared Task instead of making another.  A Task with a Goto is left out, and a"
+    " group that would cut an If or For block in half is offered only for the part that does not.  The preview names local"
     " variables the move would separate and labels that would be lost.  The shared Task is given a note, tagged"
     " #shared, naming the Tasks that call it (see Notes & Tags); that note lives in your notes file, so Undo reverses"
     " the merge and leaves the note.  Previewed before anything is done, and one press of Undo afterwards.  \n"

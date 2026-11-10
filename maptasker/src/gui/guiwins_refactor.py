@@ -722,22 +722,22 @@ def _build_similar_row(widgets: dict[str, Any]) -> None:
                 ui.select(
                     {number: str(number) for number in maprefac_similar.MIN_RUN_CHOICES},
                     value=maprefac_similar.DEFAULT_MIN_RUN,
-                    label=translate_string("Smallest run"),
+                    label=translate_string("Fewest actions"),
                 )
                 .classes("w-[130px]")
                 .props("dense")
                 .tooltip(
                     translate_string(
-                        "The fewest actions in a row that Tasks must have in common to be offered.  A short run is "
-                        "often coincidence; raise this when there are too many to read.",
+                        "The fewest actions in a row that Tasks must have in common to be offered.  A handful in "
+                        "common is often coincidence; raise this when there are too many to read.",
                     ),
                 )
             )
             widgets["similar_find"] = ui.button(translate_string("Find")).classes("bg-blue-600 text-white px-4")
             widgets["similar_run"] = _select(
-                translate_string("Shared run"),
+                translate_string("Shared actions"),
                 "flex-1 min-w-[300px]",
-                "The runs found, the ones that save the most first.  Choose one, then Preview to see what would change.",
+                "The groups of shared actions found, the ones that save the most first.  Choose one, then Preview to see what would change.",
             )
             widgets["similar_name"] = (
                 ui.input(label=translate_string("New Task name"))
@@ -972,9 +972,9 @@ def _find_similar(widgets: dict[str, Any], state: RunState) -> None:
     widgets["similar_hint"].set_text("")
     note = widgets["similar_note"]
     if runs:
-        note.set_text(f"{translate_string('Shared runs found')}: {len(runs)}")
+        note.set_text(f"{translate_string('Groups of shared actions found')}: {len(runs)}")
     else:
-        note.set_text(translate_string("No run of that many actions is shared by two Tasks."))
+        note.set_text(translate_string("No Tasks share that many actions in a row."))
 
 
 def _forget_similar(widgets: dict[str, Any]) -> None:

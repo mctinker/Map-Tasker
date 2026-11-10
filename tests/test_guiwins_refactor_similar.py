@@ -118,7 +118,7 @@ async def test_nothing_is_offered_until_find_is_pressed() -> None:
         toggle.set_value("similar")
         await asyncio.sleep(0)
 
-        assert not _select(user, "Shared run").options
+        assert not _select(user, "Shared actions").options
 
 
 @pytest.mark.asyncio
@@ -126,18 +126,18 @@ async def test_find_offers_the_run_the_tasks_share_and_says_how_many() -> None:
     async with _open() as user:
         await _near_duplicates(user)
 
-        offered = _select(user, "Shared run")
+        offered = _select(user, "Shared actions")
         assert len(offered.options) == 1
         assert "4 actions in 3 Tasks" in str(offered.props["options"])
-        assert "Shared runs found: 1" in _shown(user)
+        assert "Groups of shared actions found: 1" in _shown(user)
 
 
 @pytest.mark.asyncio
 async def test_choosing_a_run_suggests_a_name_no_task_has() -> None:
     async with _open() as user:
         await _near_duplicates(user)
-        key = next(iter(_select(user, "Shared run").options))
-        _select(user, "Shared run").set_value(key)
+        key = next(iter(_select(user, "Shared actions").options))
+        _select(user, "Shared actions").set_value(key)
         await asyncio.sleep(0)
 
         assert _name_box(user).value == "Evening - shared part"
@@ -147,7 +147,7 @@ async def test_choosing_a_run_suggests_a_name_no_task_has() -> None:
 async def test_a_run_previews_then_applies_looks_again_and_redraws_the_view() -> None:
     async with _open() as user:
         await _near_duplicates(user)
-        _select(user, "Shared run").set_value(next(iter(_select(user, "Shared run").options)))
+        _select(user, "Shared actions").set_value(next(iter(_select(user, "Shared actions").options)))
         await asyncio.sleep(0)
         UserInteraction(user, {_button(user, "Preview")}, None).click()
 
@@ -159,14 +159,14 @@ async def test_a_run_previews_then_applies_looks_again_and_redraws_the_view() ->
 
         assert _codes("30") == ["548", "130", "548"]
         assert user.notify.contains("Undo is available")
-        assert not _select(user, "Shared run").options, "the run is now one Task, so it is no longer shared"
+        assert not _select(user, "Shared actions").options, "the run is now one Task, so it is no longer shared"
 
 
 @pytest.mark.asyncio
 async def test_a_name_that_is_taken_is_refused_and_leaves_apply_disabled() -> None:
     async with _open() as user:
         await _near_duplicates(user)
-        _select(user, "Shared run").set_value(next(iter(_select(user, "Shared run").options)))
+        _select(user, "Shared actions").set_value(next(iter(_select(user, "Shared actions").options)))
         await asyncio.sleep(0)
         _name_box(user).set_value("Morning")
         await asyncio.sleep(0)
@@ -181,12 +181,12 @@ async def test_a_name_that_is_taken_is_refused_and_leaves_apply_disabled() -> No
 async def test_changing_the_smallest_run_forgets_what_was_found() -> None:
     async with _open() as user:
         await _near_duplicates(user)
-        assert _select(user, "Shared run").options
+        assert _select(user, "Shared actions").options
 
-        _select(user, "Smallest run").set_value(5)
+        _select(user, "Fewest actions").set_value(5)
         await asyncio.sleep(0)
 
-        assert not _select(user, "Shared run").options
+        assert not _select(user, "Shared actions").options
 
 
 @pytest.mark.asyncio
@@ -204,7 +204,7 @@ async def test_a_task_that_is_only_the_run_needs_no_name() -> None:
     )
     async with _open() as user:
         await _near_duplicates(user)
-        _select(user, "Shared run").set_value(next(iter(_select(user, "Shared run").options)))
+        _select(user, "Shared actions").set_value(next(iter(_select(user, "Shared actions").options)))
         await asyncio.sleep(0)
 
         assert not _name_box(user).enabled
