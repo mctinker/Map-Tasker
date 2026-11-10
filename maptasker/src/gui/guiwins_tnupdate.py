@@ -526,8 +526,6 @@ class _UpdatesDialog:
             result = await run.io_bound(tnupdate.review, link, self.state, self.book)
         finally:
             self.held.busy = False
-        if result is None:
-            return
         held, problem = result
         if held is None:
             link.problem = problem

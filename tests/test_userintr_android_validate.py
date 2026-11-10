@@ -8,6 +8,7 @@ The device and the page are faked -- run.io_bound just calls what it is given --
 
 from __future__ import annotations
 
+import asyncio
 from types import SimpleNamespace
 from typing import Any
 
@@ -71,14 +72,21 @@ async def test_a_file_that_cannot_be_fetched_returns_one(gui: SimpleNamespace, m
 
 
 @pytest.mark.asyncio
-async def test_a_cancelled_fetch_or_check_returns_one_quietly(
+async def test_a_cancelled_fetch_or_check_ends_the_call_quietly(
     gui: SimpleNamespace, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    _device(monkeypatch, fetch=None, validate=(0, ""))
-    assert await userintr_android.validate_or_filelist_xml(gui, IP, PORT, FILE) == (1, IP, PORT, FILE)
+    def cancelled(*_a: Any, **_k: Any) -> None:
+        raise asyncio.CancelledError  # what nicegui 4's run.io_bound does when the page goes away
 
-    _device(monkeypatch, fetch=(0, b""), validate=None)
-    assert await userintr_android.validate_or_filelist_xml(gui, IP, PORT, FILE) == (1, IP, PORT, FILE)
+    _device(monkeypatch, fetch=(0, b""), validate=(0, ""))
+    monkeypatch.setattr(userintr_android_support, "http_request", cancelled)
+    with pytest.raises(asyncio.CancelledError):
+        await userintr_android.validate_or_filelist_xml(gui, IP, PORT, FILE)
+
+    _device(monkeypatch, fetch=(0, b""), validate=(0, ""))
+    monkeypatch.setattr(userintr_android_support, "validate_xml_file", cancelled)
+    with pytest.raises(asyncio.CancelledError):
+        await userintr_android.validate_or_filelist_xml(gui, IP, PORT, FILE)
     assert gui.shown == []
 
 

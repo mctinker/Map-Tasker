@@ -255,10 +255,6 @@ class _ResourcesDialog:
             self.check_button.set_enabled(True)
             self.progress_row.set_visibility(False)
 
-        # None rather than an outcome: nicegui answers that when the wait is cancelled or the app is stopping
-        # (see nicegui.run._run).  There is no page left to report to.
-        if outcome is None:
-            return
         self.problems = outcome.errors
         self.reload_report()
         if outcome.could_not_save:

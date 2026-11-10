@@ -84,13 +84,13 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
 
-# EVERY 'await run.io_bound(...)' HERE IS CHECKED FOR None.  nicegui answers None instead of the
-# call's result when the wait is cancelled or the app is shutting down (see nicegui.run._run) --
-# a reloaded or closed page is the everyday case, and an Android call waiting minutes on someone
-# to pick up their phone is the one most likely to meet it.  Unpacking that None is a TypeError
-# raised into nicegui's event handler, which is what the user sees.  Nothing is lost by stopping:
-# whatever was asked of the device has already happened or will finish on its own, and the only
-# thing left here is a report for a page that is no longer there.  So each one stops quietly.
+# NO 'await run.io_bound(...)' HERE IS CHECKED FOR None.  Since nicegui 4.0 a wait that is cancelled
+# or cut off by the app shutting down raises asyncio.CancelledError instead of answering None (see
+# nicegui.run._run) -- a reloaded or closed page is the everyday case, and an Android call waiting
+# minutes on someone to pick up their phone is the one most likely to meet it.  The error unwinds
+# the handler, which is what stopping quietly needs: whatever was asked of the device has already
+# happened or will finish on its own, and the only thing left here is a report for a page that is
+# no longer there.  Cleanup belongs in a finally, which a CancelledError still runs.
 
 
 class AndroidEventHandlers(HandlerGroup):
@@ -337,8 +337,6 @@ class AndroidEventHandlers(HandlerGroup):
             if not getattr(pending, "is_deleted", False):
                 with suppress_logged("Dismissing the pending notice"):
                     pending.dismiss()
-        if listed is None:  # cancelled -- see the note at the top of this file
-            return
         return_code, message, stale, current = listed
         if return_code != 0:
             ui.notify(f"Could not read the device's Task list: {message}", type="negative")
@@ -384,8 +382,6 @@ class AndroidEventHandlers(HandlerGroup):
         if not getattr(pending, "is_deleted", False):
             with suppress_logged("Dismissing the pending notice"):
                 pending.dismiss()
-        if outcome is None:
-            return
         return_code, message = outcome
         if return_code == 0:
             self.gui.android_ipaddr = ip_address
@@ -423,10 +419,6 @@ class AndroidEventHandlers(HandlerGroup):
         notify_watch_android_device()
 
         result = await run.io_bound(devicehelpers.stage_helper_project, ip_address, ip_port, state=self.state)
-        # None, not a result: nicegui's run.io_bound answers None when the wait is cancelled or
-        # the app is shutting down (see its own docstring), and nothing was staged in that case.
-        if result is None:
-            return
         if result.already_in_project:
             ui.notify(
                 f"Every helper Task is already in the '{devicehelpers.HELPER_PROJECT_NAME}' Project in Tasker.  "
@@ -485,8 +477,6 @@ class AndroidEventHandlers(HandlerGroup):
         if not getattr(pending, "is_deleted", False):
             with suppress_logged("Dismissing the pending notice"):
                 pending.dismiss()
-        if outcome is None:
-            return
         return_code, message = outcome
         with suppress_logged("Notifying of the device's reply"):
             ui.notify(message, type="positive" if return_code == 0 else "warning")
@@ -597,8 +587,6 @@ class AndroidEventHandlers(HandlerGroup):
             confirmed = await run.io_bound(
                 devicetask.confirm_task_on_android, ip_address, ip_port, task_name, auth_key, state=self.state
             )
-        if confirmed is None:  # cancelled -- see the note at the top of this file
-            return False
         if confirmed:
             ui.notify(translate_string("Task Uploaded to Tasker") + landed, type="positive")
         else:
@@ -609,8 +597,6 @@ class AndroidEventHandlers(HandlerGroup):
                 task_name,
                 auth_key,
             )
-            if retried is None:  # cancelled -- see the note at the top of this file
-                return False
             fallback_code, fallback_result = retried
             if fallback_code == 0:
                 ui.notify(translate_string("Task Uploaded to Tasker.") + landed, type="positive")
@@ -633,8 +619,6 @@ class AndroidEventHandlers(HandlerGroup):
                     route=deviceoffer.OPEN_TASK_ROUTE,
                     state=self.state,
                 )
-                if offered is None:  # cancelled -- see the note at the top of this file
-                    return False
                 offer_code, _ = offered
                 if offer_code == 0:
                     ui.notify(
@@ -792,8 +776,6 @@ class AndroidEventHandlers(HandlerGroup):
         # maputil2.read_android_file).  None = couldn't tell, which still prompts rather than
         # risking a silent clobber.
         read = await run.io_bound(read_android_file, ip_address, ip_port, spec.device_path)
-        if read is None:  # cancelled -- see the note at the top of this file
-            return
         exists, already_there = read
         tasker_lines = await what_tasker_already_has(
             ip_address,
@@ -842,8 +824,6 @@ class AndroidEventHandlers(HandlerGroup):
         saved = await run.io_bound(
             spec.save, *spec.before_address, ip_address, ip_port, *spec.after_address, state=self.state
         )
-        if saved is None:  # cancelled -- see the note at the top of this file
-            return
         return_code, result = saved
         if return_code != 0:
             ui.notify(f"Could not save to Android device: {result}", type="negative")
@@ -1168,8 +1148,6 @@ class AndroidEventHandlers(HandlerGroup):
         # save_profile_to_android_event's identical check.
         _filename, device_read_path, device_path = offer.route.staged_file_paths(offer.object_name)
         read = await run.io_bound(read_android_file, offer.ip_address, offer.ip_port, device_read_path)
-        if read is None:  # cancelled -- see the note at the top of this file
-            return
         exists, already_there = read
 
         offering = IntoTaskerRun(self, offer, device_read_path, device_path, already_there)

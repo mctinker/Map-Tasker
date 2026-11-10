@@ -821,11 +821,6 @@ class NiceGuiTextView(TextViewSearch):
         except OSError as error:
             ui.notify(f"{translate_string('The export could not be saved:')} {error}", type="negative", position="top")
             return
-        # None is not a path: nicegui answers it when the wait is cancelled or the app is
-        # stopping (see nicegui.run._run).  The file is written either way; what is gone is the
-        # page that would have been told where.
-        if path is None:
-            return
         ui.notify(f"{translate_string('Exported to')} {path}", type="positive", position="top")
 
     def extract_first_font_name(self, text: str) -> str:

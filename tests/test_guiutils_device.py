@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from types import SimpleNamespace
 from typing import TYPE_CHECKING, Any, cast
 
@@ -85,11 +86,12 @@ async def test_a_probe_cancelled_by_the_page_going_away_says_nothing(
     window: SimpleNamespace, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     async def cancelled(*_a: Any, **_k: Any) -> None:
-        return None
+        raise asyncio.CancelledError  # what nicegui 4 does, where 3 answered None
 
     monkeypatch.setattr(run, "io_bound", cancelled)
 
-    assert await guiutils_android.ping_android_device(_gui(window), "127.0.0.1", "1") is False
+    with pytest.raises(asyncio.CancelledError):
+        await guiutils_android.ping_android_device(_gui(window), "127.0.0.1", "1")
     assert window.said == []
 
 

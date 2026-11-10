@@ -245,9 +245,6 @@ class ReportEventHandlers(HandlerGroup):
                     read_button.set_enabled(True)
                     progress_row.set_visibility(False)
 
-                # None when the wait was cancelled or the app is stopping (nicegui.run._run).
-                if fetched is None:
-                    return
                 return_code, message, live = fetched
                 if return_code != 0 or live is None:
                     ui.notify(message, type="negative", timeout=8000)
@@ -534,10 +531,6 @@ class ReportEventHandlers(HandlerGroup):
         gui = self.gui
         cutoff = timeline.cutoff_for(period, on_date=on_date)
         result = await run.io_bound(timecomp.changes_since, cutoff, state=self.state)
-        # None, not a report: nicegui answers that when the wait is cancelled or the app is
-        # stopping (see nicegui.run._run), and there is no page left to write the report to.
-        if result is None:
-            return
 
         if result.problem:
             gui.display_message_box(translate_string(result.problem), "Red")

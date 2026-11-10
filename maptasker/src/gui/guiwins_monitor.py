@@ -261,8 +261,6 @@ class _Monitor:
         self.start_button.disable()
         self.status.set_text(translate_string("Installing the monitor on the device..."))
         installed = await run.io_bound(devicemonitor.install_monitor, ip_address, ip_port, state=self.state)
-        if installed is None:
-            return
         return_code, message = installed
         if return_code != 0:
             self.start_button.enable()
@@ -321,8 +319,6 @@ class _Monitor:
                 int(self.samples_field.value or devicemonitor.DEFAULT_SAMPLES),
                 state=self.state,
             )
-            if window is None:  # The page is going away.
-                return
             if not window.ok:
                 failures += 1
                 self.status.set_text(f"{translate_string('The device did not answer')}: {window.error}")

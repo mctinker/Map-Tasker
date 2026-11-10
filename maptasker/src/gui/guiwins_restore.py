@@ -288,9 +288,6 @@ class _RestoreDialog:
             result = await run.io_bound(_read, held.snapshot, state=self.state)
         finally:
             held.busy = False
-        # None from nicegui means the wait was cancelled or the app is stopping.
-        if result is None:
-            return
         older, offer, problem = result
         if problem:
             self.summary.set_text("")
@@ -311,8 +308,6 @@ class _RestoreDialog:
         offer = await run.io_bound(
             maprestore.candidates, held.older, current_configuration(state=self.state), state=self.state
         )
-        if offer is None:
-            return
         held.offer = offer
         self._draw_list(offer)
 

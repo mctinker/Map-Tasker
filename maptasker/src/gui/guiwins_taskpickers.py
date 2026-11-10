@@ -277,11 +277,6 @@ class _FetchAppsDialog:
             self.fetch_button.set_enabled(True)
             self.progress_row.set_visibility(False)
 
-        # None rather than a pair: nicegui answers that when the wait is cancelled or the
-        # app is stopping (see nicegui.run._run).  The fetch itself is finished or will
-        # finish; there is just no page left to report it to.
-        if fetched is None:
-            return
         return_code, message = fetched
         if return_code != 0:
             ui.notify(message, type="negative", timeout=8000)
@@ -484,11 +479,6 @@ class _RunTaskOnAndroidDialog:
             self.run_button.set_text(translate_string("Run"))
             self.run_button.set_enabled(True)
             self.progress_row.set_visibility(False)
-        # None is nicegui's answer for a cancelled wait or an app that is stopping (see
-        # nicegui.run._run), not a run of the Task: the Task ran on the device regardless,
-        # and only the page that would show what it returned has gone.
-        if result is None:
-            return
         self.show_result(result)
 
 

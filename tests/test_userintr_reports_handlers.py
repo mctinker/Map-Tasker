@@ -10,6 +10,7 @@ The window is a mock and the report builders, the text view and the NiceGUI call
 
 from __future__ import annotations
 
+import asyncio
 from types import SimpleNamespace
 from typing import Any, cast
 from unittest.mock import MagicMock
@@ -271,10 +272,10 @@ async def test_reading_live_values_hands_what_the_phone_said_to_the_report(
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("answer", [None, (1, "No answer from the phone.", None)])
 async def test_a_phone_that_does_not_answer_builds_no_report(
-    seen: SimpleNamespace, xref: SimpleNamespace, monkeypatch: pytest.MonkeyPatch, answer: object
+    seen: SimpleNamespace, xref: SimpleNamespace, monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    answer = (1, "No answer from the phone.", None)
     handlers = _handlers()
     dialog = _live_dialog(monkeypatch, handlers)
 
@@ -286,7 +287,7 @@ async def test_a_phone_that_does_not_answer_builds_no_report(
     await dialog.read()
 
     assert xref.live == []
-    assert seen.notified == ([("No answer from the phone.", "negative")] if answer else [])
+    assert seen.notified == [("No answer from the phone.", "negative")]
     dialog.button.set_enabled.assert_called_with(True)
 
 
@@ -592,10 +593,16 @@ def since(seen: SimpleNamespace, monkeypatch: pytest.MonkeyPatch) -> SimpleNames
 
 
 @pytest.mark.asyncio
-async def test_a_cancelled_wait_writes_no_report(seen: SimpleNamespace, since: SimpleNamespace) -> None:
-    since.result = None
+async def test_a_cancelled_wait_writes_no_report(
+    seen: SimpleNamespace, since: SimpleNamespace, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    async def cancelled(function: Any, *args: Any, **kwargs: Any) -> object:
+        raise asyncio.CancelledError  # what nicegui 4's run.io_bound does when the page goes away
 
-    await _handlers().reports.report_changes_since("week")
+    monkeypatch.setattr(userintr_reports.run, "io_bound", cancelled)
+
+    with pytest.raises(asyncio.CancelledError):
+        await _handlers().reports.report_changes_since("week")
 
     assert seen.views == []
 

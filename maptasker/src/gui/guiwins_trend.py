@@ -241,8 +241,6 @@ class _Dashboard:
         finally:
             self.running = False
             self.timer.deactivate()
-        if series is None:
-            return
         self.series = series
         self.bar.set_value(1.0)
         self.status.set_text(

@@ -250,11 +250,6 @@ async def ping_android_device(self: "MyGui", ipaddr: str, port: str) -> bool:
 
         if device_is_reachable:
             return True
-        # None, not False: nicegui answers None when the wait is cancelled or the app is
-        # stopping (see nicegui.run._run), which says nothing about the device.  Reported as
-        # unreachable it would be a lie on a page that has already gone, so it says nothing.
-        if device_is_reachable is None:
-            return False
 
     except Exception as e:
         # Deliberately broad: reported to the user in the window rather than raised, since

@@ -73,8 +73,6 @@ async def what_tasker_already_has(
     if check_ids:
         ui.notify("Taking a fresh backup on the device to check IDs -- this can take a little while.", type="info")
         checked = await run.io_bound(devicecheck.check_against_device_backup, ip_address, ip_port, xml, state=state)
-        if checked is None:  # cancelled -- see the note at the top of this file
-            return []
         check, findings, problem = checked
         id_lines = [f"Could not check IDs: {problem}"] if problem else devicecheck.describe_id_findings(findings)
 
@@ -88,8 +86,6 @@ async def what_tasker_already_has(
                 type="info",
             )
         check = await run.io_bound(devicecheck.check_tasker_for_existing, ip_address, ip_port, sent, state=state)
-        if check is None:  # cancelled -- see the note at the top of this file
-            return []
 
     name_lines = devicecheck.describe_tasker_check(check)
     if any(check.present.values()):
@@ -187,8 +183,8 @@ async def _validate_chosen_file(
 ) -> tuple[int, str, str, str]:
     """Fetch the file the user named from the device and check its XML.  Return code 0 if it is good, else 1.
 
-    Every request goes to run.io_bound, so the GUI stays responsive; a request that comes back None was
-    cancelled (see the note at the top of this file) and is a failure.
+    Every request goes to run.io_bound, so the GUI stays responsive; a request cancelled with the
+    page raises CancelledError (see the note at the top of userintr_android.py) and ends the call.
     """
     failed = 1, android_ipaddr, android_port, android_file
     fetched = await run.io_bound(
@@ -199,8 +195,6 @@ async def _validate_chosen_file(
         "file",
         "?download=1",
     )
-    if fetched is None:  # cancelled -- see the note at the top of this file
-        return failed
     return_code, _ = fetched
     if return_code != 0:
         return failed
@@ -208,8 +202,6 @@ async def _validate_chosen_file(
     # Validate the XML syntax structure
     self.state.program_arguments.gui = True
     validated = await run.io_bound(validate_xml_file, android_ipaddr, android_port, android_file, state=self.state)
-    if validated is None:  # cancelled -- see the note at the top of this file
-        return failed
     return_code, error_message = validated
     if return_code != 0:
         self.display_message_box(error_message, "Red")
@@ -279,8 +271,6 @@ async def _offer_file_list(
     listed = await run.io_bound(
         devicefiles.get_list_of_files, android_ipaddr, android_port, devicefiles.FILE_LIST_DIRECTORY, state=self.state
     )
-    if listed is None:  # cancelled -- see the note at the top of this file
-        return 1, android_ipaddr, android_port, android_file
     return_code, filelist = listed
     if return_code != 0 or not isinstance(filelist, list):
         self.display_message_box(str(filelist), "Red")
@@ -427,8 +417,6 @@ class IntoTaskerRun:
 
         confirmable = await self._import_is_confirmable()
         offered = await self._offer_to_device()
-        if offered is None:  # cancelled -- see the note at the top of this file
-            return
         return_code, message = offered
         if return_code != 0:
             ui.notify(f"Could not import into Tasker: {message}", type="negative")
@@ -477,9 +465,8 @@ class IntoTaskerRun:
         nothing.  None ('could not ask') is treated the same as False: neither can be
         confirmed, and guessing the other way would turn an unconfirmable import into a
         reported success.
-        The one await here with nothing to check: None is already this call's own answer
-        for 'could not ask', and a cancelled wait lands in the same place -- an import
-        that cannot be confirmed, reported as exactly that.
+        None is this call's own answer for 'could not ask'.  A cancelled wait raises
+        CancelledError, as every other await here does, and the import is not offered.
         """
         offer = self.offer
         return await run.io_bound(
@@ -490,7 +477,7 @@ class IntoTaskerRun:
             offer.route.confirm_endpoint,
         )
 
-    async def _offer_to_device(self) -> tuple[int, str] | None:
+    async def _offer_to_device(self) -> tuple[int, str]:
         """Stage the file and have a helper Task on the device hand it to Tasker.
 
         Blocking -- it installs a Task, uploads, runs and polls -- so it goes to a worker
@@ -577,8 +564,6 @@ class IntoTaskerRun:
         if not getattr(pending, "is_deleted", False):
             with suppress_logged("Dismissing the pending notice"):
                 pending.dismiss()
-        if outcome is None:  # cancelled -- see the note at the top of this file
-            return
         return_code, message = outcome
         # Not an error in the usual sense: most likely nobody has got to the phone yet, or
         # they declined.  Either way it is the DEVICE this reports on, not the edit here.

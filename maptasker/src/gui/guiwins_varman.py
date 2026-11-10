@@ -426,8 +426,6 @@ class VariableManager:
                 fetched = await self._while_waiting(
                     progress, run.io_bound(livevars.fetch_live_values, ip_address, ip_port)
                 )
-                if fetched is None:
-                    return
                 return_code, message, live = fetched
                 if return_code != 0 or live is None:
                     ui.notify(message, type="negative", timeout=8000)
@@ -501,8 +499,6 @@ class VariableManager:
                     progress,
                     run.io_bound(livevars.set_global, ip_address, ip_port, row.name, str(value_field.value or "")),
                 )
-                if done is None:
-                    return
                 return_code, message = done
                 ui.notify(message, type="positive" if return_code == 0 else "negative", timeout=8000)
                 if return_code == 0:
@@ -546,8 +542,6 @@ class VariableManager:
                 try:
                     for row in rows:
                         done = await run.io_bound(livevars.delete_global, ip_address, ip_port, row.name)
-                        if done is None:
-                            return
                         if done[0] == 0:
                             gone.append(row.name)
                         else:
