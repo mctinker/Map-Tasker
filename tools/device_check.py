@@ -126,6 +126,26 @@ def _server_project(device: Device) -> Outcome:
     return Outcome(PASS if installed else FAIL, f"Profiles {names} {'are' if installed else 'are not both'} there")
 
 
+def _percent_hint(device: Device, endpoint: str, answer: str) -> str:
+    """Why a list may have come back 503: a name with a '%' in it, which the phone's HTTP API cannot decode.
+
+    The API URL-decodes each name as it builds the list, and a '%' that is not a valid escape ('Battery Is 30%')
+    makes Java throw on the phone -- 'Incomplete trailing escape (%) pattern' -- so the whole list fails.  The names
+    are the loaded backup's, so this says which ones only when there is a backup.
+    """
+    if "503" not in answer:
+        return ""
+    from maptasker.src.core.primitem import PrimeItems
+
+    table = {"api/profiles": "all_profiles_by_name", "api/tasks": "all_tasks_by_name"}.get(endpoint)
+    held = PrimeItems.tasker_root_elements.get(table, {}) if device.has_backup and table else {}
+    names = sorted(name for name in held if "%" in str(name))
+    kind = endpoint.removeprefix("api/").removesuffix("s").capitalize()
+    if names:
+        return f"  A {kind} name with a '%' breaks the phone's list; rename: {', '.join(repr(name) for name in names)}."
+    return f"  A {kind} name with a '%' in it breaks the phone's list; run with --backup to find which."
+
+
 def _lists(device: Device) -> Outcome:
     from maptasker.src.core.maputil2 import auth_key_for, http_request
 
@@ -140,7 +160,7 @@ def _lists(device: Device) -> Outcome:
         code, response = http_request(device.address, device.port, "", endpoint, "", key)
         took.append(f"{endpoint} {time.monotonic() - started:.1f}s")
         if code != 0:
-            problems.append(f"{endpoint}: {response}")
+            problems.append(f"{endpoint}: {response}{_percent_hint(device, endpoint, str(response))}")
             continue
         try:
             json.loads(response)

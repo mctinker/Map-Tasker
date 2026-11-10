@@ -81,6 +81,25 @@ def test_a_phone_without_the_server_project_fails_that_check(phone: FakeTasker) 
     assert "not both" in outcome.detail
 
 
+def test_a_503_on_the_lists_names_the_backups_profiles_with_a_percent(
+    phone: FakeTasker, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from maptasker.src.core.primitem import PrimeItems
+
+    monkeypatch.setitem(PrimeItems.tasker_root_elements, "all_profiles_by_name", {"Battery Is 30%": {}, "Fine": {}})
+    monkeypatch.setattr(
+        maputil2, "http_request", lambda *_a, **_k: (8, "Request failed for url: x ...with status code 503")
+    )
+
+    named = BY_ID["lists"].run(_device(phone))
+    unnamed = BY_ID["lists"].run(_device(phone, backup=False))
+
+    assert named.status == unnamed.status == dc.FAIL
+    assert "'Battery Is 30%'" in named.detail
+    assert "Fine" not in named.detail
+    assert "--backup" in unnamed.detail
+
+
 def test_a_phone_that_refuses_the_key_fails_it_with_the_phones_message(phone: FakeTasker) -> None:
     phone.refuse_auth = 100
 
