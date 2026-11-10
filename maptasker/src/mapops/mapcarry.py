@@ -222,7 +222,7 @@ class Needs:
         return not (self.tasks or self.profiles or self.scenes)
 
 
-def _scene_references(element: Element, scene_args: dict[str, str]) -> list[tuple[str, str, str]]:
+def scene_references(element: Element, scene_args: dict[str, str]) -> list[tuple[str, str, str]]:
     """Every (kind, name, code) an element's actions name by name: 'task' for a Perform Task, 'scene' for a Scene action.
 
     Walks every Action anywhere beneath the element, which reaches a Scene's own inline Tasks as well
@@ -246,7 +246,7 @@ def _scene_references(element: Element, scene_args: dict[str, str]) -> list[tupl
     return found
 
 
-def _scene_task_ids(scene: Element) -> list[str]:
+def scene_task_ids(scene: Element) -> list[str]:
     """The Task ids a Scene's elements run: every '<clickTask>939</clickTask>' beneath it, whatever the event."""
     ids = [
         (node.text or "").strip()
@@ -336,12 +336,12 @@ class _Walk:
                 self._read(entry["xml"], owner)
             else:
                 self._read(self.scenes[key]["xml"], f"Scene '{key}'")
-                for task_id in _scene_task_ids(self.scenes[key]["xml"]):
+                for task_id in scene_task_ids(self.scenes[key]["xml"]):
                     self.add_task(task_id, f"run by Scene '{key}'")
 
     def _read(self, element: Element, owner: str) -> None:
         """Queue every Task and Scene an element's actions name."""
-        for kind, name, _code in _scene_references(element, self.scene_args):
+        for kind, name, _code in scene_references(element, self.scene_args):
             if kind == "task":
                 entry = self.by_name.get(name)
                 if entry is None:
@@ -541,13 +541,13 @@ class _Decisions:
         by_name = _table(self.source, "all_tasks_by_name")
         task_ids: list[str] = []
         scene_names: list[str] = []
-        for kind, name, _code in _scene_references(element, self.scene_args):
+        for kind, name, _code in scene_references(element, self.scene_args):
             if kind == "task" and name in by_name and by_name[name]["id"] in self.needs.tasks:
                 task_ids.append(by_name[name]["id"])
             elif kind == "scene" and name in self.needs.scenes:
                 scene_names.append(name)
         if is_scene:
-            task_ids.extend(task_id for task_id in _scene_task_ids(element) if task_id in self.needs.tasks)
+            task_ids.extend(task_id for task_id in scene_task_ids(element) if task_id in self.needs.tasks)
         return task_ids, scene_names
 
     def _settle(self) -> None:

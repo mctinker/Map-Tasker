@@ -47,6 +47,8 @@ FIND_FILE = "MapTasker_Find.txt"
 SWAP_FILE = "MapTasker_Replace.txt"
 # The preview a refactoring operation was applied from, or declined -- see maprefac.py.
 REFACTOR_FILE = "MapTasker_Refactor.txt"
+# Which Projects use Tasks, Scenes and globals that live in other Projects -- see projdeps.py.
+PROJDEPS_FILE = "MapTasker_ProjectDependencies.txt"
 # The preview of the repairs offered for Health Check findings -- see mapfix.py.  Its own
 # file rather than an addition to HEALTHCHECK_FILE: the check's report says what is wrong
 # and this one says what was done about it, and the second is worth keeping next to the

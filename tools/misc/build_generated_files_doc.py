@@ -187,6 +187,12 @@ DESCRIPTIONS: dict[str, dict[str, str]] = {
         "produced_by": "'Refactor'",
         "note": "The preview a refactoring operation was applied from, or declined.",
     },
+    "MapTasker_ProjectDependencies.txt": {
+        "section": "Reports",
+        "location": OUTPUT,
+        "produced_by": "'Project Dependencies' > Save Report",
+        "note": "Which Projects use Tasks, Scenes and global variables that live in other Projects, with every place that uses each, and what deleting each Project would leave dangling.",
+    },
     "MapTasker_Monitor.txt": {
         "section": "Reports",
         "location": OUTPUT,

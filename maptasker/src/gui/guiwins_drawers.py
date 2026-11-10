@@ -801,6 +801,30 @@ def _create_analysis_buttons_section(self: MyGui) -> None:
     _create_outbound_button(self)
     _create_battery_button(self)
     _create_notes_button(self)
+    _create_project_dependencies_button(self)
+
+
+def _create_project_dependencies_button(self: MyGui) -> None:
+    """Project Dependencies, last of the Analyze buttons: which Projects lean on which, before one is split or deleted."""
+    dependencies_button = (
+        ui.button(
+            translate_string("Project Dependencies"),
+            color="teal",
+            on_click=self.event_handlers.tools.project_dependencies_event,
+            icon="hub",
+        )
+        .classes("w-full justify-center")
+        .style("margin-top:-6px")
+    )
+    with dependencies_button:
+        ui.tooltip(
+            translate_string(
+                "Which Projects use Tasks, Scenes and global variables that live in other Projects -- drawn as a graph "
+                "and listed Project by Project.\n\nIt tells you what is safe to split out or share on its own, which "
+                "Projects can only be separated together, and what would be left dangling if you deleted a Project.  "
+                "Every line is a click into the Map.\n\nNothing is changed.",
+            ),
+        ).style("white-space: pre-wrap")
 
 
 def _create_notes_button(self: MyGui) -> None:

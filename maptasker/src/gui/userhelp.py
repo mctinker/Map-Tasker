@@ -300,6 +300,18 @@ SIMILAR_HELP_TEXT = (
     " #shared, naming the Tasks that call it (see Notes & Tags); that note lives in your notes file, so Undo reverses"
     " the merge and leaves the note.  Previewed before anything is done, and one press of Undo afterwards.  \n"
 )
+PROJDEPS_HELP_TEXT = (
+    "- Project Dependencies: Which Projects use Tasks, Scenes and global variables that live in other Projects.  A"
+    " Project is where Tasker files things, not a wall around them, so a Task can perform a Task in another Project, a"
+    " Profile can run one, a Scene button can run one, and a global is one variable whichever Project sets it.  The"
+    " graph draws an arrow from each Project to each Project it takes something from, labelled with what, and outlines"
+    " in red the Projects that need each other (they can only be split out together); the table lists every Project and"
+    " how it stands.  Choose one, in the table or by clicking its node, to see exactly which Task, Profile or Scene uses"
+    " what -- each line is a click into the Map -- which Projects it would take to stand alone, and what deleting it"
+    " with its contents would leave with nothing to call.  A name two Projects both have counts as a use of both and"
+    " as the only provider of neither.  A call whose name is built at run time, and a global nothing sets, cannot be"
+    " followed.  Save Report writes it all to a text file.  Nothing is changed.  \n"
+)
 RESOURCES_HELP_TEXT = (
     "- Missing Resources: Do the files, folders, images, sounds, Scenes and apps your Tasks and Profiles use still"
     " exist on your Android device?  Press Check Device and MapTasker asks the device -- it puts a small helper Task"
@@ -500,5 +512,5 @@ def build_help(translate: Callable[[str], str] | None = None) -> str:
     lookup: Callable[[str], str] = translate or (lambda text: text)
     return (
         f"MapTasker {VERSION} {lookup(HELP_HEADING)}  \n{lookup(COMMAND_REFERENCE_TEXT)}{lookup(INFO_TEXT)}"
-        f"{lookup(OUTPUT_FOLDER_HELP_TEXT)}{lookup(TASKERNET_UPDATES_HELP_TEXT)}{lookup(TASKSTEP_HELP_TEXT)}{lookup(TREND_HELP_TEXT)}{lookup(VARIABLE_HELP_TEXT)}{lookup(SIMILAR_HELP_TEXT)}{lookup(RESOURCES_HELP_TEXT)}{lookup(MONITOR_HELP_TEXT)}{lookup(PREBUILD_HELP_TEXT)}{lookup(CARRY_HELP_TEXT)}{lookup(TASKTESTS_HELP_TEXT)}{lookup(OUTBOUND_HELP_TEXT)}{lookup(TNDESC_HELP_TEXT)}{lookup(LAUNCHER_HELP_TEXT)}{lookup(DESCRIBE_HELP_TEXT)}{lookup(BATTERY_HELP_TEXT)}{lookup(VARMAN_HELP_TEXT)}{lookup(NOTES_HELP_TEXT)}"
+        f"{lookup(OUTPUT_FOLDER_HELP_TEXT)}{lookup(TASKERNET_UPDATES_HELP_TEXT)}{lookup(TASKSTEP_HELP_TEXT)}{lookup(TREND_HELP_TEXT)}{lookup(VARIABLE_HELP_TEXT)}{lookup(SIMILAR_HELP_TEXT)}{lookup(RESOURCES_HELP_TEXT)}{lookup(MONITOR_HELP_TEXT)}{lookup(PREBUILD_HELP_TEXT)}{lookup(CARRY_HELP_TEXT)}{lookup(TASKTESTS_HELP_TEXT)}{lookup(OUTBOUND_HELP_TEXT)}{lookup(TNDESC_HELP_TEXT)}{lookup(LAUNCHER_HELP_TEXT)}{lookup(DESCRIBE_HELP_TEXT)}{lookup(BATTERY_HELP_TEXT)}{lookup(VARMAN_HELP_TEXT)}{lookup(NOTES_HELP_TEXT)}{lookup(PROJDEPS_HELP_TEXT)}"
     )

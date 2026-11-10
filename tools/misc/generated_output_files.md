@@ -39,6 +39,7 @@ One per command that saves its results.  Each is stamped with the date and time 
 | `MapTasker_Monitor.txt` | Output folder | 'Live Run Monitor' > Save Log | What the Live Run Monitor saw on the device: each Profile that became active or inactive and each Task that started or finished, with the time to the millisecond. |
 | `MapTasker_Notes.json` | Current folder | -- | The user's own notes and tags on Projects, Profiles and Tasks -- see objnotes.py.  Kept in the current directory, beside the settings and the Task tests, and never in the backup, so that Tasker never sees them. |
 | `MapTasker_Outbound_date_time.txt` | Current folder | -- | The inventory of everything the configuration reaches outside itself with -- see outbound.py. |
+| `MapTasker_ProjectDependencies_date_time.txt` | Output folder | 'Project Dependencies' > Save Report | Which Projects use Tasks, Scenes and global variables that live in other Projects, with every place that uses each, and what deleting each Project would leave dangling. |
 | `MapTasker_Refactor_date_time.txt` | Output folder | 'Refactor' | The preview a refactoring operation was applied from, or declined. |
 | `MapTasker_Replace_date_time.txt` | Output folder | 'Find' > 'Replace' | The preview of a replacement: what would change, before anything does. |
 | `MapTasker_Resources_date_time.txt` | Output folder | 'Missing Resources' > Save Report | The files, folders, images, sounds, Scenes and apps the configuration uses that the device did not have, with every place that uses each. |

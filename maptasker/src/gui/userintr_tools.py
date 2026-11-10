@@ -27,6 +27,7 @@ from maptasker.src.gui.guiwins_fix import build_fix_dialog
 from maptasker.src.gui.guiwins_monitor import build_monitor_dialog
 from maptasker.src.gui.guiwins_nav import go_to_target, opening_view_in_a_new_window
 from maptasker.src.gui.guiwins_notes import build_notes_window
+from maptasker.src.gui.guiwins_projdeps import build_project_dependencies_window
 from maptasker.src.gui.guiwins_refactor import build_refactor_dialog
 from maptasker.src.gui.guiwins_resources import build_resources_dialog
 from maptasker.src.gui.guiwins_restore import build_restore_dialog
@@ -159,6 +160,24 @@ class ToolEventHandlers(HandlerGroup):
             return go
 
         build_notes_window(make_jump, self.state).open()
+
+    def project_dependencies_event(self) -> None:
+        """Open the Project Dependencies window: which Projects use Tasks, Scenes and globals that live in other Projects.
+
+        Rebuilt on every press rather than kept, for variable_manager_event's reason: what it reads is the loaded
+        configuration as it is now.  Its lines open in a window of their own for the same reason a refactor's do.
+        """
+
+        def make_jump(target: mapjump.Target) -> Callable[[], Coroutine[Any, Any, None]]:
+            async def go() -> None:
+                with opening_view_in_a_new_window(self.gui):
+                    await go_to_target(self.gui, target)
+
+            return go
+
+        dialog = build_project_dependencies_window(make_jump, self.state)
+        if dialog is not None:
+            dialog.open()
 
     def fix_findings_event(self) -> None:
         """Open the Fix Findings dialog: the Health Check's findings, with a repair for each.
