@@ -336,14 +336,18 @@ def set_project_enabled(edited_project: EditableProject, enabled: bool, state: R
     if live_element is not None and live_element is not edited_project.project_element:
         elements.append(live_element)
 
-    for element in elements:
-        if enabled:
-            enbl = element.find(PROJECT_ENABLED_TAG)
-            if enbl is not None:
-                element.remove(enbl)
-        else:
-            _set_child_text_in_tag_order(element, PROJECT_ENABLED_TAG, DISABLED_PROJECT_VALUE)
-        touch_project_mdate(element)
+    # Written to the live tree the moment the switch is flipped, so it is its own step to take back -- nothing
+    # else wraps it: the dialog's Ok has nothing to apply for it, which is the point of writing it through.
+    verb = "Enable" if enabled else "Disable"
+    with sessundo.undoable(f"{verb} Project '{edited_project.project_name}'", state=state):
+        for element in elements:
+            if enabled:
+                enbl = element.find(PROJECT_ENABLED_TAG)
+                if enbl is not None:
+                    element.remove(enbl)
+            else:
+                _set_child_text_in_tag_order(element, PROJECT_ENABLED_TAG, DISABLED_PROJECT_VALUE)
+            touch_project_mdate(element)
 
 
 def apply_properties_to_live_tree(edited_project: EditableProject, state: RunState) -> None:
