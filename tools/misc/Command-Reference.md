@@ -6,7 +6,7 @@ Once the XML file is loaded, you can optionally edit your Projects, Profiles, Ta
 
 This page describes each of the **97** commands, options and tabs in MapTasker's Help screen, in the same order, with more detail on each and the caveats that go with it.
 
-_Generated from the MapTasker 15.2.0 source by `build_command_wiki.py`._ _Do not edit this page by hand -- rerun that program instead._
+_Generated from the MapTasker 16.0.0 source by `build_command_wiki.py`._ _Do not edit this page by hand -- rerun that program instead._
 
 ## How to use this page
 
