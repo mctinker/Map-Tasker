@@ -222,6 +222,9 @@ async def test_a_listing_that_fails_is_reported_in_red_and_leaves_no_picker(phon
         async with open_page(_panel(window)) as user:
             _fill(user, phone, "")
             await click(user, "List XML Files")
+            # Wait for the listing to give up and say so, as the tests above do: leaving the page first raced the
+            # poll, and on a loaded machine the message had not been written yet.
+            await settled(lambda: window.messages)
             assert found(user, ui.select) == []
     finally:
         devicefiles._FILE_LIST_POLL_ATTEMPTS = saved
