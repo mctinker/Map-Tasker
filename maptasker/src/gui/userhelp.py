@@ -312,6 +312,19 @@ PROJDEPS_HELP_TEXT = (
     " as the only provider of neither.  A call whose name is built at run time, and a global nothing sets, cannot be"
     " followed.  Save Report writes it all to a text file.  Nothing is changed.  \n"
 )
+COMPAT_HELP_TEXT = (
+    "- Compatibility Check: Which of the actions, events and states in this file will not work on a Tasker version you"
+    " pick, and what behaves differently there.  Tasker does not forgive a backup from a newer Tasker -- an action it has"
+    " never heard of is dropped or refused, and one it still has may no longer do what it did -- so before sharing a"
+    " Project, restoring an old backup onto a new phone or updating, pick the Tasker version you are going to (and, if you"
+    " know it, the Android).  Findings come in kinds: NEWER-TASKER (introduced after that release), NEWER-ANDROID (the"
+    " Android is too old for it), REMOVED (gone or renamed), CHANGED (behaves differently between the version that wrote"
+    " the file and the one you picked, in either direction) and GENERAL (changes to everything, such as the Android level"
+    " Tasker targets).  Each names the places that use it, as a click into the Map.  The Table tab is the whole list, from"
+    " Tasker's release notes, release by release, with how many places the loaded file uses each.  It reads the notes'"
+    " first public release of each item, so a beta may have had it sooner; it does not know options added to an action that"
+    " already existed, or what a plugin needs.  Save Report writes it to a text file.  Nothing is changed.  \n"
+)
 RESOURCES_HELP_TEXT = (
     "- Missing Resources: Do the files, folders, images, sounds, Scenes and apps your Tasks and Profiles use still"
     " exist on your Android device?  Press Check Device and MapTasker asks the device -- it puts a small helper Task"
@@ -512,5 +525,5 @@ def build_help(translate: Callable[[str], str] | None = None) -> str:
     lookup: Callable[[str], str] = translate or (lambda text: text)
     return (
         f"MapTasker {VERSION} {lookup(HELP_HEADING)}  \n{lookup(COMMAND_REFERENCE_TEXT)}{lookup(INFO_TEXT)}"
-        f"{lookup(OUTPUT_FOLDER_HELP_TEXT)}{lookup(TASKERNET_UPDATES_HELP_TEXT)}{lookup(TASKSTEP_HELP_TEXT)}{lookup(TREND_HELP_TEXT)}{lookup(VARIABLE_HELP_TEXT)}{lookup(SIMILAR_HELP_TEXT)}{lookup(RESOURCES_HELP_TEXT)}{lookup(MONITOR_HELP_TEXT)}{lookup(PREBUILD_HELP_TEXT)}{lookup(CARRY_HELP_TEXT)}{lookup(TASKTESTS_HELP_TEXT)}{lookup(OUTBOUND_HELP_TEXT)}{lookup(TNDESC_HELP_TEXT)}{lookup(LAUNCHER_HELP_TEXT)}{lookup(DESCRIBE_HELP_TEXT)}{lookup(BATTERY_HELP_TEXT)}{lookup(VARMAN_HELP_TEXT)}{lookup(NOTES_HELP_TEXT)}{lookup(PROJDEPS_HELP_TEXT)}"
+        f"{lookup(OUTPUT_FOLDER_HELP_TEXT)}{lookup(TASKERNET_UPDATES_HELP_TEXT)}{lookup(TASKSTEP_HELP_TEXT)}{lookup(TREND_HELP_TEXT)}{lookup(VARIABLE_HELP_TEXT)}{lookup(SIMILAR_HELP_TEXT)}{lookup(RESOURCES_HELP_TEXT)}{lookup(MONITOR_HELP_TEXT)}{lookup(PREBUILD_HELP_TEXT)}{lookup(CARRY_HELP_TEXT)}{lookup(TASKTESTS_HELP_TEXT)}{lookup(OUTBOUND_HELP_TEXT)}{lookup(TNDESC_HELP_TEXT)}{lookup(LAUNCHER_HELP_TEXT)}{lookup(DESCRIBE_HELP_TEXT)}{lookup(BATTERY_HELP_TEXT)}{lookup(VARMAN_HELP_TEXT)}{lookup(NOTES_HELP_TEXT)}{lookup(PROJDEPS_HELP_TEXT)}{lookup(COMPAT_HELP_TEXT)}"
     )

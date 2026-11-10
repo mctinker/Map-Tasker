@@ -1,0 +1,2053 @@
+{
+  "_comment": [
+    "Which of Tasker's actions, events, states and behaviours came in, went or changed on which release, for compat.py.",
+    "Data, not code, and built from the release notes at https://tasker.joaoapps.com/changes.html (one page per release).",
+    "",
+    "'releases'    every release the notes cover, oldest first: its number as Tasker shows it, its date where the notes",
+    "              give one, and the lowest Android API level Tasker itself runs on from that release ('min_android', 0 =",
+    "              not stated).",
+    "'target_api'  the releases that raised the Android API level Tasker targets, which changes what background code",
+    "              may do on newer Android versions whatever the configuration says.",
+    "'items'       an action, event or state, the first release that has it, and the lowest Android API level it works on",
+    "              ('android', 0 = not stated).  'key' is the Tasker code plus t (action), e (event) or s (state), like",
+    "              actionc.action_codes; '' when MapTasker has no code for it, in which case the row is reference only.",
+    "'changes'     a release that removed, renamed or changed something in a way that can break a configuration written",
+    "              before it.  'keys' are the actions, events and states it affects; empty means it affects everything.",
+    "              'named' says what they are called for the reader.  'kind' is removed, renamed or changed.",
+    "",
+    "An item or change is here because the notes say so, in their wording shortened and put in other words.  The notes list",
+    "options added to actions that already existed; those are not here, since a backup cannot tell them apart.",
+    "tests/test_compat.py holds every 'key' to actionc and every 'since' to readiness.json where both have one."
+  ],
+  "releases": [
+    {
+      "version": "5.0",
+      "date": "2017-07-19",
+      "min_android": 0
+    },
+    {
+      "version": "5.1",
+      "date": "2018-01-10",
+      "min_android": 0
+    },
+    {
+      "version": "5.2",
+      "date": "2018-06-22",
+      "min_android": 0
+    },
+    {
+      "version": "5.5",
+      "date": "2018-10-03",
+      "min_android": 0
+    },
+    {
+      "version": "5.6",
+      "date": "",
+      "min_android": 0
+    },
+    {
+      "version": "5.7.1",
+      "date": "",
+      "min_android": 0
+    },
+    {
+      "version": "5.8",
+      "date": "",
+      "min_android": 0
+    },
+    {
+      "version": "5.8.5",
+      "date": "",
+      "min_android": 0
+    },
+    {
+      "version": "5.9.1",
+      "date": "2019-12-20",
+      "min_android": 0
+    },
+    {
+      "version": "5.9.2",
+      "date": "2020-02-04",
+      "min_android": 0
+    },
+    {
+      "version": "5.9.3",
+      "date": "2020-08-04",
+      "min_android": 0
+    },
+    {
+      "version": "5.10",
+      "date": "2020-09-30",
+      "min_android": 0
+    },
+    {
+      "version": "5.11.13",
+      "date": "2021-01-14",
+      "min_android": 0
+    },
+    {
+      "version": "5.12.18",
+      "date": "2021-05-03",
+      "min_android": 0
+    },
+    {
+      "version": "5.13.5",
+      "date": "2021-08-05",
+      "min_android": 0
+    },
+    {
+      "version": "5.14.6",
+      "date": "2021-10-26",
+      "min_android": 0
+    },
+    {
+      "version": "5.15.12",
+      "date": "2022-02-21",
+      "min_android": 0
+    },
+    {
+      "version": "6.0.9",
+      "date": "2022-07-07",
+      "min_android": 0
+    },
+    {
+      "version": "6.1.26",
+      "date": "2023-05-02",
+      "min_android": 0
+    },
+    {
+      "version": "6.2.18",
+      "date": "2023-11-15",
+      "min_android": 0
+    },
+    {
+      "version": "6.3.12",
+      "date": "2024-07-18",
+      "min_android": 0
+    },
+    {
+      "version": "6.4.13",
+      "date": "2025-02-18",
+      "min_android": 0
+    },
+    {
+      "version": "6.5.9",
+      "date": "2025-05-27",
+      "min_android": 0
+    },
+    {
+      "version": "6.6.18",
+      "date": "2026-02-05",
+      "min_android": 27
+    },
+    {
+      "version": "6.7.8",
+      "date": "2026-11-02",
+      "min_android": 27
+    }
+  ],
+  "target_api": [
+    {
+      "release": "5.7.1",
+      "api": 28
+    },
+    {
+      "release": "5.11.13",
+      "api": 29
+    },
+    {
+      "release": "5.15.12",
+      "api": 30
+    },
+    {
+      "release": "6.1.26",
+      "api": 31
+    },
+    {
+      "release": "6.2.18",
+      "api": 33
+    },
+    {
+      "release": "6.4.13",
+      "api": 35
+    },
+    {
+      "release": "6.7.8",
+      "api": 36
+    }
+  ],
+  "items": [
+    {
+      "key": "165t",
+      "kind": "action",
+      "name": "Cancel Alarm",
+      "since": "5.0",
+      "android": 23,
+      "note": "Cancels the next alarm"
+    },
+    {
+      "key": "143t",
+      "kind": "action",
+      "name": "Edit Scene",
+      "since": "5.0",
+      "android": 0,
+      "note": "Opens the editor on a Scene"
+    },
+    {
+      "key": "142t",
+      "kind": "action",
+      "name": "Edit Task",
+      "since": "5.0",
+      "android": 0,
+      "note": "Opens the editor on a Task"
+    },
+    {
+      "key": "612t",
+      "kind": "action",
+      "name": "Element Video Control",
+      "since": "5.0",
+      "android": 0,
+      "note": "Plays, pauses and seeks a Video element in a Scene"
+    },
+    {
+      "key": "237t",
+      "kind": "action",
+      "name": "Notification Listener Settings",
+      "since": "5.0",
+      "android": 22,
+      "note": "Opens the notification listener settings"
+    },
+    {
+      "key": "239t",
+      "kind": "action",
+      "name": "Print Settings",
+      "since": "5.0",
+      "android": 19,
+      "note": "Opens the print settings"
+    },
+    {
+      "key": "162t",
+      "kind": "action",
+      "name": "Set up Quick Setting Tile",
+      "since": "5.0",
+      "android": 25,
+      "note": "Configures a Quick Settings tile"
+    },
+    {
+      "key": "161t",
+      "kind": "action",
+      "name": "Setup App Shortcuts",
+      "since": "5.0",
+      "android": 25,
+      "note": "Sets the launcher shortcuts Tasker offers"
+    },
+    {
+      "key": "166t",
+      "kind": "action",
+      "name": "Show Alarms",
+      "since": "5.0",
+      "android": 19,
+      "note": "Opens the clock's alarm list"
+    },
+    {
+      "key": "147t",
+      "kind": "action",
+      "name": "Show Prefs",
+      "since": "5.0",
+      "android": 0,
+      "note": "Opens Tasker's preferences"
+    },
+    {
+      "key": "148t",
+      "kind": "action",
+      "name": "Show Runlog",
+      "since": "5.0",
+      "android": 0,
+      "note": "Opens the run log"
+    },
+    {
+      "key": "176t",
+      "kind": "action",
+      "name": "Take Screenshot",
+      "since": "5.0",
+      "android": 21,
+      "note": "Takes a screenshot"
+    },
+    {
+      "key": "342t",
+      "kind": "action",
+      "name": "Test File",
+      "since": "5.0",
+      "android": 0,
+      "note": "Tests whether a file exists"
+    },
+    {
+      "key": "136s",
+      "kind": "state",
+      "name": "VPN Connected",
+      "since": "5.0",
+      "android": 23,
+      "note": "True while a VPN is connected"
+    },
+    {
+      "key": "314t",
+      "kind": "action",
+      "name": "Authentication Dialog",
+      "since": "5.2",
+      "android": 0,
+      "note": "Asks for a PIN, password, pattern or fingerprint"
+    },
+    {
+      "key": "235t",
+      "kind": "action",
+      "name": "Custom Setting",
+      "since": "5.2",
+      "android": 0,
+      "note": "Reads or writes a Global, Secure or System setting"
+    },
+    {
+      "key": "906t",
+      "kind": "action",
+      "name": "Immersive Mode",
+      "since": "5.2",
+      "android": 0,
+      "note": "Hides the status bar, navigation bar or both"
+    },
+    {
+      "key": "905t",
+      "kind": "action",
+      "name": "Location Mode",
+      "since": "5.2",
+      "android": 0,
+      "note": "Sets how the phone tracks location"
+    },
+    {
+      "key": "16t",
+      "kind": "action",
+      "name": "System Lock",
+      "since": "5.2",
+      "android": 28,
+      "note": "Locks the screen through the accessibility service"
+    },
+    {
+      "key": "249t",
+      "kind": "action",
+      "name": "System Screenshot",
+      "since": "5.2",
+      "android": 28,
+      "note": "Takes a screenshot through the accessibility service"
+    },
+    {
+      "key": "319t",
+      "kind": "action",
+      "name": "Ask Permissions",
+      "since": "5.5",
+      "android": 0,
+      "note": "Asks for Android permissions"
+    },
+    {
+      "key": "316t",
+      "kind": "action",
+      "name": "Display Size",
+      "since": "5.5",
+      "android": 0,
+      "note": "Changes the display size"
+    },
+    {
+      "key": "318t",
+      "kind": "action",
+      "name": "Force Rotation",
+      "since": "5.5",
+      "android": 0,
+      "note": "Forces the display rotation"
+    },
+    {
+      "key": "317t",
+      "kind": "action",
+      "name": "NFC",
+      "since": "5.5",
+      "android": 0,
+      "note": "Turns NFC on or off"
+    },
+    {
+      "key": "320t",
+      "kind": "action",
+      "name": "Ping",
+      "since": "5.5",
+      "android": 0,
+      "note": "Checks reachability and latency of a host"
+    },
+    {
+      "key": "907t",
+      "kind": "action",
+      "name": "Status Bar Icons",
+      "since": "5.5",
+      "android": 0,
+      "note": "Hides status bar icons"
+    },
+    {
+      "key": "806t",
+      "kind": "action",
+      "name": "Turn On",
+      "since": "5.5",
+      "android": 0,
+      "note": "Turns the display on"
+    },
+    {
+      "key": "2075e",
+      "kind": "event",
+      "name": "Custom Setting",
+      "since": "5.5",
+      "android": 0,
+      "note": "Fires when an Android setting changes"
+    },
+    {
+      "key": "186s",
+      "kind": "state",
+      "name": "Custom Setting",
+      "since": "5.5",
+      "android": 0,
+      "note": "True while an Android setting has a value"
+    },
+    {
+      "key": "",
+      "kind": "action",
+      "name": "Google Drive Download",
+      "since": "5.6",
+      "android": 0,
+      "note": "Downloads a file or folder from Google Drive"
+    },
+    {
+      "key": "",
+      "kind": "action",
+      "name": "Google Drive List",
+      "since": "5.6",
+      "android": 0,
+      "note": "Lists files and folders in Google Drive"
+    },
+    {
+      "key": "",
+      "kind": "action",
+      "name": "Google Drive Sign In",
+      "since": "5.6",
+      "android": 0,
+      "note": "Signs in to Google Drive"
+    },
+    {
+      "key": "",
+      "kind": "action",
+      "name": "Google Drive Trash",
+      "since": "5.6",
+      "android": 0,
+      "note": "Moves a Google Drive file to the trash"
+    },
+    {
+      "key": "",
+      "kind": "action",
+      "name": "Google Drive Upload File",
+      "since": "5.6",
+      "android": 0,
+      "note": "Uploads a file to Google Drive"
+    },
+    {
+      "key": "328t",
+      "kind": "action",
+      "name": "Keyboard",
+      "since": "5.7.1",
+      "android": 0,
+      "note": "Presses keys to drive other apps"
+    },
+    {
+      "key": "329t",
+      "kind": "action",
+      "name": "Navigation Bar",
+      "since": "5.7.1",
+      "android": 0,
+      "note": "Customises the navigation bar"
+    },
+    {
+      "key": "330t",
+      "kind": "action",
+      "name": "NFC Tag",
+      "since": "5.7.1",
+      "android": 0,
+      "note": "Writes data to an NFC tag"
+    },
+    {
+      "key": "338t",
+      "kind": "action",
+      "name": "Notification Category Info",
+      "since": "5.7.1",
+      "android": 0,
+      "note": "Reads a notification channel's details"
+    },
+    {
+      "key": "337t",
+      "kind": "action",
+      "name": "Notification Settings",
+      "since": "5.7.1",
+      "android": 0,
+      "note": "Opens an app's notification settings"
+    },
+    {
+      "key": "334t",
+      "kind": "action",
+      "name": "Say WaveNet",
+      "since": "5.7.1",
+      "android": 0,
+      "note": "Speaks with Google's WaveNet voices"
+    },
+    {
+      "key": "2076e",
+      "kind": "event",
+      "name": "NFC Tag",
+      "since": "5.7.1",
+      "android": 0,
+      "note": "Fires when an NFC tag is read"
+    },
+    {
+      "key": "2077e",
+      "kind": "event",
+      "name": "Secondary App Opened",
+      "since": "5.7.1",
+      "android": 0,
+      "note": "Fires when the Tasker Secondary launcher icon is used"
+    },
+    {
+      "key": "2079e",
+      "kind": "event",
+      "name": "Volume Long Press",
+      "since": "5.7.1",
+      "android": 26,
+      "note": "Fires when a volume key is held"
+    },
+    {
+      "key": "335t",
+      "kind": "action",
+      "name": "App Info",
+      "since": "5.8",
+      "android": 0,
+      "note": "Returns details about apps"
+    },
+    {
+      "key": "340t",
+      "kind": "action",
+      "name": "Bluetooth Connection",
+      "since": "5.8",
+      "android": 0,
+      "note": "Connects, disconnects, pairs or unpairs a device"
+    },
+    {
+      "key": "358t",
+      "kind": "action",
+      "name": "Bluetooth Info",
+      "since": "5.8",
+      "android": 0,
+      "note": "Reads details of Bluetooth devices"
+    },
+    {
+      "key": "351t",
+      "kind": "action",
+      "name": "HTTP Auth",
+      "since": "5.8",
+      "android": 0,
+      "note": "Handles OAuth 2.0 and password authentication"
+    },
+    {
+      "key": "339t",
+      "kind": "action",
+      "name": "HTTP Request",
+      "since": "5.8",
+      "android": 0,
+      "note": "Sends an HTTP request of any method"
+    },
+    {
+      "key": "360t",
+      "kind": "action",
+      "name": "Input Dialog",
+      "since": "5.8",
+      "android": 0,
+      "note": "Asks the user for a value"
+    },
+    {
+      "key": "2078e",
+      "kind": "event",
+      "name": "App Changed",
+      "since": "5.8",
+      "android": 0,
+      "note": "Fires whenever the foreground app changes"
+    },
+    {
+      "key": "2080e",
+      "kind": "event",
+      "name": "BT Connected",
+      "since": "5.8",
+      "android": 0,
+      "note": "Fires when a Bluetooth device connects or disconnects"
+    },
+    {
+      "key": "2081e",
+      "kind": "event",
+      "name": "Music Track Changed",
+      "since": "5.8",
+      "android": 0,
+      "note": "Fires when music starts, stops or changes track"
+    },
+    {
+      "key": "361t",
+      "kind": "action",
+      "name": "Dark Mode",
+      "since": "5.8.5",
+      "android": 26,
+      "note": "Turns dark mode on or off (reliable from Android 10)"
+    },
+    {
+      "key": "188s",
+      "kind": "state",
+      "name": "Dark Mode",
+      "since": "5.8.5",
+      "android": 26,
+      "note": "True while dark mode is on"
+    },
+    {
+      "key": "367t",
+      "kind": "action",
+      "name": "Camera",
+      "since": "5.9.1",
+      "android": 0,
+      "note": "Enables or disables the camera for all apps"
+    },
+    {
+      "key": "366t",
+      "kind": "action",
+      "name": "Get Location v2",
+      "since": "5.9.1",
+      "android": 0,
+      "note": "Faster, more accurate location"
+    },
+    {
+      "key": "368t",
+      "kind": "action",
+      "name": "Pick Location",
+      "since": "5.9.1",
+      "android": 0,
+      "note": "Picks a place on a map"
+    },
+    {
+      "key": "362t",
+      "kind": "action",
+      "name": "Set Assistant",
+      "since": "5.9.1",
+      "android": 0,
+      "note": "Sets the phone's assistant app"
+    },
+    {
+      "key": "370t",
+      "kind": "action",
+      "name": "Shortcut",
+      "since": "5.9.1",
+      "android": 0,
+      "note": "Opens an Android shortcut"
+    },
+    {
+      "key": "365t",
+      "kind": "action",
+      "name": "Tasker Function",
+      "since": "5.9.1",
+      "android": 0,
+      "note": "Runs one of Tasker's small built-in functions"
+    },
+    {
+      "key": "364t",
+      "kind": "action",
+      "name": "Test Next Alarm",
+      "since": "5.9.1",
+      "android": 0,
+      "note": "Reads the next alarm"
+    },
+    {
+      "key": "2084e",
+      "kind": "event",
+      "name": "Alarm Changed",
+      "since": "5.9.1",
+      "android": 0,
+      "note": "Fires when an alarm changes"
+    },
+    {
+      "key": "2085e",
+      "kind": "event",
+      "name": "Logcat Entry",
+      "since": "5.9.1",
+      "android": 0,
+      "note": "Fires on a matching logcat line"
+    },
+    {
+      "key": "2083e",
+      "kind": "event",
+      "name": "Significant Motion",
+      "since": "5.9.1",
+      "android": 0,
+      "note": "Fires when the user is likely moving to a new place"
+    },
+    {
+      "key": "375t",
+      "kind": "action",
+      "name": "ADB Wifi",
+      "since": "5.9.2",
+      "android": 0,
+      "note": "Runs commands that normally need root, over wireless debugging"
+    },
+    {
+      "key": "363t",
+      "kind": "action",
+      "name": "Mobile Network Type",
+      "since": "5.9.2",
+      "android": 0,
+      "note": "Changes the network types the phone may use"
+    },
+    {
+      "key": "381t",
+      "kind": "action",
+      "name": "Contact Via App",
+      "since": "5.9.3",
+      "android": 0,
+      "note": "Starts a chat or call in WhatsApp, Skype and the like"
+    },
+    {
+      "key": "378t",
+      "kind": "action",
+      "name": "List Dialog",
+      "since": "5.9.3",
+      "android": 0,
+      "note": "Shows a list to pick from"
+    },
+    {
+      "key": "372t",
+      "kind": "action",
+      "name": "Sensor Info",
+      "since": "5.9.3",
+      "android": 0,
+      "note": "Reads a sensor's details"
+    },
+    {
+      "key": "373t",
+      "kind": "action",
+      "name": "Test Sensor",
+      "since": "5.9.3",
+      "android": 0,
+      "note": "Tests a sensor's current reading"
+    },
+    {
+      "key": "377t",
+      "kind": "action",
+      "name": "Text/Image Dialog",
+      "since": "5.9.3",
+      "android": 0,
+      "note": "Shows a dialog with text"
+    },
+    {
+      "key": "2088e",
+      "kind": "event",
+      "name": "Any Sensor",
+      "since": "5.9.3",
+      "android": 0,
+      "note": "Fires on a sensor change"
+    },
+    {
+      "key": "190s",
+      "kind": "state",
+      "name": "Any Sensor",
+      "since": "5.9.3",
+      "android": 0,
+      "note": "True while a sensor reading matches"
+    },
+    {
+      "key": "385t",
+      "kind": "action",
+      "name": "Command",
+      "since": "5.10",
+      "android": 0,
+      "note": "Triggers a Command event"
+    },
+    {
+      "key": "384t",
+      "kind": "action",
+      "name": "Device Control (Power Menu Action)",
+      "since": "5.10",
+      "android": 30,
+      "note": "Adds tiles to the power menu"
+    },
+    {
+      "key": "2091e",
+      "kind": "event",
+      "name": "Command",
+      "since": "5.10",
+      "android": 0,
+      "note": "Fires when a Command is sent"
+    },
+    {
+      "key": "2092e",
+      "kind": "event",
+      "name": "Power Menu Shown",
+      "since": "5.10",
+      "android": 30,
+      "note": "Fires when the power menu appears"
+    },
+    {
+      "key": "387t",
+      "kind": "action",
+      "name": "Accessibility Volume",
+      "since": "5.11.13",
+      "android": 0,
+      "note": "Changes media volume where the normal way fails"
+    },
+    {
+      "key": "386t",
+      "kind": "action",
+      "name": "Call Screening",
+      "since": "5.11.13",
+      "android": 29,
+      "note": "Rejects or silences a call before it rings"
+    },
+    {
+      "key": "389t",
+      "kind": "action",
+      "name": "Multiple Variables Set",
+      "since": "5.11.13",
+      "android": 0,
+      "note": "Sets several variables in one action"
+    },
+    {
+      "key": "390t",
+      "kind": "action",
+      "name": "Pick Input Dialog",
+      "since": "5.11.13",
+      "android": 0,
+      "note": "Picks a value of any variable type"
+    },
+    {
+      "key": "383t",
+      "kind": "action",
+      "name": "Settings Panel",
+      "since": "5.11.13",
+      "android": 29,
+      "note": "Shows a system settings panel"
+    },
+    {
+      "key": "2094e",
+      "kind": "event",
+      "name": "Call Screened",
+      "since": "5.11.13",
+      "android": 29,
+      "note": "Fires when a call has been screened"
+    },
+    {
+      "key": "393t",
+      "kind": "action",
+      "name": "Arrays Merge",
+      "since": "5.12.18",
+      "android": 0,
+      "note": "Merges arrays into one"
+    },
+    {
+      "key": "394t",
+      "kind": "action",
+      "name": "Parse/Format DateTime",
+      "since": "5.12.18",
+      "android": 0,
+      "note": "Parses and formats dates and times"
+    },
+    {
+      "key": "392t",
+      "kind": "action",
+      "name": "Set Variable Structure Type",
+      "since": "5.12.18",
+      "android": 0,
+      "note": "Sets a variable's structure type"
+    },
+    {
+      "key": "396t",
+      "kind": "action",
+      "name": "Simple Match/Regex",
+      "since": "5.12.18",
+      "android": 0,
+      "note": "Matches and extracts text"
+    },
+    {
+      "key": "2096e",
+      "kind": "event",
+      "name": "Sleeping",
+      "since": "5.12.18",
+      "android": 0,
+      "note": "Fires on sleep updates"
+    },
+    {
+      "key": "2095e",
+      "kind": "event",
+      "name": "Tick",
+      "since": "5.12.18",
+      "android": 0,
+      "note": "Fires at intervals from 100 ms to 2 minutes"
+    },
+    {
+      "key": "398t",
+      "kind": "action",
+      "name": "Connect To WiFi",
+      "since": "5.13.5",
+      "android": 0,
+      "note": "Connects to a named Wi-Fi network"
+    },
+    {
+      "key": "397t",
+      "kind": "action",
+      "name": "Get Material You Colors",
+      "since": "5.13.5",
+      "android": 31,
+      "note": "Reads the Material You colour palette"
+    },
+    {
+      "key": "374t",
+      "kind": "action",
+      "name": "Screen Capture",
+      "since": "5.14.6",
+      "android": 0,
+      "note": "Records the screen"
+    },
+    {
+      "key": "402t",
+      "kind": "action",
+      "name": "Get Clipboard",
+      "since": "5.15.12",
+      "android": 0,
+      "note": "Reads the clipboard"
+    },
+    {
+      "key": "399t",
+      "kind": "action",
+      "name": "Variable Map",
+      "since": "5.15.12",
+      "android": 0,
+      "note": "Maps a variable's values"
+    },
+    {
+      "key": "2097e",
+      "kind": "event",
+      "name": "Clipboard Changed",
+      "since": "5.15.12",
+      "android": 0,
+      "note": "Fires when the clipboard changes"
+    },
+    {
+      "key": "424t",
+      "kind": "action",
+      "name": "Get Battery Info",
+      "since": "6.0.9",
+      "android": 0,
+      "note": "Reads all battery details"
+    },
+    {
+      "key": "414t",
+      "kind": "action",
+      "name": "Get Pixel Colors",
+      "since": "6.0.9",
+      "android": 0,
+      "note": "Reads a pixel's colour from an image"
+    },
+    {
+      "key": "430t",
+      "kind": "action",
+      "name": "Restart Tasker",
+      "since": "6.0.9",
+      "android": 0,
+      "note": "Restarts Tasker or only its monitor"
+    },
+    {
+      "key": "407t",
+      "kind": "action",
+      "name": "Pick Photos",
+      "since": "6.1.26",
+      "android": 33,
+      "note": "Picks photos with the system photo picker"
+    },
+    {
+      "key": "391t",
+      "kind": "action",
+      "name": "Progress Dialog",
+      "since": "6.1.26",
+      "android": 0,
+      "note": "Shows a progress dialog"
+    },
+    {
+      "key": "413t",
+      "kind": "action",
+      "name": "Request Add Tile",
+      "since": "6.1.26",
+      "android": 33,
+      "note": "Asks the user to add a Tasker tile"
+    },
+    {
+      "key": "2099e",
+      "kind": "event",
+      "name": "Device Unlock Failed",
+      "since": "6.1.26",
+      "android": 0,
+      "note": "Fires after a failed unlock attempt"
+    },
+    {
+      "key": "432t",
+      "kind": "action",
+      "name": "Get Network Info",
+      "since": "6.2.18",
+      "android": 0,
+      "note": "Returns details of the current networks"
+    },
+    {
+      "key": "380t",
+      "kind": "action",
+      "name": "HTTP Response",
+      "since": "6.2.18",
+      "android": 0,
+      "note": "Replies to an HTTP Request event"
+    },
+    {
+      "key": "438t",
+      "kind": "action",
+      "name": "Matter Light (Experimental)",
+      "since": "6.2.18",
+      "android": 0,
+      "note": "Controls a Matter light (experimental)"
+    },
+    {
+      "key": "441t",
+      "kind": "action",
+      "name": "Work Profile/Private Space",
+      "since": "6.2.18",
+      "android": 0,
+      "note": "Turns Work Profile apps on or off"
+    },
+    {
+      "key": "2089e",
+      "kind": "event",
+      "name": "HTTP Request",
+      "since": "6.2.18",
+      "android": 0,
+      "note": "Lets Tasker answer web requests as a server"
+    },
+    {
+      "key": "194s",
+      "kind": "state",
+      "name": "Work Profile",
+      "since": "6.2.18",
+      "android": 0,
+      "note": "True while the Work Profile is on"
+    },
+    {
+      "key": "448t",
+      "kind": "action",
+      "name": "Array Compare",
+      "since": "6.3.12",
+      "android": 0,
+      "note": "Lists common and distinct elements of arrays"
+    },
+    {
+      "key": "379t",
+      "kind": "action",
+      "name": "Device Admin/Owner",
+      "since": "6.3.12",
+      "android": 0,
+      "note": "Kills apps, clears data and reboots without root"
+    },
+    {
+      "key": "446t",
+      "kind": "action",
+      "name": "Get Files/Folders Properties",
+      "since": "6.3.12",
+      "android": 0,
+      "note": "Reads properties of many files at once"
+    },
+    {
+      "key": "352t",
+      "kind": "action",
+      "name": "Get Network Data Usage",
+      "since": "6.3.12",
+      "android": 0,
+      "note": "Reports data usage over a period"
+    },
+    {
+      "key": "460t",
+      "kind": "action",
+      "name": "Set Device Effects",
+      "since": "6.3.12",
+      "android": 35,
+      "note": "Grayscale screen, dimmed wallpaper and similar effects"
+    },
+    {
+      "key": "454t",
+      "kind": "action",
+      "name": "Show Active Profiles",
+      "since": "6.3.12",
+      "android": 0,
+      "note": "Shows the Profiles that are running"
+    },
+    {
+      "key": "452t",
+      "kind": "action",
+      "name": "Show Running Tasks",
+      "since": "6.3.12",
+      "android": 0,
+      "note": "Shows the Tasks that are running"
+    },
+    {
+      "key": "462t",
+      "kind": "action",
+      "name": "Remote Action Execution",
+      "since": "6.4.13",
+      "android": 0,
+      "note": "Runs actions on another device"
+    },
+    {
+      "key": "461t",
+      "kind": "action",
+      "name": "Widget v2",
+      "since": "6.4.13",
+      "android": 0,
+      "note": "Builds home screen widgets with a visual editor"
+    },
+    {
+      "key": "2100e",
+      "kind": "event",
+      "name": "Remote Action Token Changed",
+      "since": "6.4.13",
+      "android": 0,
+      "note": "Fires when the remote device token changes"
+    },
+    {
+      "key": "467t",
+      "kind": "action",
+      "name": "Edit Calendar Attendee",
+      "since": "6.5.9",
+      "android": 0,
+      "note": "Edits an event's attendees"
+    },
+    {
+      "key": "464t",
+      "kind": "action",
+      "name": "Edit Calendar Event",
+      "since": "6.5.9",
+      "android": 0,
+      "note": "Edits a calendar event"
+    },
+    {
+      "key": "465t",
+      "kind": "action",
+      "name": "Edit Calendar Reminder",
+      "since": "6.5.9",
+      "android": 0,
+      "note": "Edits a calendar reminder"
+    },
+    {
+      "key": "463t",
+      "kind": "action",
+      "name": "Edit Calendar Via App",
+      "since": "6.5.9",
+      "android": 0,
+      "note": "Opens the calendar app on an event"
+    },
+    {
+      "key": "468t",
+      "kind": "action",
+      "name": "Get Calendar Attendees",
+      "since": "6.5.9",
+      "android": 0,
+      "note": "Reads an event's attendees"
+    },
+    {
+      "key": "418t",
+      "kind": "action",
+      "name": "Get Calendar Events",
+      "since": "6.5.9",
+      "android": 0,
+      "note": "Reads calendar events"
+    },
+    {
+      "key": "466t",
+      "kind": "action",
+      "name": "Get Calendar Reminders",
+      "since": "6.5.9",
+      "android": 0,
+      "note": "Reads calendar reminders"
+    },
+    {
+      "key": "470t",
+      "kind": "action",
+      "name": "Get Keyboard Info",
+      "since": "6.5.9",
+      "android": 0,
+      "note": "Reads keyboard details"
+    },
+    {
+      "key": "469t",
+      "kind": "action",
+      "name": "Set Keyboard",
+      "since": "6.5.9",
+      "android": 0,
+      "note": "Sets the keyboard"
+    },
+    {
+      "key": "2102e",
+      "kind": "event",
+      "name": "Calendar Changed",
+      "since": "6.5.9",
+      "android": 0,
+      "note": "Fires when calendar data changes"
+    },
+    {
+      "key": "2101e",
+      "kind": "event",
+      "name": "Received Share",
+      "since": "6.5.9",
+      "android": 0,
+      "note": "Fires when something is shared to Tasker"
+    },
+    {
+      "key": "473t",
+      "kind": "action",
+      "name": "Get Sunrise/Sunset Times",
+      "since": "6.6.18",
+      "android": 0,
+      "note": "Works out sun times offline"
+    },
+    {
+      "key": "474t",
+      "kind": "action",
+      "name": "Java Code",
+      "since": "6.6.18",
+      "android": 0,
+      "note": "Runs Java and Android APIs inside a Task"
+    },
+    {
+      "key": "2103e",
+      "kind": "event",
+      "name": "Extra Trigger",
+      "since": "6.6.18",
+      "android": 0,
+      "note": "Fires from the standalone Extra Trigger apps"
+    },
+    {
+      "key": "",
+      "kind": "state",
+      "name": "Shizuku Available",
+      "since": "6.6.18",
+      "android": 0,
+      "note": "True while Shizuku is installed, running and allowed"
+    },
+    {
+      "key": "480t",
+      "kind": "action",
+      "name": "Dismiss Scene v2",
+      "since": "6.7.8",
+      "android": 0,
+      "note": "Closes a Scenes V2 scene"
+    },
+    {
+      "key": "488t",
+      "kind": "action",
+      "name": "Format JSON",
+      "since": "6.7.8",
+      "android": 0,
+      "note": "Minifies or pretty-prints JSON"
+    },
+    {
+      "key": "483t",
+      "kind": "action",
+      "name": "Get Scene v2 Values",
+      "since": "6.7.8",
+      "android": 0,
+      "note": "Reads values from a Scenes V2 scene"
+    },
+    {
+      "key": "485t",
+      "kind": "action",
+      "name": "Run Scene v2 Action",
+      "since": "6.7.8",
+      "android": 0,
+      "note": "Runs a component action in a Scenes V2 scene"
+    },
+    {
+      "key": "479t",
+      "kind": "action",
+      "name": "Show Scene v2",
+      "since": "6.7.8",
+      "android": 0,
+      "note": "Shows a Scenes V2 scene"
+    },
+    {
+      "key": "991t",
+      "kind": "action",
+      "name": "Trigger Scene v2 Event",
+      "since": "6.7.8",
+      "android": 0,
+      "note": "Triggers an event in a Scenes V2 scene"
+    },
+    {
+      "key": "481t",
+      "kind": "action",
+      "name": "Update Scene v2",
+      "since": "6.7.8",
+      "android": 0,
+      "note": "Updates a Scenes V2 scene"
+    },
+    {
+      "key": "482t",
+      "kind": "action",
+      "name": "Update Scene v2 Overlay",
+      "since": "6.7.8",
+      "android": 0,
+      "note": "Updates a Scenes V2 overlay"
+    },
+    {
+      "key": "478t",
+      "kind": "action",
+      "name": "Wait For Command",
+      "since": "6.7.8",
+      "android": 0,
+      "note": "Pauses until a command runs"
+    },
+    {
+      "key": "484t",
+      "kind": "action",
+      "name": "Wait For Scene v2 Result",
+      "since": "6.7.8",
+      "android": 0,
+      "note": "Waits for a Scenes V2 scene to return a result"
+    },
+    {
+      "key": "",
+      "kind": "event",
+      "name": "Scene V2 Event",
+      "since": "6.7.8",
+      "android": 0,
+      "note": "Fires when a Scenes V2 element is used"
+    },
+    {
+      "key": "",
+      "kind": "event",
+      "name": "Wifi Changed",
+      "since": "6.7.8",
+      "android": 0,
+      "note": "Fires when Wi-Fi turns on, off, connects or disconnects"
+    }
+  ],
+  "changes": [
+    {
+      "release": "5.0",
+      "kind": "changed",
+      "text": "A value starting with ~R or !~R in a match now means regular expression or negated regular expression.",
+      "keys": [],
+      "named": []
+    },
+    {
+      "release": "5.0",
+      "kind": "renamed",
+      "text": "Lock Screen became Display > Turn Off.",
+      "keys": [
+        "248t"
+      ],
+      "named": [
+        "Turn Off"
+      ]
+    },
+    {
+      "release": "5.0",
+      "kind": "renamed",
+      "text": "Scan Card became Scan Media.",
+      "keys": [
+        "459t"
+      ],
+      "named": [
+        "Scan Media"
+      ]
+    },
+    {
+      "release": "5.0",
+      "kind": "removed",
+      "text": "Set Tasker Pref can no longer be called from other apps.",
+      "keys": [
+        "133t"
+      ],
+      "named": [
+        "Set Tasker Pref"
+      ]
+    },
+    {
+      "release": "5.0",
+      "kind": "removed",
+      "text": "Set Time Zone is unavailable on Android 8 and later.",
+      "keys": [],
+      "named": []
+    },
+    {
+      "release": "5.0",
+      "kind": "renamed",
+      "text": "Silent Mode became Vibrate Mode.",
+      "keys": [
+        "310t"
+      ],
+      "named": [
+        "Silent Mode"
+      ]
+    },
+    {
+      "release": "5.0",
+      "kind": "changed",
+      "text": "Splitter text in Variable Split and Array Set now accepts newlines.",
+      "keys": [
+        "590t",
+        "354t"
+      ],
+      "named": [
+        "Variable Split",
+        "Array Set"
+      ]
+    },
+    {
+      "release": "5.0",
+      "kind": "removed",
+      "text": "Wifi Tether needs root on Android 7; the plugin is the alternative.",
+      "keys": [
+        "113t"
+      ],
+      "named": [
+        "WiFi Tether (Hotspot)"
+      ]
+    },
+    {
+      "release": "5.1",
+      "kind": "removed",
+      "text": "App creation no longer has the Use External Storage preference; it always uses internal storage.",
+      "keys": [],
+      "named": []
+    },
+    {
+      "release": "5.2",
+      "kind": "changed",
+      "text": "Compose Email now lists only email apps.",
+      "keys": [
+        "125t"
+      ],
+      "named": [
+        "Compose Email"
+      ]
+    },
+    {
+      "release": "5.5",
+      "kind": "changed",
+      "text": "HTTP actions accept user-installed HTTPS certificates.",
+      "keys": [
+        "118t"
+      ],
+      "named": [
+        "HTTP Get"
+      ]
+    },
+    {
+      "release": "5.7.1",
+      "kind": "changed",
+      "text": "%DATE is rendered with the system locale.",
+      "keys": [],
+      "named": []
+    },
+    {
+      "release": "5.7.1",
+      "kind": "changed",
+      "text": "On Android 6 and later, Do Not Disturb, ringer and system volume actions use the Do Not Disturb permission.",
+      "keys": [
+        "313t"
+      ],
+      "named": [
+        "Sound Mode"
+      ]
+    },
+    {
+      "release": "5.7.1",
+      "kind": "removed",
+      "text": "The Android Cloud Backup option is gone; use Google Drive Backup.",
+      "keys": [],
+      "named": []
+    },
+    {
+      "release": "5.7.1",
+      "kind": "changed",
+      "text": "The Do Not Disturb option None was renamed No Interruptions.",
+      "keys": [],
+      "named": []
+    },
+    {
+      "release": "5.8",
+      "kind": "changed",
+      "text": "App Info always returns non-array variables, and arrays only when needed.",
+      "keys": [
+        "335t"
+      ],
+      "named": [
+        "App Info"
+      ]
+    },
+    {
+      "release": "5.8",
+      "kind": "changed",
+      "text": "HTTP Request sends no body with GET and HEAD, and takes its upload content type from Headers.",
+      "keys": [
+        "339t"
+      ],
+      "named": [
+        "HTTP Request"
+      ]
+    },
+    {
+      "release": "5.8",
+      "kind": "changed",
+      "text": "In app events the first %evtprm value is now the package name.",
+      "keys": [
+        "2078e"
+      ],
+      "named": [
+        "App Changed"
+      ]
+    },
+    {
+      "release": "5.8",
+      "kind": "changed",
+      "text": "Output variables set to null are now empty instead of the text null.",
+      "keys": [],
+      "named": []
+    },
+    {
+      "release": "5.8",
+      "kind": "changed",
+      "text": "The Mobile Network state now needs the READ_PHONE_STATE permission.",
+      "keys": [
+        "110s"
+      ],
+      "named": [
+        "Mobile Network"
+      ]
+    },
+    {
+      "release": "5.9.1",
+      "kind": "changed",
+      "text": "Reading the clipboard in the background on Android 10 needs WRITE_SECURE_SETTINGS.",
+      "keys": [
+        "402t"
+      ],
+      "named": [
+        "Get Clipboard"
+      ]
+    },
+    {
+      "release": "5.9.1",
+      "kind": "changed",
+      "text": "Variable Clear clears all user variables only when Clear All Variables is selected.",
+      "keys": [
+        "549t"
+      ],
+      "named": [
+        "Variable Clear"
+      ]
+    },
+    {
+      "release": "5.9.3",
+      "kind": "changed",
+      "text": "Empty String values are treated as unset in every condition.",
+      "keys": [],
+      "named": []
+    },
+    {
+      "release": "5.9.3",
+      "kind": "changed",
+      "text": "For File Modified, %evtprm(1) is now the path of the changed file, URL-decoded.",
+      "keys": [
+        "222e"
+      ],
+      "named": [
+        "File Modified"
+      ]
+    },
+    {
+      "release": "5.9.3",
+      "kind": "changed",
+      "text": "Kill App uses ADB Wifi when it is available.",
+      "keys": [
+        "18t"
+      ],
+      "named": [
+        "Kill App"
+      ]
+    },
+    {
+      "release": "5.9.3",
+      "kind": "changed",
+      "text": "Task names can no longer contain a percent sign.",
+      "keys": [],
+      "named": []
+    },
+    {
+      "release": "5.10",
+      "kind": "changed",
+      "text": "Exit Tasks of active Profiles are no longer run at shutdown when Tasker is disabled.",
+      "keys": [],
+      "named": []
+    },
+    {
+      "release": "5.10",
+      "kind": "removed",
+      "text": "The option to insert an SMS into the messaging database was removed.",
+      "keys": [
+        "41t"
+      ],
+      "named": [
+        "Send SMS"
+      ]
+    },
+    {
+      "release": "5.11.13",
+      "kind": "changed",
+      "text": "End Call no longer works as before on Android 10 and later.",
+      "keys": [
+        "733t"
+      ],
+      "named": [
+        "End Call"
+      ]
+    },
+    {
+      "release": "5.11.13",
+      "kind": "changed",
+      "text": "The Variable Value state no longer accepts built-in variables that are not monitored.",
+      "keys": [
+        "165s"
+      ],
+      "named": [
+        "Variable Value"
+      ]
+    },
+    {
+      "release": "5.11.13",
+      "kind": "changed",
+      "text": "Wifi toggling is done through the Tasker Settings app.",
+      "keys": [
+        "425t"
+      ],
+      "named": [
+        "Wifi"
+      ]
+    },
+    {
+      "release": "5.12.18",
+      "kind": "changed",
+      "text": "Numbers in conditions are compared to 6 decimals instead of 3.",
+      "keys": [],
+      "named": []
+    },
+    {
+      "release": "5.12.18",
+      "kind": "changed",
+      "text": "Ping always times out after 10 seconds.",
+      "keys": [
+        "320t"
+      ],
+      "named": [
+        "Ping"
+      ]
+    },
+    {
+      "release": "5.12.18",
+      "kind": "removed",
+      "text": "Record Audio lost its Codec option; the codec follows the format.",
+      "keys": [
+        "455t"
+      ],
+      "named": [
+        "Record Audio"
+      ]
+    },
+    {
+      "release": "5.12.18",
+      "kind": "removed",
+      "text": "The Device Idle state lost its Enabled option.",
+      "keys": [
+        "16s"
+      ],
+      "named": [
+        "Device Idle"
+      ]
+    },
+    {
+      "release": "5.13.5",
+      "kind": "changed",
+      "text": "Return can no longer overwrite the %caller() array.",
+      "keys": [
+        "126t"
+      ],
+      "named": [
+        "Return"
+      ]
+    },
+    {
+      "release": "5.15.12",
+      "kind": "changed",
+      "text": "App Info clears its existing array variables before setting new ones.",
+      "keys": [
+        "335t"
+      ],
+      "named": [
+        "App Info"
+      ]
+    },
+    {
+      "release": "5.15.12",
+      "kind": "changed",
+      "text": "Empty JavaScript local variables are empty strings, not undefined.",
+      "keys": [
+        "131t",
+        "129t"
+      ],
+      "named": [
+        "JavaScript",
+        "JavaScriptlet"
+      ]
+    },
+    {
+      "release": "5.15.12",
+      "kind": "changed",
+      "text": "SQL Query clears its result array before each query.",
+      "keys": [
+        "667t"
+      ],
+      "named": [
+        "SQL Query"
+      ]
+    },
+    {
+      "release": "5.15.12",
+      "kind": "changed",
+      "text": "Tasker targets API 30, so some shell commands behave differently.",
+      "keys": [
+        "123t"
+      ],
+      "named": [
+        "Run Shell"
+      ]
+    },
+    {
+      "release": "5.15.12",
+      "kind": "renamed",
+      "text": "Text Dialog became Text/Image Dialog.",
+      "keys": [
+        "377t"
+      ],
+      "named": [
+        "Text/Image Dialog"
+      ]
+    },
+    {
+      "release": "6.0.9",
+      "kind": "removed",
+      "text": "The WebView Scene element lost its App Cache API option.",
+      "keys": [],
+      "named": []
+    },
+    {
+      "release": "6.1.26",
+      "kind": "changed",
+      "text": "ADB Wifi's default timeout is now 10 seconds, not 1.",
+      "keys": [
+        "375t"
+      ],
+      "named": [
+        "ADB Wifi"
+      ]
+    },
+    {
+      "release": "6.1.26",
+      "kind": "changed",
+      "text": "Input Dialog is multi-line by default.",
+      "keys": [
+        "360t"
+      ],
+      "named": [
+        "Input Dialog"
+      ]
+    },
+    {
+      "release": "6.1.26",
+      "kind": "renamed",
+      "text": "Power Menu Action became Device Control (Power Menu Action).",
+      "keys": [
+        "384t"
+      ],
+      "named": [
+        "Device Control (Power Menu Action)"
+      ]
+    },
+    {
+      "release": "6.1.26",
+      "kind": "renamed",
+      "text": "Refactor Into Task became Convert Into Task.",
+      "keys": [],
+      "named": []
+    },
+    {
+      "release": "6.1.26",
+      "kind": "changed",
+      "text": "Toggle Split Screen does not work on Android 13 and later.",
+      "keys": [
+        "244t"
+      ],
+      "named": [
+        "Toggle Split Screen"
+      ]
+    },
+    {
+      "release": "6.1.26",
+      "kind": "changed",
+      "text": "Variables passed to a Task keep their original value outside it when changed inside.",
+      "keys": [],
+      "named": []
+    },
+    {
+      "release": "6.1.26",
+      "kind": "renamed",
+      "text": "Wifi Tether became WiFi Tether (Hotspot).",
+      "keys": [
+        "113t"
+      ],
+      "named": [
+        "WiFi Tether (Hotspot)"
+      ]
+    },
+    {
+      "release": "6.2.18",
+      "kind": "changed",
+      "text": "Bluetooth and Network Access toggling use the Tasker Settings app.",
+      "keys": [
+        "294t",
+        "173t"
+      ],
+      "named": [
+        "Bluetooth",
+        "Network Access"
+      ]
+    },
+    {
+      "release": "6.2.18",
+      "kind": "changed",
+      "text": "Intent Received writes bundle extras as JSON instead of Bundle.toString().",
+      "keys": [
+        "599e"
+      ],
+      "named": [
+        "Intent Received"
+      ]
+    },
+    {
+      "release": "6.2.18",
+      "kind": "changed",
+      "text": "Notify icons use the system colour by default instead of white.",
+      "keys": [
+        "523t"
+      ],
+      "named": [
+        "Notify"
+      ]
+    },
+    {
+      "release": "6.2.18",
+      "kind": "changed",
+      "text": "Test Net's Local Network IP Address returns an array of all addresses, not one value.",
+      "keys": [
+        "341t"
+      ],
+      "named": [
+        "Test Net"
+      ]
+    },
+    {
+      "release": "6.2.18",
+      "kind": "changed",
+      "text": "Wifi Connected and Wifi Near need the NEARBY_WIFI_DEVICES permission on Android 13.",
+      "keys": [
+        "160s",
+        "170s"
+      ],
+      "named": [
+        "Wifi Connected",
+        "Wifi Near"
+      ]
+    },
+    {
+      "release": "6.3.12",
+      "kind": "changed",
+      "text": "HTTP Request sets its default content type only if you did not.",
+      "keys": [
+        "339t"
+      ],
+      "named": [
+        "HTTP Request"
+      ]
+    },
+    {
+      "release": "6.3.12",
+      "kind": "changed",
+      "text": "Run Shell now sets %err when the command ends in error.",
+      "keys": [
+        "123t"
+      ],
+      "named": [
+        "Run Shell"
+      ]
+    },
+    {
+      "release": "6.3.12",
+      "kind": "changed",
+      "text": "Wifi, Bluetooth and Kill App use the Device Owner permission when it is available.",
+      "keys": [
+        "425t",
+        "294t",
+        "18t"
+      ],
+      "named": [
+        "Wifi",
+        "Bluetooth",
+        "Kill App"
+      ]
+    },
+    {
+      "release": "6.4.13",
+      "kind": "changed",
+      "text": "Data Backup cannot run while the device is locked.",
+      "keys": [
+        "322t"
+      ],
+      "named": [
+        "Data Backup"
+      ]
+    },
+    {
+      "release": "6.4.13",
+      "kind": "changed",
+      "text": "WiFi Net now uses the Tasker Settings app.",
+      "keys": [
+        "341t"
+      ],
+      "named": [
+        "Test Net"
+      ]
+    },
+    {
+      "release": "6.5.9",
+      "kind": "changed",
+      "text": "Calendar Insert moved into the new Calendar category.",
+      "keys": [
+        "567t"
+      ],
+      "named": [
+        "Calendar Insert"
+      ]
+    },
+    {
+      "release": "6.5.9",
+      "kind": "changed",
+      "text": "Importing a Task or Profile ignores arguments of the wrong type instead of skipping the whole action.",
+      "keys": [],
+      "named": []
+    },
+    {
+      "release": "6.6.18",
+      "kind": "changed",
+      "text": "Airplane Mode, Wifi, Bluetooth, Kill App, Mobile Data and Sound Mode use Shizuku when it is available.",
+      "keys": [
+        "333t",
+        "425t",
+        "294t",
+        "18t",
+        "433t",
+        "313t"
+      ],
+      "named": [
+        "Airplane Mode",
+        "Wifi",
+        "Bluetooth",
+        "Kill App",
+        "Mobile Data",
+        "Sound Mode"
+      ]
+    },
+    {
+      "release": "6.6.18",
+      "kind": "removed",
+      "text": "App Factory is no longer updated.",
+      "keys": [],
+      "named": []
+    },
+    {
+      "release": "6.6.18",
+      "kind": "changed",
+      "text": "Notifications no longer group unless the Group setting is used, even on Android 16.",
+      "keys": [
+        "523t"
+      ],
+      "named": [
+        "Notify"
+      ]
+    },
+    {
+      "release": "6.6.18",
+      "kind": "changed",
+      "text": "Work Profile was renamed Work Profile/Private Space and now toggles both.",
+      "keys": [
+        "441t",
+        "194s"
+      ],
+      "named": [
+        "Work Profile/Private Space",
+        "Work Profile"
+      ]
+    },
+    {
+      "release": "6.7.8",
+      "kind": "changed",
+      "text": "Array Push and Array Pop on a global fire Variable Set for each changed position.",
+      "keys": [
+        "355t",
+        "356t"
+      ],
+      "named": [
+        "Array Push",
+        "Array Pop"
+      ]
+    },
+    {
+      "release": "6.7.8",
+      "kind": "changed",
+      "text": "Device Boot no longer fires on Android 15 and later after the app was force stopped.",
+      "keys": [
+        "411e"
+      ],
+      "named": [
+        "Device Boot"
+      ]
+    },
+    {
+      "release": "6.7.8",
+      "kind": "changed",
+      "text": "Wifi Connect shows an error if the device's location setting is off.",
+      "keys": [
+        "398t"
+      ],
+      "named": [
+        "Connect To WiFi"
+      ]
+    }
+  ]
+}

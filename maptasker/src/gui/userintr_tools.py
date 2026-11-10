@@ -22,6 +22,7 @@ from maptasker.src.gui.guiutils import (
     refresh_tasker_object_pulldowns,
     reset_single_item_selection,
 )
+from maptasker.src.gui.guiwins_compat import build_compatibility_window
 from maptasker.src.gui.guiwins_firesim import build_firesim_dialog
 from maptasker.src.gui.guiwins_fix import build_fix_dialog
 from maptasker.src.gui.guiwins_monitor import build_monitor_dialog
@@ -160,6 +161,22 @@ class ToolEventHandlers(HandlerGroup):
             return go
 
         build_notes_window(make_jump, self.state).open()
+
+    def compatibility_event(self) -> None:
+        """Open the Compatibility Check: what in the loaded file breaks on which Tasker version, and the table behind it.
+
+        Opens with nothing loaded, since the table is worth reading without a file.  Rebuilt on every press, for
+        variable_manager_event's reason, and its lines open in a window of their own for the same one.
+        """
+
+        def make_jump(target: mapjump.Target) -> Callable[[], Coroutine[Any, Any, None]]:
+            async def go() -> None:
+                with opening_view_in_a_new_window(self.gui):
+                    await go_to_target(self.gui, target)
+
+            return go
+
+        build_compatibility_window(make_jump, self.state).open()
 
     def project_dependencies_event(self) -> None:
         """Open the Project Dependencies window: which Projects use Tasks, Scenes and globals that live in other Projects.

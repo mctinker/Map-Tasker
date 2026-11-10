@@ -193,6 +193,12 @@ DESCRIPTIONS: dict[str, dict[str, str]] = {
         "produced_by": "'Project Dependencies' > Save Report",
         "note": "Which Projects use Tasks, Scenes and global variables that live in other Projects, with every place that uses each, and what deleting each Project would leave dangling.",
     },
+    "MapTasker_Compatibility.txt": {
+        "section": "Reports",
+        "location": OUTPUT,
+        "produced_by": "'Compatibility Check' > Save Report",
+        "note": "What in the loaded file does not work on a chosen Tasker version, or an older Android, and what behaves differently there.",
+    },
     "MapTasker_Monitor.txt": {
         "section": "Reports",
         "location": OUTPUT,

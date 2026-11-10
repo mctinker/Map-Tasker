@@ -802,6 +802,31 @@ def _create_analysis_buttons_section(self: MyGui) -> None:
     _create_battery_button(self)
     _create_notes_button(self)
     _create_project_dependencies_button(self)
+    _create_compatibility_button(self)
+
+
+def _create_compatibility_button(self: MyGui) -> None:
+    """Compatibility Check, last of the Analyze buttons: what in this file breaks on which version of Tasker?"""
+    compatibility_button = (
+        ui.button(
+            translate_string("Compatibility Check"),
+            color="teal",
+            on_click=self.event_handlers.tools.compatibility_event,
+            icon="rule",
+        )
+        .classes("w-full justify-center")
+        .style("margin-top:-6px")
+    )
+    with compatibility_button:
+        ui.tooltip(
+            translate_string(
+                "Which of the actions, events and states in this file will not work on a Tasker version you pick, or "
+                "on an older Android, and which behaviours changed between the version that wrote the file and that "
+                "one -- for sharing a Project, restoring an old backup, or updating.\n\nThe Table tab is the whole "
+                "list from Tasker's release notes, release by release, with how many places this file uses each.  "
+                "Every line is a click into the Map.\n\nNothing is changed.",
+            ),
+        ).style("white-space: pre-wrap")
 
 
 def _create_project_dependencies_button(self: MyGui) -> None:

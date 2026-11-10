@@ -32,6 +32,7 @@ One per command that saves its results.  Each is stamped with the date and time 
 | `MapTasker_Battery_date_time.txt` | Current folder | -- | What keeps the phone busy, Project by Project -- see batteryaudit.py. |
 | `maptasker_check_in.txt` | Current folder | -- | _Not yet described -- see build_generated_files_doc.py._ |
 | `MapTasker_Compare.txt` | Output folder | 'Compare Files' | What differs between two configurations. |
+| `MapTasker_Compatibility_date_time.txt` | Output folder | 'Compatibility Check' > Save Report | What in the loaded file does not work on a chosen Tasker version, or an older Android, and what behaves differently there. |
 | `MapTasker_Find_date_time.txt` | Output folder | 'Find' > 'Save Results' | The saved results of a search. |
 | `MapTasker_Fix_date_time.txt` | Output folder | 'Fix Findings' | What the repairs changed.  Kept apart from the Health Check report because that one says what is wrong and this one says what was done about it. |
 | `MapTasker_Flowchart_date_time.txt` | Output folder | 'Task Flow' | The flowchart drawn for a single Task. |
