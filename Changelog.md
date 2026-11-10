@@ -14,6 +14,8 @@ All notable changes to this project will be documented in this file!
 
 ### Fixed
 
+- Fixed: Named Tasks that are not called by any Profile, and that no Project lists, are now in the Map's directory. They were written at the end of the Map but left out of the directory, so there was no link to them.
+
 ### Known Issues
 
 * It is unlikely but possible to have a previous MapTasker browser session preventing the startup of MapTasker.  You will get the error: 'ERROR:    [Errno 48] error while attempting to bind on address ('127.0.0.1', 8080): address already in use'. If

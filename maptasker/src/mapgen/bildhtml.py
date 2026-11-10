@@ -512,11 +512,16 @@ def process_unique_situations(
     if is_single_item_found(state=state):
         return
 
-    # Get and output all Tasks not called by any Profile
+    # Get and output all Tasks not called by any Profile.  These are written like any other Task, directory and all:
+    # an entry in the directory and the anchor it links to.  No anchor is pending when the section starts, and none
+    # is left behind at its end for the lines that follow to pick up.
+    state.directory_items["current_item"] = ""
     special_tasks.process_tasks_not_called_by_profile(projects_with_no_tasks, found_tasks, config, state=state)
+    state.directory_items["current_item"] = ""
 
-    # Get and output all Projects that don't have any Tasks or Profiles
-    special_tasks.process_missing_tasks_and_profiles(projects_with_no_tasks, projects_without_profiles, state=state)
+    # Get and output all Projects that don't have any Tasks or Profiles.  These lines are no directory item.
+    with overridden_config(state=state, directory=False):
+        special_tasks.process_missing_tasks_and_profiles(projects_with_no_tasks, projects_without_profiles, state=state)
     return
 
 
@@ -615,20 +620,18 @@ def final_processing(
 
     Processing Logic:
         - Check if only looking for a single Project/Profile/Task/Scene
-        - Turn off directory temporarily to avoid duplicates
-        - Get list of tasks not called by profiles and projects without profiles/tasks
-        - Restore original directory setting
+        - Get list of tasks not called by profiles (directory on, so they are listed in it)
+        - Get projects without profiles/tasks (directory temporarily off: they are no directory item)
         - Display back matter after processing projects, profiles, tasks, scenes
     """
     # See if we are only looking for a single Project/Profile and it wasn't found
     check_single_item(state=state)
 
-    # Turn off the directory temporarily so we don't get duplicates, and put the setting
-    # back afterwards for the final directory of Totals.
-    with overridden_config(state=state, directory=False) as config:
-        # Get the list of Tasks not called by a Profile,
-        # and a list of Projects without Profiles/Tasks
-        process_unique_situations(projects_with_no_tasks, projects_without_profiles, found_tasks, config, state=state)
+    # Get the list of Tasks not called by a Profile, and a list of Projects without Profiles/Tasks.  The directory
+    # stays as it is for the Tasks, so they are listed in it; process_unique_situations turns it off for the rest.
+    process_unique_situations(
+        projects_with_no_tasks, projects_without_profiles, found_tasks, current_config(state), state=state
+    )
 
     # Display the trailer stuff, after Projects/Profiles/Tasks/Scenes and print the output.
     display_back_matter(state=state)
