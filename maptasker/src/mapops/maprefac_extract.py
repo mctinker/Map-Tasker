@@ -73,7 +73,7 @@ _PERFORM_TASK_TEMPLATE = (
 )
 
 
-def _new_perform_task(element_cls: type[Element[str]], task_name: str) -> Element:
+def new_perform_task(element_cls: type[Element[str]], task_name: str) -> Element:
     """A Perform Task action calling `task_name`, built from nothing.
 
     Built here rather than through taskedit.add_action_to_task because that route refuses:
@@ -188,7 +188,7 @@ def plan_extract(task_id: str, action_numbers: list[int], new_task_name: str, st
             new_task.task_element.append(action)
         renumber(moving)
 
-        call = _new_perform_task(type(task_element), new_name)
+        call = new_perform_task(type(task_element), new_name)
         task_element.append(call)
         # wanted[0] is a displayed number; the split in `kept` is an index.
         before = wanted[0] - 1

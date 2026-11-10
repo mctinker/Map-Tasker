@@ -288,6 +288,18 @@ VARIABLE_HELP_TEXT = (
     " local made global is shared by every Task: the preview says both.  Previewed before anything is done, and one"
     " press of Undo afterwards.  \n"
 )
+SIMILAR_HELP_TEXT = (
+    "- Refactor > Near-duplicates: Find Tasks that were copied and pasted with small differences.  Find looks at"
+    " every Task's actions and lists the runs of actions that two or more Tasks share, the ones that would save the"
+    " most first; 'Smallest run' is how many actions in a row count.  Choose one and Preview: the shared actions"
+    " become one new Task, and each Task that held them calls it from the place they were, so what runs and in what"
+    " order is unchanged.  Labels and collapsed state are ignored when comparing.  A Task that is made of nothing but"
+    " the run is used as the shared Task instead of making another.  A Task with a Goto is left out, and a run that"
+    " would cut an If or For block in half is offered only for the part that does not.  The preview names local"
+    " variables the move would separate and labels that would be lost.  The shared Task is given a note, tagged"
+    " #shared, naming the Tasks that call it (see Notes & Tags); that note lives in your notes file, so Undo reverses"
+    " the merge and leaves the note.  Previewed before anything is done, and one press of Undo afterwards.  \n"
+)
 RESOURCES_HELP_TEXT = (
     "- Missing Resources: Do the files, folders, images, sounds, Scenes and apps your Tasks and Profiles use still"
     " exist on your Android device?  Press Check Device and MapTasker asks the device -- it puts a small helper Task"
@@ -488,5 +500,5 @@ def build_help(translate: Callable[[str], str] | None = None) -> str:
     lookup: Callable[[str], str] = translate or (lambda text: text)
     return (
         f"MapTasker {VERSION} {lookup(HELP_HEADING)}  \n{lookup(COMMAND_REFERENCE_TEXT)}{lookup(INFO_TEXT)}"
-        f"{lookup(OUTPUT_FOLDER_HELP_TEXT)}{lookup(TASKERNET_UPDATES_HELP_TEXT)}{lookup(TASKSTEP_HELP_TEXT)}{lookup(TREND_HELP_TEXT)}{lookup(VARIABLE_HELP_TEXT)}{lookup(RESOURCES_HELP_TEXT)}{lookup(MONITOR_HELP_TEXT)}{lookup(PREBUILD_HELP_TEXT)}{lookup(CARRY_HELP_TEXT)}{lookup(TASKTESTS_HELP_TEXT)}{lookup(OUTBOUND_HELP_TEXT)}{lookup(TNDESC_HELP_TEXT)}{lookup(LAUNCHER_HELP_TEXT)}{lookup(DESCRIBE_HELP_TEXT)}{lookup(BATTERY_HELP_TEXT)}{lookup(VARMAN_HELP_TEXT)}{lookup(NOTES_HELP_TEXT)}"
+        f"{lookup(OUTPUT_FOLDER_HELP_TEXT)}{lookup(TASKERNET_UPDATES_HELP_TEXT)}{lookup(TASKSTEP_HELP_TEXT)}{lookup(TREND_HELP_TEXT)}{lookup(VARIABLE_HELP_TEXT)}{lookup(SIMILAR_HELP_TEXT)}{lookup(RESOURCES_HELP_TEXT)}{lookup(MONITOR_HELP_TEXT)}{lookup(PREBUILD_HELP_TEXT)}{lookup(CARRY_HELP_TEXT)}{lookup(TASKTESTS_HELP_TEXT)}{lookup(OUTBOUND_HELP_TEXT)}{lookup(TNDESC_HELP_TEXT)}{lookup(LAUNCHER_HELP_TEXT)}{lookup(DESCRIBE_HELP_TEXT)}{lookup(BATTERY_HELP_TEXT)}{lookup(VARMAN_HELP_TEXT)}{lookup(NOTES_HELP_TEXT)}"
     )

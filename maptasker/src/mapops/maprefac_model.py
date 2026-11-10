@@ -35,6 +35,7 @@ INLINE = "inline"
 MOVE = "move"
 DUPLICATE = "duplicate"
 VARIABLE = "variable"
+SIMILAR = "similar"
 
 
 @dataclass(frozen=True)
@@ -406,6 +407,40 @@ def control_flow_imbalance(numbered: list[tuple[int, Element]]) -> str:
         opened = "For loop is" if for_depth == 1 else "For loops are"
         return f"{for_depth} {opened} opened and never closed -- the End For is not included"
     return ""
+
+
+def longest_balanced_run(actions: list[Any], shortest: int) -> tuple[int, int] | None:
+    """The longest stretch of these actions that could stand alone, as (index of its first action, length), or None.
+
+    "Stand alone" is control_flow_imbalance's test: every If and For it opens is closed inside it, and it closes
+    nothing it did not open.  Of equal length the earliest wins, and one shorter than `shortest` is not worth
+    having.  For a run of actions that is only partly self-contained -- a shared stretch that begins in the middle of
+    an If block, say -- this is the part of it that can be moved without breaking the block.
+    """
+    codes = [action_code(action) for action in actions]
+    best: tuple[int, int] | None = None
+    for begin in range(len(codes) - shortest + 1):
+        opened: list[str] = []
+        for end in range(begin, len(codes)):
+            if not _flow_step(opened, codes[end]):
+                break
+            length = end - begin + 1
+            if not opened and length >= shortest and (best is None or length > best[1]):
+                best = (begin, length)
+    return best
+
+
+def _flow_step(opened: list[str], code: str) -> bool:
+    """Take one action's code into the stack of blocks left open, or say that it could not belong here."""
+    if code in (_IF, _FOR):
+        opened.append(code)
+    elif code == _ELSE:
+        return bool(opened) and opened[-1] == _IF
+    elif code in (_END_IF, _END_FOR):
+        if not opened or opened[-1] != (_IF if code == _END_IF else _FOR):
+            return False
+        opened.pop()
+    return True
 
 
 def goto_numbers(actions: list[Any]) -> list[int]:

@@ -5,10 +5,11 @@
 #                                                                                        #
 # guiwins_refactor: where maprefac hangs off the GUI.                                    #
 #                                                                                        #
-# One dialog, five modes, one preview area.  Extract a run of a Task's actions into a    #
+# One dialog, six modes, one preview area.  Extract a run of a Task's actions into a     #
 # Task of its own; inline a Perform Task; move a Task or a Profile to another Project;   #
 # duplicate a Project, Profile, Task or Scene; rename a variable, or change it between   #
-# global and local.                                                                      #
+# global and local; find the actions several Tasks have copied from each other and make  #
+# them one Task they all call.                                                           #
 #                                                                                        #
 # EVERYTHING BELOW IS ARRANGED AROUND ONE RULE, the same one the Replace tab is built    #
 # around: the Apply button is disabled until a preview exists FOR THE VALUES CURRENTLY   #
@@ -53,6 +54,7 @@ from maptasker.src.mapops import (
     maprefac_extract,
     maprefac_model,
     maprefac_move,
+    maprefac_similar,
     maprefac_variable,
 )
 
@@ -61,9 +63,9 @@ if TYPE_CHECKING:
 
     from maptasker.src.core.primitem import RunState
 
-# The five modes, in the order they are offered.  Extract first because it is the one
+# The six modes, in the order they are offered.  Extract first because it is the one
 # people come here for -- a Task that has grown too long is the reason anybody opens this.
-EXTRACT, INLINE, MOVE, DUPLICATE, VARIABLE = "extract", "inline", "move", "duplicate", "variable"
+EXTRACT, INLINE, MOVE, DUPLICATE, VARIABLE, SIMILAR = "extract", "inline", "move", "duplicate", "variable", "similar"
 
 _MODE_LABELS = {
     EXTRACT: "Extract actions",
@@ -71,6 +73,7 @@ _MODE_LABELS = {
     MOVE: "Move to a Project",
     DUPLICATE: "Duplicate",
     VARIABLE: "Variable",
+    SIMILAR: "Near-duplicates",
 }
 
 # One line under the toggle saying what the chosen mode does.  Worth the space: "Extract"
@@ -96,6 +99,10 @@ _MODE_BLURBS = {
     VARIABLE: (
         "Rename a variable everywhere it is used, or turn a global into a Task's own local (or the reverse).  "
         "Tasker reads the scope from the spelling, so the preview checks who else can see the variable."
+    ),
+    SIMILAR: (
+        "Find actions that several Tasks have copied from each other, and make them one Task that each of those "
+        "Tasks calls.  Labels are ignored when comparing, and a Task is only changed where it holds the shared run."
     ),
 }
 
@@ -241,7 +248,9 @@ class _RefactorDialog:
             "Move to a Project -- change which Project owns a Task or a Profile.\n\n"
             "Duplicate -- copy a Project, Profile, Task or Scene under a new name.\n\n"
             "Variable -- rename a variable in every action, condition and Scene that uses it, or change it "
-            "between global and local.  Always reads the whole configuration.\n\n",
+            "between global and local.  Always reads the whole configuration.\n\n"
+            "Near-duplicates -- find a run of actions that two or more Tasks share, and turn it into one Task "
+            "that each of them calls.  Always reads the whole configuration.\n\n",
         )
         self.blurb = ui.label(translate_string(_MODE_BLURBS[EXTRACT])).classes(
             "text-xs text-gray-500 italic mb-3 mt-1",
@@ -318,6 +327,9 @@ class _RefactorDialog:
         widgets["duplicate_kind"].on_value_change(lambda: (_fill_duplicate_objects(widgets, state=state), invalidate()))
         widgets["variable_operation"].on_value_change(lambda: (_fill_variables(widgets, state=state), invalidate()))
         widgets["variable"].on_value_change(lambda: (_suggest_name(widgets), invalidate()))
+        widgets["similar_min"].on_value_change(lambda: (_forget_similar(widgets), invalidate()))
+        widgets["similar_find"].on_click(lambda: (_find_similar(widgets, state=state), invalidate()))
+        widgets["similar_run"].on_value_change(lambda: (_suggest_similar_name(widgets, state=state), invalidate()))
         for key in (
             "variable_new_name",
             "extract_from",
@@ -328,6 +340,7 @@ class _RefactorDialog:
             "move_project",
             "duplicate_object",
             "duplicate_name",
+            "similar_name",
         ):
             widgets[key].on_value_change(invalidate)
 
@@ -356,6 +369,9 @@ class _RefactorDialog:
             widgets["variable_operation"].value,
             widgets["variable"].value,
             (widgets["variable_new_name"].value or "").strip(),
+            widgets["similar_min"].value,
+            widgets["similar_run"].value,
+            (widgets["similar_name"].value or "").strip(),
         )
 
     def invalidate(self) -> None:
@@ -698,6 +714,46 @@ def _build_variable_row(widgets: dict[str, Any]) -> None:
         )
 
 
+def _build_similar_row(widgets: dict[str, Any]) -> None:
+    """Near-duplicates: how short a shared run may be, the button that looks, the run to merge and what to call it."""
+    with ui.column().classes("w-full gap-0 mt-2") as widgets["rows"][SIMILAR]:
+        with ui.row().classes("w-full items-center gap-2"):
+            widgets["similar_min"] = (
+                ui.select(
+                    {number: str(number) for number in maprefac_similar.MIN_RUN_CHOICES},
+                    value=maprefac_similar.DEFAULT_MIN_RUN,
+                    label=translate_string("Smallest run"),
+                )
+                .classes("w-[130px]")
+                .props("dense")
+                .tooltip(
+                    translate_string(
+                        "The fewest actions in a row that Tasks must have in common to be offered.  A short run is "
+                        "often coincidence; raise this when there are too many to read.",
+                    ),
+                )
+            )
+            widgets["similar_find"] = ui.button(translate_string("Find")).classes("bg-blue-600 text-white px-4")
+            widgets["similar_run"] = _select(
+                translate_string("Shared run"),
+                "flex-1 min-w-[300px]",
+                "The runs found, the ones that save the most first.  Choose one, then Preview to see what would change.",
+            )
+            widgets["similar_name"] = (
+                ui.input(label=translate_string("New Task name"))
+                .classes("flex-1 min-w-[180px]")
+                .props("dense")
+                .tooltip(
+                    translate_string(
+                        "What to call the Task the shared actions are moved into.  Not needed when one of the Tasks "
+                        "is already made of nothing else: that Task is the one the others call.",
+                    ),
+                )
+            )
+        widgets["similar_note"] = ui.label("").classes("text-xs text-gray-500 italic mt-2")
+        widgets["similar_hint"] = ui.label("").classes("text-xs text-orange-600 dark:text-orange-400 mt-1")
+
+
 def _build_mode_rows() -> dict[str, Any]:
     """Every mode's fields, built once and shown one row at a time.
 
@@ -707,13 +763,14 @@ def _build_mode_rows() -> dict[str, Any]:
     to an empty form.
     """
     # What each dependent pulldown was last filled from -- see _stale.
-    widgets: dict[str, Any] = {"rows": {}, "filled": {}}
+    widgets: dict[str, Any] = {"rows": {}, "filled": {}, "similar_found": {}, "similar_searched": None}
 
     _build_extract_row(widgets)
     _build_inline_row(widgets)
     _build_move_row(widgets)
     _build_duplicate_row(widgets)
     _build_variable_row(widgets)
+    _build_similar_row(widgets)
 
     return widgets
 
@@ -778,6 +835,7 @@ def fill_options(widgets: dict[str, Any], state: RunState) -> None:
     _fill_move_objects(widgets, state=state)
     _fill_duplicate_objects(widgets, state=state)
     _describe_extract_scope(widgets, state=state)
+    _refresh_similar(widgets, state=state)
 
 
 def _describe_extract_scope(widgets: dict[str, Any], state: RunState) -> None:
@@ -901,6 +959,64 @@ def _fill_variables(widgets: dict[str, Any], state: RunState) -> None:
     widgets["variable"].set_options(dict(choices), value=None)
 
 
+def _find_similar(widgets: dict[str, Any], state: RunState) -> None:
+    """Look for the runs of actions that Tasks share, and offer them, best first."""
+    shortest = int(widgets["similar_min"].value or maprefac_similar.DEFAULT_MIN_RUN)
+    runs = maprefac_similar.find_shared_runs(shortest, state=state)
+    widgets["similar_found"] = {run.key: run for run in runs}
+    widgets["similar_searched"] = shortest
+    widgets["filled"].pop("similar_name", None)
+    widgets["similar_run"].set_options(dict(maprefac_similar.run_choices(runs)), value=None)
+    widgets["similar_name"].set_value("")
+    widgets["similar_name"].set_enabled(True)
+    widgets["similar_hint"].set_text("")
+    note = widgets["similar_note"]
+    if runs:
+        note.set_text(f"{translate_string('Shared runs found')}: {len(runs)}")
+    else:
+        note.set_text(translate_string("No run of that many actions is shared by two Tasks."))
+
+
+def _forget_similar(widgets: dict[str, Any]) -> None:
+    """Throw away what was found: it was found for a different smallest run."""
+    widgets["similar_found"] = {}
+    widgets["similar_searched"] = None
+    widgets["similar_run"].set_options({}, value=None)
+    widgets["similar_note"].set_text("")
+    widgets["similar_hint"].set_text("")
+
+
+def _refresh_similar(widgets: dict[str, Any], state: RunState) -> None:
+    """Look again if a search has been made: a refactor changes the Tasks, and the runs found were of the old ones."""
+    if widgets.get("similar_searched") is not None:
+        _find_similar(widgets, state=state)
+
+
+def _suggest_similar_name(widgets: dict[str, Any], state: RunState) -> None:
+    """Fill in a name for the shared Task when a run is chosen, or say none is needed when a Task already is it.
+
+    Gated like the other dependent boxes (see _stale): a name the user has since edited should not be written over.
+    """
+    key = widgets["similar_run"].value or ""
+    if not _stale(widgets, "similar_name", key):
+        return
+    run = widgets["similar_found"].get(key)
+    name = widgets["similar_name"]
+    widgets["similar_hint"].set_text("")
+    if run is None:
+        name.set_value("")
+        name.set_enabled(True)
+    elif run.host:
+        name.set_value("")
+        name.set_enabled(False)
+        widgets["similar_hint"].set_text(
+            translate_string("One of these Tasks is made of nothing else, so the others will call it."),
+        )
+    else:
+        name.set_value(maprefac_similar.suggested_name(run, state=state))
+        name.set_enabled(True)
+
+
 def _suggest_name(widgets: dict[str, Any]) -> None:
     """Fill in the spelling a scope change implies, and clear the box for a rename.
 
@@ -946,9 +1062,21 @@ def plan_for(mode_value: str, widgets: dict[str, Any], state: RunState) -> mapre
         MOVE: _plan_move,
         DUPLICATE: _plan_duplicate,
         VARIABLE: _plan_variable,
+        SIMILAR: _plan_similar,
     }
     planner = planners.get(mode_value)
     return planner(widgets, state) if planner else None
+
+
+def _plan_similar(widgets: dict[str, Any], state: RunState) -> maprefac_model.Plan | None:
+    """Near-duplicates: the run chosen, and what to call the Task it is moved into."""
+    run = widgets["similar_found"].get(widgets["similar_run"].value or "")
+    if run is None:
+        return None
+    where = run.placements[0]
+    return maprefac_similar.plan_shared_run(
+        where.task_id, where.first, run.length, (widgets["similar_name"].value or "").strip(), state=state
+    )
 
 
 def _plan_extract(widgets: dict[str, Any], state: RunState) -> maprefac_model.Plan | None:
