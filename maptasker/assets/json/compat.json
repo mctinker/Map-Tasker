@@ -15,6 +15,9 @@
     "              before it.  'keys' are the actions, events and states it affects; empty means it affects everything.",
     "              'named' says what they are called for the reader.  'kind' is removed, renamed or changed.",
     "",
+    "Scenes V2 (the Show, Dismiss, Update, Get, Wait For, Run and Trigger Scene v2 actions and the Scene V2 Event) came in with 6.7.1, per the author;",
+    "the rest of the 6.7 notes sit under 6.7.8, the series' last heading, and may have come in earlier.",
+    "",
     "An item or change is here because the notes say so, in their wording shortened and put in other words.  The notes list",
     "options added to actions that already existed; those are not here, since a backup cannot tell them apart.",
     "tests/test_compat.py holds every 'key' to actionc and every 'since' to readiness.json where both have one."
@@ -138,6 +141,11 @@
     {
       "version": "6.6.18",
       "date": "2026-02-05",
+      "min_android": 27
+    },
+    {
+      "version": "6.7.1",
+      "date": "",
       "min_android": 27
     },
     {
@@ -1245,9 +1253,73 @@
       "key": "480t",
       "kind": "action",
       "name": "Dismiss Scene v2",
-      "since": "6.7.8",
+      "since": "6.7.1",
       "android": 0,
       "note": "Closes a Scenes V2 scene"
+    },
+    {
+      "key": "483t",
+      "kind": "action",
+      "name": "Get Scene v2 Values",
+      "since": "6.7.1",
+      "android": 0,
+      "note": "Reads values from a Scenes V2 scene"
+    },
+    {
+      "key": "485t",
+      "kind": "action",
+      "name": "Run Scene v2 Action",
+      "since": "6.7.1",
+      "android": 0,
+      "note": "Runs a component action in a Scenes V2 scene"
+    },
+    {
+      "key": "479t",
+      "kind": "action",
+      "name": "Show Scene v2",
+      "since": "6.7.1",
+      "android": 0,
+      "note": "Shows a Scenes V2 scene"
+    },
+    {
+      "key": "991t",
+      "kind": "action",
+      "name": "Trigger Scene v2 Event",
+      "since": "6.7.1",
+      "android": 0,
+      "note": "Triggers an event in a Scenes V2 scene"
+    },
+    {
+      "key": "481t",
+      "kind": "action",
+      "name": "Update Scene v2",
+      "since": "6.7.1",
+      "android": 0,
+      "note": "Updates a Scenes V2 scene"
+    },
+    {
+      "key": "482t",
+      "kind": "action",
+      "name": "Update Scene v2 Overlay",
+      "since": "6.7.1",
+      "android": 0,
+      "note": "Updates a Scenes V2 overlay"
+    },
+    {
+      "key": "484t",
+      "kind": "action",
+      "name": "Wait For Scene v2 Result",
+      "since": "6.7.1",
+      "android": 0,
+      "note": "Waits for a Scenes V2 scene to return a result"
+    },
+    {
+      "key": "",
+      "kind": "event",
+      "name": "Scene V2 Event",
+      "since": "6.7.1",
+      "android": 0,
+      "note": "Fires when a Scenes V2 element is used"
     },
     {
       "key": "488t",
@@ -1258,76 +1330,12 @@
       "note": "Minifies or pretty-prints JSON"
     },
     {
-      "key": "483t",
-      "kind": "action",
-      "name": "Get Scene v2 Values",
-      "since": "6.7.8",
-      "android": 0,
-      "note": "Reads values from a Scenes V2 scene"
-    },
-    {
-      "key": "485t",
-      "kind": "action",
-      "name": "Run Scene v2 Action",
-      "since": "6.7.8",
-      "android": 0,
-      "note": "Runs a component action in a Scenes V2 scene"
-    },
-    {
-      "key": "479t",
-      "kind": "action",
-      "name": "Show Scene v2",
-      "since": "6.7.8",
-      "android": 0,
-      "note": "Shows a Scenes V2 scene"
-    },
-    {
-      "key": "991t",
-      "kind": "action",
-      "name": "Trigger Scene v2 Event",
-      "since": "6.7.8",
-      "android": 0,
-      "note": "Triggers an event in a Scenes V2 scene"
-    },
-    {
-      "key": "481t",
-      "kind": "action",
-      "name": "Update Scene v2",
-      "since": "6.7.8",
-      "android": 0,
-      "note": "Updates a Scenes V2 scene"
-    },
-    {
-      "key": "482t",
-      "kind": "action",
-      "name": "Update Scene v2 Overlay",
-      "since": "6.7.8",
-      "android": 0,
-      "note": "Updates a Scenes V2 overlay"
-    },
-    {
       "key": "478t",
       "kind": "action",
       "name": "Wait For Command",
       "since": "6.7.8",
       "android": 0,
       "note": "Pauses until a command runs"
-    },
-    {
-      "key": "484t",
-      "kind": "action",
-      "name": "Wait For Scene v2 Result",
-      "since": "6.7.8",
-      "android": 0,
-      "note": "Waits for a Scenes V2 scene to return a result"
-    },
-    {
-      "key": "",
-      "kind": "event",
-      "name": "Scene V2 Event",
-      "since": "6.7.8",
-      "android": 0,
-      "note": "Fires when a Scenes V2 element is used"
     },
     {
       "key": "",

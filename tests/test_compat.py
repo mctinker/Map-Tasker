@@ -93,6 +93,14 @@ def test_the_table_file_is_where_the_code_looks_for_it() -> None:
     assert os.path.isfile(compat.TABLE_FILE)
 
 
+def test_scenes_v2_came_in_with_6_7_1_and_6_7_1_is_a_release_the_window_offers() -> None:
+    scene_v2 = [item for item in compat.items() if "Scene v2" in item.name or item.name == "Scene V2 Event"]
+
+    assert len(scene_v2) >= 9
+    assert {item.since for item in scene_v2} == {"6.7.1"}
+    assert "6.7.1" in {release.version for release in compat.releases()}
+
+
 def test_an_android_level_is_called_by_its_version() -> None:
     assert compat.android_name(33) == "Android 13"
     assert compat.android_name(99) == "Android API 99"
