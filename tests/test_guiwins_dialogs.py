@@ -20,7 +20,7 @@ from maptasker.src.core.primitem import RunState
 from maptasker.src.gui import guiwins_dialogs
 from nicegui import ui
 
-from tests.nicegui_harness import all_elements, click, dialogs, found, label_texts, open_page
+from tests.nicegui_harness import all_elements, click, dialogs, found, idle, label_texts, open_page
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -118,7 +118,7 @@ async def test_categories_left_out_last_time_come_back_unticked(health: SimpleNa
 async def test_unticking_one_box_saves_the_choice_as_it_is_made(health: SimpleNamespace) -> None:
     async with open_page(_health_page(health)) as user:
         _box_for(user, healthck.CATEGORIES[2].tag).value = False
-        await asyncio.sleep(0.1)
+        await idle()
         assert health.save == [[healthck.CATEGORIES[2].tag]]
 
 
@@ -138,7 +138,7 @@ async def test_deselect_all_saves_once_not_once_per_box(health: SimpleNamespace)
 async def test_run_closes_the_panel_and_hands_over_what_is_unticked(health: SimpleNamespace) -> None:
     async with open_page(_health_page(health)) as user:
         _box_for(user, healthck.CATEGORIES[0].tag).value = False
-        await asyncio.sleep(0.1)
+        await idle()
         await click(user, "Run")
         assert health.run == [[healthck.CATEGORIES[0].tag]]
         assert not dialogs(user)[0].value

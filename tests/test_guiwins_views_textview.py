@@ -29,7 +29,7 @@ from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
 
 from tests.doubles import fake_window, required
-from tests.nicegui_harness import all_elements
+from tests.nicegui_harness import all_elements, idle
 from tests.test_mapfind import _FIXTURE_XML, _load
 
 if TYPE_CHECKING:
@@ -504,7 +504,7 @@ async def test_changing_profiles_per_line_asks_the_window_to_rebuild_for_the_new
         view._profiles_per_line_selected(SimpleNamespace(value="3"))
         view._profiles_per_line_selected(SimpleNamespace(value="5"))
         view._profiles_per_line_selected(7)
-        await asyncio.sleep(0.05)
+        await idle()
         assert _built["profiles"] == [5, 7]
 
 
@@ -531,7 +531,7 @@ async def test_a_diagram_whose_selection_has_moved_on_says_so_and_offers_a_rebui
         assert view.scope_stale_label.visible and view.scope_rebuild_button.visible
 
         _click(user, view.scope_rebuild_button)
-        await asyncio.sleep(0.05)
+        await idle()
         assert _built["rebuilt"] == ["diagram"]
 
 
@@ -541,7 +541,7 @@ async def test_rebuild_without_a_window_to_ask_says_to_press_the_button() -> Non
         view = _built["view"]
         _built["gui"].event_handlers = None
         _click(user, view.scope_rebuild_button)
-        await asyncio.sleep(0.05)
+        await idle()
         assert user.notify.contains("Press Diagram View to rebuild it.")
 
 

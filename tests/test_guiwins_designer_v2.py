@@ -28,7 +28,7 @@ from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
 
 from tests.doubles import fake_window, required
-from tests.nicegui_harness import all_elements
+from tests.nicegui_harness import all_elements, idle
 from tests.test_mapfind import _FIXTURE_XML, _load
 
 if TYPE_CHECKING:
@@ -131,7 +131,7 @@ def _node(path: tuple) -> dict | None:
 
 async def _select(user: User, path: tuple) -> None:
     _click(user, _row(user, path))
-    await asyncio.sleep(0.02)
+    await idle()
 
 
 # ##################################################################################
@@ -442,7 +442,7 @@ async def test_picking_a_chip_inserts_that_element_and_selects_it() -> None:
             if not reason and entry.node_type == "Text"
         )
         _click(user, _button(user, entry.label))
-        await asyncio.sleep(0.05)
+        await idle()
         assert len(_paths()) == before + 1
         assert required(_node(_built["designer"].selection["path"]))["type"] == "Text"
 
@@ -579,7 +579,7 @@ async def test_a_dynamic_state_shows_its_value_box_and_keeps_what_was_typed_when
         assert dynamic.visible
         dynamic.value = "%flag"
         picker.value = None
-        await asyncio.sleep(0.3)
+        await idle()
         assert not dynamic.visible
         assert dynamic.value == "%flag"
 
@@ -852,7 +852,7 @@ async def test_the_show_when_picker_inserts_a_variable_into_the_field_and_closes
             e for e in all_elements(user) if isinstance(e, ui.button) and e.id not in before and e.text == choice.label
         )
         _click(user, button)
-        await asyncio.sleep(0.1)
+        await idle()
         assert field.value == sceneedit_v2state.v2_insert_show_when("a b", choice.value, None)[0]
         assert required(_node(TITLE))["showWhen"] == field.value
         dialog = next(e for e in all_elements(user) if isinstance(e, ui.dialog) and e.id > field.id)
@@ -1057,7 +1057,7 @@ async def test_a_scene_dialog_closed_for_good_leaves_nothing_of_its_designer_beh
             dialog.open()
             assert len(guiwins_canvas._ACTIVE_CANVASES) == table + 1
             dialog.close()
-            await asyncio.sleep(0.05)
+            await idle()
             del dialog, field_refs
             _built["designer"] = None  # The fixture's own capture of it.
             gc.collect()

@@ -430,7 +430,7 @@ async def test_delete_all_asks_first_and_deletes_nothing_until_told_to(tmp_path:
     async with open_page(_tests_page()) as user:
         assert button(user, "Delete All").enabled
 
-        await press(user, button(user, "Delete All"))
+        await press(user, button(user, "Delete All"), wait=False)
 
         assert "Delete all 2 tests?  This cannot be undone." in label_texts(user)
         assert {b.text for b in found(user, ui.button) if b.text in ("Delete", "Cancel")} == {"Delete", "Cancel"}
@@ -443,7 +443,7 @@ async def test_cancelling_delete_all_keeps_every_test(tmp_path: Path) -> None:
     _keep(_case("one"), _case("two"))
 
     async with open_page(_tests_page()) as user:
-        await press(user, button(user, "Delete All"))
+        await press(user, button(user, "Delete All"), wait=False)
 
         await click(user, "Cancel")
 
@@ -460,7 +460,7 @@ async def test_confirming_delete_all_removes_every_test_listed_and_says_so(tmp_p
 
     async with open_page(_tests_page()) as user:
         assert "3 tests: 2 passed, 0 failed, 1 not in this file" in label_texts(user)
-        await press(user, button(user, "Delete All"))
+        await press(user, button(user, "Delete All"), wait=False)
 
         await click(user, "Delete")
 
@@ -481,7 +481,7 @@ async def test_delete_all_of_one_test_says_test_not_tests(tmp_path: Path) -> Non
     _keep(_case("only"))
 
     async with open_page(_tests_page()) as user:
-        await press(user, button(user, "Delete All"))
+        await press(user, button(user, "Delete All"), wait=False)
         assert "Delete all 1 test?  This cannot be undone." in label_texts(user)
 
         await click(user, "Delete")

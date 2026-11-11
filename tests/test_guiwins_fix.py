@@ -22,6 +22,7 @@ from nicegui import core, ui
 from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
 
+from tests.nicegui_harness import idle
 from tests.test_mapfix import _FIXTURE_XML, _load
 
 if TYPE_CHECKING:
@@ -339,7 +340,7 @@ async def test_apply_with_nothing_ticked_asks_for_a_tick_and_changes_nothing() -
     async with _open() as user:
         _press(user, "Tick None")
         _press(user, "Apply")
-        await asyncio.sleep(0.1)
+        await idle()
         assert user.notify.contains("Tick something first.")
     assert _built["rebuilt"] == 0
     assert len(mapfix.plan_fixes(state=PrimeItems).fixes) == before
@@ -371,12 +372,12 @@ async def test_saving_the_configuration_rescans_only_when_the_save_asks_for_it()
     """A save that switched files has left the plan holding elements nothing renders from."""
     async with _open() as user:
         _press(user, "Save To Current File")
-        await asyncio.sleep(0.1)
+        await idle()
         assert _built["saved"] == 1
 
         _built["save_answer"] = True
         _press(user, "Save To Current File")
-        await asyncio.sleep(0.1)
+        await idle()
         assert _built["saved"] == 2
 
 

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 import contextlib
 from typing import TYPE_CHECKING
 
@@ -11,6 +10,8 @@ from maptasker.src.gui import guiwins_dialogs
 from nicegui import core, ui
 from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
+
+from tests.nicegui_harness import idle
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator
@@ -66,7 +67,7 @@ async def test_it_says_what_was_deleted_and_that_it_is_not_saved() -> None:
 async def test_saving_closes_it() -> None:
     async with _open() as user:
         UserInteraction(user, {_button(user, "Save To Current File")}, None).click()
-        await asyncio.sleep(0.1)
+        await idle()
         assert _saved == [True]
         assert not _dialog(user).value
 
@@ -76,5 +77,5 @@ async def test_a_save_that_did_not_happen_leaves_it_up_to_be_pressed_again() -> 
     async with _open() as user:
         _answer["saved"] = False
         UserInteraction(user, {_button(user, "Save To Current File")}, None).click()
-        await asyncio.sleep(0.1)
+        await idle()
         assert _dialog(user).value

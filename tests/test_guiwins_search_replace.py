@@ -10,7 +10,6 @@ closes the dialog and redraws the view it came from.
 
 from __future__ import annotations
 
-import asyncio
 from typing import TYPE_CHECKING
 
 import pytest
@@ -20,7 +19,7 @@ from maptasker.src.gui import guiwins_search
 from maptasker.src.mapops import mapswap, mapswap_action
 from nicegui import ui
 
-from tests.nicegui_harness import all_elements
+from tests.nicegui_harness import all_elements, idle
 from tests.search_dialog import built, by_text, click, field, labels, open_dialog
 from tests.test_mapswap import _FIXTURE_XML, _RENAME_XML, FLASH, NOTIFY, _action, _load
 
@@ -54,7 +53,7 @@ async def _replace_tab(user: User) -> None:
     """Go to the Replace tab, as a person would."""
     (tab,) = (e for e in all_elements(user) if isinstance(e, ui.tab) and e.props.get("label") == "Replace")
     click(user, tab)
-    await asyncio.sleep(0.05)
+    await idle()
 
 
 def _button(user: User, text: str) -> ui.button:
@@ -99,7 +98,7 @@ async def _preview_flash_to_notify(user: User) -> None:
     _replace_select(user, "Replace this action").value = FLASH
     _replace_select(user, "...with this one").value = NOTIFY
     click(user, _button(user, "Preview"))
-    await asyncio.sleep(0.05)
+    await idle()
 
 
 # ##################################################################################
@@ -225,7 +224,7 @@ async def test_a_preview_that_changes_nothing_says_so_and_leaves_replace_off() -
         _replace_select(user, "Replace this action").value = FLASH
         _replace_select(user, "...with this one").value = FLASH
         click(user, _button(user, "Preview"))
-        await asyncio.sleep(0.05)
+        await idle()
         assert not _button(user, "Replace").enabled
 
 
@@ -243,7 +242,7 @@ async def test_replace_applies_what_was_previewed_closes_the_dialog_and_redraws_
         await _preview_flash_to_notify(user)
         dialog = built["view"].find_dialog
         click(user, _button(user, "Replace"))
-        await asyncio.sleep(0.2)
+        await idle()
 
         assert user.notify.contains("changed.")
         assert user.notify.contains("Undo is available.")
@@ -259,7 +258,7 @@ async def test_a_replace_from_the_diagram_redraws_the_diagram() -> None:
         await _replace_tab(user)
         await _preview_flash_to_notify(user)
         click(user, _button(user, "Replace"))
-        await asyncio.sleep(0.2)
+        await idle()
         assert built["rebuilt"] == ["diagram"]
 
 
@@ -272,7 +271,7 @@ async def test_replace_with_nothing_ticked_changes_nothing() -> None:
         for box in _ticks(user):
             box.value = False
         click(user, _button(user, "Replace"))
-        await asyncio.sleep(0.1)
+        await idle()
         assert user.notify.contains("Nothing is ticked.")
         assert built.get("rebuilt") is None
     assert [_action("20", at).findtext("code") for at in range(2)] == codes_before
@@ -335,7 +334,7 @@ async def test_argument_mode_stocks_the_arguments_and_previews_the_new_value() -
         _replace_select(user, "...replace this argument").value = "0"
         field(user, "...and put this there").value = "Ready"
         click(user, _button(user, "Preview"))
-        await asyncio.sleep(0.05)
+        await idle()
         assert _button(user, "Replace").enabled
         assert len(_ticks(user)) == 2
 
@@ -351,7 +350,7 @@ async def test_variable_mode_renames_across_every_place_it_is_used() -> None:
         picker.value = 0
         field(user, "...to this name").value = "%Renamed"
         click(user, _button(user, "Preview"))
-        await asyncio.sleep(0.05)
+        await idle()
         assert _button(user, "Replace").enabled
         assert _ticks(user)
 
@@ -368,7 +367,7 @@ async def test_reopening_after_a_preview_comes_back_to_it_with_the_same_ticks() 
         ticks = [box.value for box in _ticks(user)]
 
         click(user, by_text(user, "Find")[0])
-        await asyncio.sleep(0.1)
+        await idle()
 
         assert _button(user, "Replace").enabled
         assert [box.value for box in _ticks(user)] == ticks

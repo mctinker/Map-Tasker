@@ -9,7 +9,6 @@ saves a repeat from crawling the page again.
 
 from __future__ import annotations
 
-import asyncio
 from typing import TYPE_CHECKING
 
 import pytest
@@ -17,6 +16,7 @@ from maptasker.src.core import mapjump
 from maptasker.src.gui import guiwins_search
 from nicegui.client import Client
 
+from tests.nicegui_harness import idle
 from tests.search_dialog import built, by_text, click, field, labels, links, open_page
 from tests.test_mapfind import _FIXTURE_XML, _load
 
@@ -63,7 +63,7 @@ def _browser(monkeypatch: pytest.MonkeyPatch) -> None:
 async def _search(user: User, text: str) -> None:
     field(user, "Search").value = text
     click(user, by_text(user, "Search")[0])
-    await asyncio.sleep(0.1)
+    await idle()
 
 
 @pytest.mark.asyncio
@@ -123,7 +123,7 @@ async def test_following_a_row_closes_the_window_and_sends_the_jump_to_the_page(
         await _search(user, "http")
         built["scripts"].clear()
         click(user, links(user)[1])
-        await asyncio.sleep(0.1)
+        await idle()
         assert [code for code, _timeout in built["scripts"]] == [guiwins_search.search_jump_js("m2")]
 
 

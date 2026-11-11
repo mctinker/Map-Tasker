@@ -24,6 +24,7 @@ from nicegui.testing.user import User
 from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
 
+from tests.nicegui_harness import idle
 from tests.shared_fixtures import _load_local
 from tests.test_mapvars import _XML
 
@@ -382,7 +383,7 @@ async def test_a_failed_read_leaves_the_table_as_it_was(tmp_path: Path, monkeypa
         _press(user, _only(user, "Get From Phone"))
         await user.should_see("Reads the current value")
         _press(user, _only(user, "Get Values"))
-        await asyncio.sleep(0.5)
+        await idle()
         assert all(not row["phone"] for row in _table(user).rows)
         assert _built["manager"].live is None
 
@@ -428,7 +429,7 @@ async def test_a_push_the_phone_refused_shows_nothing_as_held(tmp_path: Path, mo
         _press(user, _only(user, "Send To Phone"))
         await user.should_see("Send To Phone: %Mode")
         _press(user, _only(user, "Send Value"))
-        await asyncio.sleep(0.5)
+        await idle()
         assert manager.live is None
 
 
@@ -602,7 +603,7 @@ async def test_a_variable_the_phone_would_not_remove_stays_shown_as_held(
         _press(user, _only(user, "Delete On Phone"))
         await user.should_see("Delete On Phone: %Mode")
         _press(user, _newest(user, "Delete On Phone"))
-        await asyncio.sleep(0.5)
+        await idle()
 
     assert manager.live.values == {"%Mode": "evening"}
 

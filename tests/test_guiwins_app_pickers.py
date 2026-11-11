@@ -8,7 +8,6 @@ not lose the ticks made so far.
 
 from __future__ import annotations
 
-import asyncio
 from types import SimpleNamespace
 from typing import TYPE_CHECKING, Any
 
@@ -18,7 +17,7 @@ from maptasker.src.core.primitem import RunState
 from maptasker.src.gui import guiwins_taskpickers
 from nicegui import ui
 
-from tests.nicegui_harness import all_elements, click, found, label_texts, open_page
+from tests.nicegui_harness import all_elements, click, found, idle, label_texts, open_page
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -83,7 +82,7 @@ async def test_ticking_writes_back_in_inventory_order_not_tick_order(apps: Any) 
     async with open_page(page) as user:
         for box in reversed(_checks(user)):
             box.value = True
-        await asyncio.sleep(0.05)
+        await idle()
         await click(user, "Use Selected")
         assert made[0].value == "com.android.camera, com.whatsapp, org.example.notes"
 
@@ -94,7 +93,7 @@ async def test_unticking_removes_the_package_and_cancel_leaves_the_field_alone(a
     async with open_page(page) as user:
         (box,) = [c for c in _checks(user) if c.value]
         box.value = False
-        await asyncio.sleep(0.05)
+        await idle()
         await click(user, "Cancel")
         assert made[0].value == "com.whatsapp"
         (dialog,) = found(user, ui.dialog)
@@ -106,13 +105,13 @@ async def test_the_search_narrows_the_list_by_label_or_package_and_says_when_not
     page, _made = _multi(apps, "")
     async with open_page(page) as user:
         _search(user).value = "whats"
-        await asyncio.sleep(0.05)
+        await idle()
         assert [c.text for c in _checks(user)] == ["WhatsApp  (com.whatsapp)"]
         _search(user).value = "example"
-        await asyncio.sleep(0.05)
+        await idle()
         assert [c.text for c in _checks(user)] == ["Notes  (org.example.notes)"]
         _search(user).value = "zzz"
-        await asyncio.sleep(0.05)
+        await idle()
         assert _checks(user) == [] and "Nothing here." in label_texts(user)
 
 
@@ -200,11 +199,11 @@ async def test_the_single_picker_searches_and_cancels(apps: Any) -> None:
     picked: list[appinv.AppEntry] = []
     async with open_page(_single(apps, picked)) as user:
         _search(user).value = "camera"
-        await asyncio.sleep(0.05)
+        await idle()
         texts = [b.text for b in found(user, ui.button)]
         assert "Camera  (com.android.camera)" in texts and "WhatsApp  (com.whatsapp)" not in texts
         _search(user).value = "zzz"
-        await asyncio.sleep(0.05)
+        await idle()
         assert "Nothing here." in label_texts(user)
         await click(user, "Cancel")
         assert picked == []

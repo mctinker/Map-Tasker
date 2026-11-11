@@ -22,7 +22,7 @@ from nicegui import ui
 
 from tests.doubles import required
 from tests.faketasker import FakeTasker
-from tests.nicegui_harness import click, found, open_page, settled
+from tests.nicegui_harness import click, found, idle, open_page, settled
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator, Awaitable, Callable, Iterator
@@ -433,7 +433,7 @@ async def test_saying_yes_to_the_overwrite_sends_it_and_keeps_a_copy_of_the_old_
 
     async with open_page(build) as user:
         await click(user, "go")
-        await asyncio.sleep(0.5)
+        await idle()
         asked[0]["yes"]()
         await asyncio.sleep(1)
 

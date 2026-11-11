@@ -27,7 +27,7 @@ from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
 
 from tests.doubles import fake_window, required
-from tests.nicegui_harness import all_elements
+from tests.nicegui_harness import all_elements, idle
 from tests.test_mapswap import _load
 
 if TYPE_CHECKING:
@@ -149,7 +149,7 @@ def _number(user: User, label: str) -> ui.number:
 
 async def _select(user: User, *labels: str) -> None:
     _built["designer"].select(*(_sr(label) for label in labels))
-    await asyncio.sleep(0.02)
+    await idle()
 
 
 # ##################################################################################
@@ -193,7 +193,7 @@ async def test_the_status_line_explains_the_canvas_then_the_group() -> None:
 async def test_clicking_a_row_selects_it_and_shows_its_properties() -> None:
     async with _open() as user:
         _click(user, _row(user, "Button 'Go'"))
-        await asyncio.sleep(0.02)
+        await idle()
         assert _built["designer"].selection["srs"] == (_sr("Button 'Go'"),)
         assert "bg-blue-600" in _row(user, "Button 'Go'").classes
         assert "Geometry" in _texts(user)
@@ -486,7 +486,7 @@ async def test_add_offers_every_element_and_adding_one_puts_it_on_top_and_select
         _press(user, "Add")
         assert "Add Element" in _texts(user)
         _press(user, "Rectangle")
-        await asyncio.sleep(0.05)
+        await idle()
         assert len(_order()) == 4
         assert _order()[-1].startswith("Rect")
         assert _built["designer"].selection["sr"] == sceneview.paint_order(_scene())[-1].get("sr")
@@ -602,7 +602,7 @@ async def test_renaming_changes_the_element_and_is_one_undo_step() -> None:
         name = next(e for e in all_elements(user) if isinstance(e, ui.input) and e.props.get("label") == "New name")
         name.value = "Launch"
         _click(user, _button(user, "Rename"))
-        await asyncio.sleep(0.05)
+        await idle()
         assert "Button 'Launch'" in _order()
         assert _built["edited"].element_renames == [], "no Task needed bringing along"
         _press(user, "Undo")
@@ -630,7 +630,7 @@ async def test_a_rename_that_tasks_depend_on_offers_to_bring_them_along_and_reco
         name = next(e for e in all_elements(user) if isinstance(e, ui.input) and e.props.get("label") == "New name")
         name.value = "Launch"
         _click(user, _button(user, "Rename"))
-        await asyncio.sleep(0.05)
+        await idle()
         assert _built["edited"].element_renames == [("Go", "Launch")]
         assert user.notify.contains("will be updated when this Scene is saved")
 
@@ -646,7 +646,7 @@ async def test_unticking_the_task_update_renames_without_recording_a_sweep(monke
         name = next(e for e in all_elements(user) if isinstance(e, ui.input) and e.props.get("label") == "New name")
         name.value = "Launch"
         _click(user, _button(user, "Rename"))
-        await asyncio.sleep(0.05)
+        await idle()
         assert "Button 'Launch'" in _order()
         assert _built["edited"].element_renames == []
 
@@ -660,7 +660,7 @@ async def test_a_name_the_model_refuses_is_reported_and_leaves_the_element_alone
         name.value = "Label"  # another element's name
         before = _order()
         _click(user, _button(user, "Rename"))
-        await asyncio.sleep(0.05)
+        await idle()
         assert _order() == before
         assert not _built["designer"].history
 

@@ -8,7 +8,6 @@ other dialogs do not -- put the Scene back as it was found, and say so only when
 
 from __future__ import annotations
 
-import asyncio
 import xml.etree.ElementTree as ET
 from types import SimpleNamespace
 from typing import TYPE_CHECKING, Any
@@ -19,7 +18,7 @@ from maptasker.src.core import scenelayout
 from maptasker.src.gui import guiwins_scene
 from nicegui import ui
 
-from tests.nicegui_harness import click, dialogs, found, label_texts, open_page
+from tests.nicegui_harness import click, dialogs, found, idle, label_texts, open_page
 
 if TYPE_CHECKING:
     pass
@@ -147,9 +146,9 @@ async def test_closing_the_dialog_tells_the_preview_it_opened(stubs: SimpleNames
 
     async with open_page(page):
         made[0].open()
-        await asyncio.sleep(0.05)
+        await idle()
         made[0].close()
-        await asyncio.sleep(0.05)
+        await idle()
         assert stubs.closed, "the preview hears about the change when the dialog closes"
 
 

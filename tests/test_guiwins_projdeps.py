@@ -8,7 +8,6 @@ Report says where the report went.  The window is the real one, on a page of Nic
 
 from __future__ import annotations
 
-import asyncio
 import contextlib
 from types import SimpleNamespace
 from typing import TYPE_CHECKING, Any
@@ -24,6 +23,7 @@ from nicegui.testing.user import User
 from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
 
+from tests.nicegui_harness import idle
 from tests.test_maprefac import _load
 from tests.test_projdeps import _XML, _action, _project, _task
 
@@ -158,7 +158,7 @@ async def test_a_line_of_the_detail_is_a_link_that_jumps_to_where_it_is() -> Non
 
         assert links, "the user of Setup is a click"
         UserInteraction(user, set(links[:1]), None).click()
-        await asyncio.sleep(0.05)
+        await idle()
         assert [target.key for target in _built["jumps"]] == ["10"]
 
 

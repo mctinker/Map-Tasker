@@ -24,6 +24,7 @@ from nicegui.testing.user import User
 from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
 
+from tests.nicegui_harness import idle
 from tests.test_compat import _configuration
 from tests.test_maprefac import _load
 
@@ -119,7 +120,7 @@ async def test_a_place_a_finding_names_is_a_link_that_jumps_to_it() -> None:
         link = next(element for element in user.find(kind=ui.link).elements if "Morning" in element.text)
 
         UserInteraction(user, {link}, None).click()
-        await asyncio.sleep(0.05)
+        await idle()
 
         assert [target.key for target in _built["jumps"]] == ["10"]
 

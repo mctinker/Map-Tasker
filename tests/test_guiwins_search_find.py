@@ -10,7 +10,6 @@ that reopening it comes back to the last question asked.
 
 from __future__ import annotations
 
-import asyncio
 from typing import TYPE_CHECKING, Any
 
 import pytest
@@ -21,7 +20,7 @@ from maptasker.src.gui import guiwins_search
 from nicegui import ui
 
 from tests.doubles import required
-from tests.nicegui_harness import all_elements
+from tests.nicegui_harness import all_elements, idle
 from tests.search_dialog import built, by_text, click, field, labels, links, open_dialog, press_find, select
 from tests.test_mapfind import _FIXTURE_XML, _load
 
@@ -175,7 +174,7 @@ async def test_following_a_row_goes_to_its_object_and_docks_the_dialog_rather_th
 
         row = links(user)[0]
         click(user, row)
-        await asyncio.sleep(0.1)
+        await idle()
 
         ((target, prefer_diagram),) = built["jumps"]
         assert (target.kind, target.name) == (TASK, "Quiet")
@@ -192,7 +191,7 @@ async def test_a_find_from_the_diagram_asks_to_be_shown_in_the_diagram() -> None
         field(user, "Text (name, label or argument)").value = "quietly"
         press_find(user)
         click(user, links(user)[0])
-        await asyncio.sleep(0.1)
+        await idle()
         assert built["jumps"][0][1] is True
 
 
@@ -262,7 +261,7 @@ async def test_dismissing_deletes_the_dialog_and_forgets_it() -> None:
 async def test_ask_with_no_question_asks_for_one() -> None:
     async with open_dialog() as user:
         click(user, by_text(user, "Ask AI")[0])
-        await asyncio.sleep(0.05)
+        await idle()
         assert user.notify.contains("Type a question first.")
 
 
@@ -275,7 +274,7 @@ async def test_ask_with_no_model_chosen_reports_why(monkeypatch: pytest.MonkeyPa
     async with open_dialog() as user:
         field(user, "Ask in plain words").value = "wifi at home"
         click(user, by_text(user, "Ask AI")[0])
-        await asyncio.sleep(0.05)
+        await idle()
         assert user.notify.contains("Choose an AI model on the Analyze tab first.")
 
 
@@ -296,7 +295,7 @@ async def test_a_translated_question_fills_the_boxes_and_runs_the_query(monkeypa
     async with open_dialog() as user:
         field(user, "Ask in plain words").value = "anything quiet"
         click(user, by_text(user, "Ask AI")[0])
-        await asyncio.sleep(0.1)
+        await idle()
         assert field(user, "Text (name, label or argument)").value == "quietly"
         assert len(links(user)) == 1
         notes = [e for e in all_elements(user) if isinstance(e, ui.label) and "Left out" in e.text]
@@ -316,7 +315,7 @@ async def test_a_question_that_comes_back_empty_says_so_and_clears_the_list(monk
         press_find(user)
         field(user, "Ask in plain words").value = "gibberish"
         click(user, by_text(user, "Ask AI")[0])
-        await asyncio.sleep(0.1)
+        await idle()
         assert user.notify.contains("The question could not be turned into a search.")
         assert links(user) == []
 
@@ -331,7 +330,7 @@ async def test_a_model_error_is_reported_and_leaves_the_boxes_alone(monkeypatch:
     async with open_dialog() as user:
         field(user, "Ask in plain words").value = "anything"
         click(user, by_text(user, "Ask AI")[0])
-        await asyncio.sleep(0.1)
+        await idle()
         assert user.notify.contains("The model did not answer.")
         assert field(user, "Text (name, label or argument)").value in (None, "")
         assert built["view"].find_ask is None

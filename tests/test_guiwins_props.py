@@ -8,7 +8,6 @@ Ok and Cancel handing the form's own widgets to the editors handler.
 
 from __future__ import annotations
 
-import asyncio
 import xml.etree.ElementTree as ET
 from types import SimpleNamespace
 from typing import TYPE_CHECKING
@@ -19,7 +18,7 @@ from maptasker.src.core import objprops
 from maptasker.src.gui import guiwins_props
 from nicegui import ui
 
-from tests.nicegui_harness import all_elements, click, found, label_texts, open_page, press
+from tests.nicegui_harness import all_elements, click, found, idle, label_texts, open_page, press
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -174,11 +173,11 @@ async def test_same_as_value_follows_the_value_and_locks_the_exported_value() ->
         same = next(e for e in all_elements(user) if isinstance(e, ui.checkbox) and e.text == "Same as Value")
         same.value = True
         inputs["Value"].value = "42"
-        await asyncio.sleep(0.1)
+        await idle()
         assert inputs["Exported Value"].value == "42"
         assert not inputs["Exported Value"].enabled
         same.value = False
-        await asyncio.sleep(0.1)
+        await idle()
         assert inputs["Exported Value"].enabled
 
 

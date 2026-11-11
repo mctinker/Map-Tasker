@@ -7,7 +7,6 @@ can lift -- and only those two -- and the re-asking of an action's arguments onc
 
 from __future__ import annotations
 
-import asyncio
 from types import SimpleNamespace
 from typing import TYPE_CHECKING, Any
 from unittest.mock import MagicMock
@@ -19,7 +18,7 @@ from maptasker.src.edit import taskedit_model
 from maptasker.src.gui import guiwins_taskedit, guiwins_taskpickers
 from nicegui import ui
 
-from tests.nicegui_harness import click, found, label_texts, open_page
+from tests.nicegui_harness import click, found, idle, label_texts, open_page
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -110,11 +109,11 @@ async def test_the_icon_search_matches_the_display_name_or_the_reference_and_say
     async with open_page(page) as user:
         (box,) = [e for e in found(user, ui.input) if "Search" in str(e.props.get("placeholder", ""))]
         box.value = "whatsapp"
-        await asyncio.sleep(0.05)
+        await idle()
         assert "App: com.whatsapp" in [b.text for b in found(user, ui.button)]
         assert "ic_one  (icons)" not in [b.text for b in found(user, ui.button)]
         box.value = "zzzzzz"
-        await asyncio.sleep(0.05)
+        await idle()
         assert "Nothing here." in label_texts(user)
 
 

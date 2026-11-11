@@ -8,7 +8,6 @@ note, the Continue After Error box only for an action that can fail, and the pro
 
 from __future__ import annotations
 
-import asyncio
 from types import SimpleNamespace
 from typing import TYPE_CHECKING, Any, cast
 from unittest.mock import MagicMock
@@ -19,7 +18,7 @@ from maptasker.src.edit import taskedit_model
 from maptasker.src.gui import guiwins_taskedit
 from nicegui import ui
 
-from tests.nicegui_harness import all_elements, click, label_texts, open_page
+from tests.nicegui_harness import all_elements, click, idle, label_texts, open_page
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -132,10 +131,10 @@ async def test_a_picked_task_overwrites_the_text_input_and_the_picker_is_never_a
         assert refs["name"].value == "typed" and list(refs) == ["name"]
         (picker,) = [e for e in all_elements(user) if isinstance(e, ui.select)]
         picker.value = "Beta"
-        await asyncio.sleep(0.05)
+        await idle()
         assert refs["name"].value == "Beta"
         picker.value = None
-        await asyncio.sleep(0.05)
+        await idle()
         assert refs["name"].value == "Beta", "clearing the picker does not blank what was chosen"
 
 
@@ -197,7 +196,7 @@ async def test_an_action_with_a_condition_shows_it_ticked_and_unticking_stashes_
         (box,) = [e for e in all_elements(user) if isinstance(e, ui.checkbox)]
         assert box.value is True and box.text == "If: %x equals 1"
         box.value = False
-        await asyncio.sleep(0.05)
+        await idle()
         assert cache == {1: ("%x", "equals", "1")}
         conditions.editors.remove_action_condition_event.assert_called_once_with(task, 1)
         assert box.text == "If"
@@ -218,7 +217,7 @@ async def test_ticking_an_action_with_no_condition_opens_the_prompt(
         (box,) = [e for e in all_elements(user) if isinstance(e, ui.checkbox)]
         assert box.value is False and box.text == "If"
         box.value = True
-        await asyncio.sleep(0.05)
+        await idle()
         assert opened and opened[0][2] == 1
 
 
@@ -301,7 +300,7 @@ async def test_the_error_box_exists_only_for_an_action_that_can_fail_and_routes_
             return
         assert boxes[0].value is True
         boxes[0].value = False
-        await asyncio.sleep(0.05)
+        await idle()
         conditions.editors.set_action_continue_after_error_event.assert_called_once_with(task, 4, False)
 
 

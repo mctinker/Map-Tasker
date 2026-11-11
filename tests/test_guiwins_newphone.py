@@ -25,6 +25,7 @@ from nicegui.testing.user import User
 from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
 
+from tests.nicegui_harness import idle
 from tests.test_maprefac import _load
 from tests.test_newphone import PHONE, XML
 
@@ -145,7 +146,7 @@ async def test_a_profile_is_a_link_that_jumps_to_it_in_the_map() -> None:
         link = next(element for element in user.find(kind=ui.link).elements if element.text == "Show in Map")
 
         UserInteraction(user, {link}, None).click()
-        await asyncio.sleep(0.05)
+        await idle()
 
         assert [target.name for target in _built["jumps"]] == ["Dawn"]
 

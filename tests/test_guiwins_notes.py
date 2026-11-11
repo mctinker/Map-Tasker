@@ -22,6 +22,8 @@ from nicegui.testing.user import User
 from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
 
+from tests.nicegui_harness import idle
+
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator, Callable
 
@@ -541,7 +543,7 @@ async def test_cancelling_the_delete_keeps_every_note() -> None:
         _press(user, _window().buttons["delete"])
         await user.should_see("Delete the chosen notes?")
         _press(user, _newest(user, "Cancel"))
-        await asyncio.sleep(0.2)
+        await idle()
 
     assert len(_file_notes()) == 4
 
@@ -552,7 +554,7 @@ async def test_nothing_ticked_deletes_nothing() -> None:
         await user.should_see("Notes & Tags")
         _tick()
         _press(user, _window().buttons["delete"])
-        await asyncio.sleep(0.1)
+        await idle()
 
     assert len(_file_notes()) == 4
 

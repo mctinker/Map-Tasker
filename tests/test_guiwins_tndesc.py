@@ -11,7 +11,6 @@ is the one thing it does not have, so the selection a button is pressed over is 
 
 from __future__ import annotations
 
-import asyncio
 import xml.etree.ElementTree as ET
 from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
@@ -26,7 +25,7 @@ from maptasker.src.gui import guiwins_profedit, guiwins_project, guiwins_taskedi
 from maptasker.src.gui.userintr import MapTaskerEventHandlers
 from nicegui import ui
 
-from tests.nicegui_harness import button, click, found, open_page, press
+from tests.nicegui_harness import button, click, found, idle, open_page, press
 from tests.test_mapswap import _load
 from tests.test_profedit import _XML
 
@@ -281,12 +280,12 @@ async def test_choosing_a_heading_level_makes_the_selection_that_heading(selecti
     async with open_page(_open_editor(element)) as user:
         (levels,) = [s for s in found(user, ui.select) if "h1" in list(s.options)]
         levels.set_value("h3")
-        await asyncio.sleep(0.1)
+        await idle()
         assert _box(user).value == "<h3>Title</h3> and more"
 
         selection["asked"] = (4, 9)
         levels.set_value("h1")
-        await asyncio.sleep(0.1)
+        await idle()
         assert _box(user).value == "<h1>Title</h1> and more"
 
 
@@ -321,7 +320,7 @@ async def test_link_and_color_use_the_address_and_color_given(selection: dict) -
         assert str(_box(user).value).startswith('<font color="red">colored text</font>')
         selection["asked"] = (len('<font color="red">'), len('<font color="red">colored text'))
         colors.set_value("blue")
-        await asyncio.sleep(0.1)
+        await idle()
         assert str(_box(user).value).startswith('<font color="blue">colored text</font>')
 
 
@@ -334,12 +333,12 @@ async def test_choosing_red_first_still_writes_it_and_so_does_choosing_it_again(
     async with open_page(_open_editor(element)) as user:
         (colors,) = [s for s in found(user, ui.select) if "red" in list(s.options)]
         colors.set_value("red")
-        await asyncio.sleep(0.1)
+        await idle()
         assert _box(user).value == '<font color="red">text</font> and more'
 
         _box(user).set_value("text and more")
         colors.set_value("red")
-        await asyncio.sleep(0.1)
+        await idle()
         assert _box(user).value == '<font color="red">text</font> and more'
 
 
@@ -352,11 +351,11 @@ async def test_a_hex_color_from_the_palette_colors_the_selection(selection: dict
     async with open_page(_open_editor(element)) as user:
         (palette,) = found(user, ui.color_input)
         palette.set_value("#33")
-        await asyncio.sleep(0.1)
+        await idle()
         assert _box(user).value == "text and more"
 
         palette.set_value("#336699")
-        await asyncio.sleep(0.1)
+        await idle()
         assert _box(user).value == '<font color="#336699">text</font> and more'
 
 
