@@ -20,6 +20,7 @@ from maptasker.src.edit import sessundo
 from maptasker.src.mapops import maprefac, maprefac_split, projdeps
 from maptasker.src.mapops.maprefac_model import SPLIT, members, object_table
 
+from tests.doubles import required
 from tests.test_maprefac import _load
 from tests.test_projdeps import _XML, _action, _perform, _project, _task
 
@@ -146,7 +147,7 @@ def test_what_is_left_behind_and_still_uses_something_that_moved_is_reported(loa
     assert _crossings(plan) == [
         "Project 'Media' > Task 'Show' (id 30) action 1 performs Task 'Setup', which has moved to the new Project",
     ]
-    assert plan.crossings[0].where is not None, "and it is a click to the place that uses it"
+    assert required(plan.crossings)[0].where is not None, "and it is a click to the place that uses it"
 
 
 def test_a_profile_that_stays_and_runs_a_task_that_moved_is_reported(loaded: None) -> None:

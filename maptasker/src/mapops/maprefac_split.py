@@ -48,7 +48,7 @@
 from __future__ import annotations
 
 import copy
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 from xml.etree.ElementTree import Element
 
 from maptasker.src.analysis.xmldiff import Configuration
@@ -111,7 +111,7 @@ def _after_the_split(
     the live ones, since they are the same objects afterwards.  Nothing is written to the live configuration.
     """
     moved = {"tids": set(tasks), "pids": set(profiles), "scenes": set(scenes)}
-    projects: dict[str, dict] = {}
+    projects: dict[str, dict[str, Any]] = {}
     for name, entry in object_table("all_projects", state=state).items():
         element = copy.deepcopy(entry["xml"])
         for tag, going in moved.items():

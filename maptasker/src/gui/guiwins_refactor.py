@@ -1132,7 +1132,8 @@ def _plan_split(widgets: dict[str, Any], state: RunState) -> maprefac_model.Plan
     Nothing chosen, or no name yet, is the user's turn rather than a refusal: the preview is for the question
     "what would this do", and there is nothing yet to ask it about.
     """
-    picks = [maprefac_split.split_pick(key) for key in widgets["split_picks"].value or []]
+    chosen: list[str] = widgets["split_picks"].value or []
+    picks = [maprefac_split.split_pick(key) for key in chosen]
     name = (widgets["split_name"].value or "").strip()
     if not picks or not name:
         return None
