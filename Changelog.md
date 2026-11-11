@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file!
 
 ### Added
 
+- Added: __Plugin Retirement Advisor__ in the Analyze section lists the plugins your file uses that Tasker now does itself, such as AutoShortcut (the Shortcut action, Tasker 5.9) and Join (Remote Action Execution, 6.4), with the built-in that takes over, the version it arrived in and every place the plugin is used. It says when a plugin is only partly replaced, and it changes nothing.
+
 - Added: __New-Phone Checklist__ in the Analyze section lists what is left to set up after restoring a backup onto a new phone -- plugins and apps to install (flagged when the phone lacks them), special access with its commands ready to copy, global variables with their values, and Profiles to enable -- each with a tick-box. Your ticks are remembered between sessions.
 
 - Added: __Export for Reddit__ in the Map view's Export menu copies whatever the Map shows -- a Project, Profile, Task or Scene, or everything -- to the clipboard in Tasker's own text layout, as a code block ready to paste into a post on r/tasker. A copy is also saved in the Output Folder.

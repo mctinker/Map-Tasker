@@ -306,6 +306,8 @@ Se dokumentet [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/cavea
 
 - [x] Live Run Monitor: strøm live, hvilke Profiles og Tasks der udløses på telefonen, og markér dem i Diagram-visningen
 
+- [x] Projektets afhængighedsgraf
+
 - [x] Tilføj/rediger beskrivelser for TaskerNet.
 
 - [x] Variabeladministrator

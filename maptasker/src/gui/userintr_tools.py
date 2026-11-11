@@ -33,6 +33,7 @@ from maptasker.src.gui.guiwins_projdeps import build_project_dependencies_window
 from maptasker.src.gui.guiwins_refactor import build_refactor_dialog
 from maptasker.src.gui.guiwins_resources import build_resources_dialog
 from maptasker.src.gui.guiwins_restore import build_restore_dialog
+from maptasker.src.gui.guiwins_retire import build_retirement_window
 from maptasker.src.gui.guiwins_taskstep import build_taskstep_dialog
 from maptasker.src.gui.guiwins_tnupdate import build_tnupdate_dialog
 from maptasker.src.gui.guiwins_trend import build_trend_dialog
@@ -195,6 +196,23 @@ class ToolEventHandlers(HandlerGroup):
             return go
 
         build_new_phone_window(make_jump, self.state).open()
+
+    def retirement_event(self) -> None:
+        """Open the Plugin Retirement Advisor: which plugins the loaded file uses that Tasker now does itself.
+
+        Opens with nothing loaded too, for its table.  Rebuilt on every press, for variable_manager_event's reason, so it
+        reads the configuration as it is now.  Its Show In Map links open a window of their own, for the reason a
+        refactor's do.
+        """
+
+        def make_jump(target: mapjump.Target) -> Callable[[], Coroutine[Any, Any, None]]:
+            async def go() -> None:
+                with opening_view_in_a_new_window(self.gui):
+                    await go_to_target(self.gui, target)
+
+            return go
+
+        build_retirement_window(make_jump, self.state).open()
 
     def project_dependencies_event(self) -> None:
         """Open the Project Dependencies window: which Projects use Tasks, Scenes and globals that live in other Projects.

@@ -304,6 +304,8 @@ Consulte el documento de [Advertencias (Caveats)](https://github.com/mctinker/Ma
 
 ## Lista de tareas pendientes (sin un orden particular)
 
+- [x] Herramienta para encontrar tareas que han sido copiadas y pegadas con ligeras diferencias, y que ofrece la posibilidad de fusionarlas.
+
 - [x] Comprobación de preparación (Readiness Check)
 
 - [x] Soporte para complementos adicionales

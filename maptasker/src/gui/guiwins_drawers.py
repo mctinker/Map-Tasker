@@ -804,6 +804,30 @@ def _create_analysis_buttons_section(self: MyGui) -> None:
     _create_project_dependencies_button(self)
     _create_compatibility_button(self)
     _create_new_phone_button(self)
+    _create_retirement_button(self)
+
+
+def _create_retirement_button(self: MyGui) -> None:
+    """Plugin Retirement Advisor, after the other Analyze buttons: which plugins does Tasker now do itself?"""
+    retirement_button = (
+        ui.button(
+            translate_string("Plugin Retirement Advisor"),
+            color="teal",
+            on_click=self.event_handlers.tools.retirement_event,
+            icon="extension_off",
+        )
+        .classes("w-full justify-center")
+        .style("margin-top:-6px")
+    )
+    with retirement_button:
+        ui.tooltip(
+            translate_string(
+                "Finds the plugins this file uses that Tasker now does itself, such as AutoShortcut and the Shortcut "
+                "action, and says which built-in takes over and since which Tasker version, with every place the "
+                "plugin is used.\n\nA plugin is listed only where its author or Tasker's release notes say Tasker "
+                "took the job over, so a plugin that is not listed may still have a built-in.\n\nNothing is changed.",
+            ),
+        ).style("white-space: pre-wrap")
 
 
 def _create_new_phone_button(self: MyGui) -> None:

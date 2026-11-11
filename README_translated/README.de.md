@@ -306,6 +306,8 @@ Einzelheiten finden Sie im Dokument [Caveats](https://github.com/mctinker/Map-Ta
 
 - [x] Live Run Monitor: live streamen, welche Profiles und Tasks auf dem Telefon ausgelöst werden, und sie in der Diagram-Ansicht hervorheben
 
+- [x] Abhängigkeitsdiagramm des Projekts
+
 - [x] Aufgabenbeschreibungen in TaskerNet bearbeiten/hinzufügen.
 
 - [x] Batterietest

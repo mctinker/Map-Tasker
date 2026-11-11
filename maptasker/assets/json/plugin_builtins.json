@@ -1,0 +1,45 @@
+{
+  "_comment": [
+    "Third-party plugins that Tasker now does itself, for retire.py (the Plugin Retirement Advisor).",
+    "Data, not code.  Each entry names a plugin by the package a backup records for it, says how much of it the built-in",
+    "covers, and points at the built-in by its key in compat.json -- the name of the action, event or state and the Tasker",
+    "version that introduced it are read from there, so they are written down in one place only.",
+    "",
+    "'coverage'  'replaces' where the developer says the plugin's job is now Tasker's, and 'overlaps' where the built-in",
+    "            does part of what the plugin does and the plugin still does more.  The advisor says which in every line,",
+    "            because 'you can drop this plugin' is only true of the first.",
+    "'builtins'  the compat.json keys (Tasker code plus t, e or s) of what takes over.",
+    "'note'      what the built-in covers and what it does not, in a sentence.",
+    "'source'    where the pairing comes from: the developer's own words, or Tasker's release notes.",
+    "",
+    "An entry is here only when something written by the plugin's author or Tasker's release notes says so.  A built-in that",
+    "merely looks like a plugin's feature is not enough, and the list is meant to stay short for that reason.",
+    "tests/test_retire.py holds every 'builtins' key to compat.json and every 'package' to a plugin's own package form."
+  ],
+  "plugins": [
+    {
+      "package": "com.joaomgcd.autoshortcut",
+      "plugin": "AutoShortcut",
+      "coverage": "replaces",
+      "builtins": ["370t"],
+      "note": "The Shortcut action opens another app's launcher shortcut from a Task, which is what AutoShortcut was for.",
+      "source": "https://joaoapps.com/tasker-5-9-the-game-changer/"
+    },
+    {
+      "package": "com.joaomgcd.autoalarm",
+      "plugin": "AutoAlarm",
+      "coverage": "replaces",
+      "builtins": ["364t", "2084e"],
+      "note": "Tasker reads the time and details of the next alarm itself, and an event fires when an alarm changes.",
+      "source": "https://joaoapps.com/tasker-5-9-the-game-changer/"
+    },
+    {
+      "package": "com.joaomgcd.join",
+      "plugin": "Join",
+      "coverage": "overlaps",
+      "builtins": ["462t"],
+      "note": "Remote Action Execution runs Tasker actions on your other devices, which covers Join's job of making something happen on another device. Join does more than that, with many ready-made features of its own, so check what you use Join for before dropping it.",
+      "source": "https://tasker.joaoapps.com/changes/changes6.4.html"
+    }
+  ]
+}

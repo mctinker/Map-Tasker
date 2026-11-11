@@ -51,6 +51,8 @@ REFACTOR_FILE = "MapTasker_Refactor.txt"
 PROJDEPS_FILE = "MapTasker_ProjectDependencies.txt"
 # Which of a configuration's actions and features break on which Tasker versions -- see compat.py.
 COMPAT_FILE = "MapTasker_Compatibility.txt"
+# The plugins a configuration uses that Tasker now does itself, and what does it -- see retire.py.
+RETIRE_FILE = "MapTasker_PluginRetirement.txt"
 # The new-phone checklist and the ticks that remember how far you got -- see newphone.py.  The ticks stay in the
 # current directory beside the notes and never in the backup; the report goes to the Output Folder.
 NEWPHONE_FILE = "MapTasker_NewPhone.json"

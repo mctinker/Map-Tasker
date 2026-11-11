@@ -211,6 +211,12 @@ DESCRIPTIONS: dict[str, dict[str, str]] = {
         "produced_by": "'New-Phone Checklist' > Save Report",
         "note": "What is left to set up on a new phone after restoring the backup -- plugins and apps to install, special access to grant, global variables to enter and Profiles to enable -- with what has been ticked off.",
     },
+    "MapTasker_PluginRetirement.txt": {
+        "section": "Reports",
+        "location": OUTPUT,
+        "produced_by": "'Plugin Retirement Advisor' > Save Report",
+        "note": "The plugins the loaded file uses that Tasker now does itself, the built-in that takes over from each and since which Tasker version, and where the plugin is used.",
+    },
     "MapTasker_Monitor.txt": {
         "section": "Reports",
         "location": OUTPUT,

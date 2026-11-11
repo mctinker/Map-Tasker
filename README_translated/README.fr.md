@@ -310,6 +310,8 @@ Reportez-vous au document [Caveats](https://github.com/mctinker/Map-Tasker/blob/
 
 - [x] Gestionnaire de variables
 
+- [x] Projet de séparation
+
 - [x] Vérificateur de ressources manquantes : vérifier que les fichiers, dossiers, images, sons, Scenes et applications référencés par vos actions existent toujours
 
 - [ ] Sauvegarder les préférences de Tasker

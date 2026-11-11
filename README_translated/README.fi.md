@@ -312,6 +312,8 @@ Katso [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/caveats.txt)-
 
 - [x] Muuttujien hallinta
 
+- [x] Lisäosien poistoneuvoja
+
 - [x] Muistiinpanot ja tunnisteiden tuki
 
 - [ ] Omat mallikirjastot: Tallenna uudelleenkäytettäviä toimintojaksoja, tehtäviä ja profiilimalleja ja lisää ne parametrien avulla.

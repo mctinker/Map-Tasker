@@ -315,6 +315,8 @@ Refer the the [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/cavea
  
 - [x] Split-up Project
 
+- [x] Plugin Retirement Advisor
+
 - [ ] Map remaining Tasker preferences
 
 - [ ] Personal snippet library: save reusable action sequences, Tasks and Profile templates and insert them with parameters
