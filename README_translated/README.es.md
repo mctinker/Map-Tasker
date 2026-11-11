@@ -314,39 +314,13 @@ Consulte el documento de [Advertencias (Caveats)](https://github.com/mctinker/Ma
 
 - [ ] Mapear las preferencias restantes de Tasker
 
-- [x] Task Stepper: simular paso a paso una Tarea, acción por acción, mostrando qué ramas If, For y Goto se ejecutan y qué contiene cada variable
-
 - [x] Live Run Monitor: transmitir en vivo qué Perfiles y Tareas se activan en el teléfono y resaltarlos en la vista de Diagrama
 
-- [x] Panel de control de complejidad y tendencias: seguimiento de la duración de las tareas, la anidación, la profundidad de las cadenas de llamadas y los hallazgos a lo largo del tiempo.
-
-- [ ] Fusión a tres bandas de dos copias de seguridad respecto a un ancestro común, resuelta conflicto por conflicto y deshecha en un solo paso
-
-- [x] Rastreador de actualizaciones de TaskerNet: le avisa cuando el autor de una publicación que usted utiliza ha publicado una nueva versión, con una comparación de los cambios
-
-- [ ] Biblioteca personal de fragmentos: guarde secuencias de acciones, Tareas y plantillas de Perfiles reutilizables, e insértelas con parámetros
-
-- [x] Auditoría de baterías
-
-- [x] Añadir/modificar descripciones en TaskerNet.
-
-- [x] Administrador de variables
-
-- [x] Soporte para notas y etiquetas
-
 - [ ] Explicaciones en lenguaje sencillo dentro del Mapa: un resumen de una línea, escrito por IA, en caché y editable, de cada Perfil y Tarea
-
-- [x] Comprobador de recursos faltantes: verifique que los archivos, carpetas, imágenes, sonidos, Escenas y aplicaciones a los que hacen referencia sus acciones aún existen
-
-- [x] Panel de complejidad y tendencias: siga a lo largo del tiempo la longitud de las Tareas, el anidamiento, la profundidad de la cadena de llamadas y los hallazgos
 
 - [ ] Exportación a sitio de documentación: un conjunto enlazado de páginas Markdown o HTML, una por cada Proyecto, Perfil, Tarea y Escena, con diagramas de llamadas
 
 - [ ] Fusión de tres fuentes para combinar dos copias de seguridad divergentes.
-
-- [ ] Mapa de calor para visualizar las incidencias en tiempo real durante un período, mostrando qué incendios están activos.
-
-- [x] Asistente de renombrado y alcance de variables: renombre una variable, o convierta una global en local, en todos los lugares donde se usa, como un único paso que se puede deshacer
 
 - [ ] Gráfico de dependencias del proyecto
 

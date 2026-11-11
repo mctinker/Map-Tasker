@@ -304,37 +304,15 @@ Katso [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/caveats.txt)-
 
 ## Tehtävälista (ei erityisessä järjestyksessä)
 
-- [x] Tukee lisälaajennuksia
-
-- [x] Tuonti riippuvuuksineen
-
 - [x] Tehtävätestit – Tallenna ja vertaile tehtävien vaiheiden sessioita ennen ja jälkeen muutosten tekemisen
 
-- [x] Tehtävän suorittaja: testaa tehtävän suorittamista vaihe vaiheelta, näyttäen, mitkä If-, For- ja Goto-haarat suoritetaan ja mitä kukin muuttuja sisältää.
-
-- [x] Reaaliaikainen valvontatoiminto: näyttää, mitkä profiilit ja tehtävät toimivat puhelimessa ja valaisee ne kaaviossa.
-
-- [x] TaskerNetin päivityseurantajärjestelmä: Ilmoittaa sinulle, kun TaskerNetin käyttämäsi sovelluksen kehittäjä on julkaissut uudemman version, ja näyttää muutosten erotuksen.
-
-- [x] Resurssien tarkistus: varmista, että tiedostot, kansiot, kuvat, äänet, kohtaukset ja sovellukset, joita toiminnot käyttävät, ovat edelleen olemassa.
-
-- [x] Monitoiminen taulu: Seuraa tehtävien pituutta, sisäkkäisyyttä, puheluketien syvyyttä ja tuloksia ajan kuluessa.
-
-- [x] Muuttujan nimen muokkaus- ja laajuuden apuohjelma: muuta muuttujan nimeä tai tee siitä paikallinen muuttuja, missä tahansa se on käytössä, yhdellä peruutustoiminnolla.
-
 - [x] TaskerNet-kuvaukset: lisää/muokkaa.
-
-- [x] Lähtevä varasto: tunnista kaikki ulkoiset viittaukset
-
-- [x] Akunvalvonta
 
 - [x] Lisää vaatimukset TaskerNet-kuvaan
 
 - [x] Muuttujien hallinta
 
 - [x] Muistiinpanot ja tunnisteiden tuki
-
-- [ ] Palauta Taskerin asetukset
 
 - [ ] Omat mallikirjastot: Tallenna uudelleenkäytettäviä toimintojaksoja, tehtäviä ja profiilimalleja ja lisää ne parametrien avulla.
 
@@ -343,10 +321,6 @@ Katso [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/caveats.txt)-
 - [ ] Dokumentaation sivuston vienti: linkitetty koko, joka koostuu Markdown- tai HTML-sivuista, yksi jokaiselle Projektille, Profilille, Tehtävälle ja Kohtaukselle, sekä kuvioista
 
 - [ ] Kolmen tietojen yhdistäminen, jotta kaksi erillistä varmuuskopioa voidaan yhdistää
-
-- [ ] Lämpökartta, joka näyttää reaaliaikaiset tulipalot tietyn ajanjakson aikana, auttaa tunnistamaan, missä tulipalot ovat päässeet käynnistymään.
-
-- [ ] Samankaltaisen löytäjä, joka tunnistaa tehtävät, jotka on kopioitu ja liitetty pienillä muutoksilla, ja tarjoaa niiden yhdistämisen
 
 - [ ] Projektin riippuvuussuunnitelma
 

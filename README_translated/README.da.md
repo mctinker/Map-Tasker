@@ -304,29 +304,7 @@ Se dokumentet [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/cavea
 
 ## To-do-liste (i ingen bestemt rækkefølge)
 
-- [x] Readiness Check (beredskabskontrol)
-
-- [x] Understøttelse af yderligere plugins
-
-- [x] Import med afhængigheder (Import with Dependencies)
-
-- [x] Opgaver – Gem og sammenlign opgaver i "Task stepper"-sessioner før og efter ændringer i opgaven
-
-- [ ] Kortlæg resterende Tasker-indstillinger
-
-- [x] TaskerNet opdateringsspor: informerer dig, når forfatteren af en fil, du bruger, har udgivet en nyere version med en oversigt over ændringerne.
-
-- [x] Kontrollering af manglende ressourcer: Bekræft, at filerne, mapperne, billederne, lydeffekterne, scenerne og applikationerne, som dine handlinger refererer til, stadig eksisterer.
-
-- [x] Task Stepper: "dry-run" en Task action for action, og vis hvilke If-, For- og Goto-forgreninger der køres, og hvad hver variabel indeholder
-
 - [x] Live Run Monitor: strøm live, hvilke Profiles og Tasks der udløses på telefonen, og markér dem i Diagram-visningen
-
-- [ ] Tre-vejs-sammenlægning (three-way merge) af to backups i forhold til en fælles forfader, løst konflikt for konflikt og kan fortrydes i ét trin
-
-- [x] TaskerNet-opdateringssporing: giver dig besked, når forfatteren af et share, du bruger, udgiver en ny version, med en diff af ændringerne
-
-- [ ] Personligt snippet-bibliotek: gem genanvendelige action-sekvenser, Tasks og Profile-skabeloner, og indsæt dem med parametre
 
 - [x] Tilføj/rediger beskrivelser for TaskerNet.
 
@@ -345,10 +323,6 @@ Se dokumentet [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/cavea
 - [ ] Sammenlægning af tre forskellige sikkerhedskopier for at kombinere dem
 
 - [ ] Varmekort til at visualisere aktuelle brandudbrud over en periode, viser, hvor brandene opstår.
-
-- [x] Assistent til omdøbning og scope af variabler: omdøb en variabel, eller lav en global til en lokal, alle steder den bruges, som én fortrydelig handling
-
-- [ ] Projektets afhængighedsdiagram
 
 ## Erklæring om privatliv
 

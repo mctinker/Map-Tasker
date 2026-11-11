@@ -304,29 +304,7 @@ Reportez-vous au document [Caveats](https://github.com/mctinker/Map-Tasker/blob/
 
 ## Liste de tâches à faire (sans ordre particulier)
 
-- [x] Prise en charge de plugins supplémentaires
-
-- [x] Importation avec dépendances (Import with Dependencies)
-
-- [x] Tests de tâches - Sauvegarder et comparer les sessions de tâches avant et après les modifications apportées à la tâche.
-
-- [x] Task Stepper : exécuter une Task action par action en « mode simulation », en montrant quelles branches If, For et Goto s'exécutent et ce que contient chaque variable
-
 - [x] Live Run Monitor : diffuser en direct les Profiles et Tasks déclenchés sur le téléphone et les mettre en évidence dans la vue Diagram
-
-- [ ] Fusion à trois voies (three-way merge) de deux sauvegardes par rapport à un ancêtre commun, résolue conflit par conflit et annulable en une seule étape
-
-- [x] Vérificateur de ressources manquantes : assurez-vous que les fichiers, dossiers, images, sons, scènes et applications auxquels vos actions font référence existent toujours.
-
-- [x] Tableau de bord de complexité et d'évolution : suivi de la durée des tâches, de leur imbrication, de la profondeur des chaînes d'appel et des résultats au fil du temps.
-
-- [x] Assistant de renommage et de portée des variables : renommez une variable, ou transformez-la en variable locale, partout où elle est utilisée, en une seule opération "Annuler"
-
-- [x] TaskerNet update tracker : vous avertir lorsque l'auteur d'un partage que vous utilisez publie une nouvelle version, avec un diff des modifications
-
-- [ ] Bibliothèque personnelle de snippets : enregistrer des séquences d'actions, des Tasks et des modèles de Profile réutilisables, et les insérer avec des paramètres
-
-- [ ] Explications en langage simple dans la Map : un résumé en une ligne de chaque Profile et Task, rédigé par IA, mis en cache et modifiable
 
 - [x] Possibilité d'ajouter/modifier les descriptions des tâches dans TaskerNet.
 
@@ -343,10 +321,6 @@ Reportez-vous au document [Caveats](https://github.com/mctinker/Map-Tasker/blob/
 - [ ] Export vers un site de documentation : un ensemble de pages Markdown ou HTML reliées entre elles, une par Project, Profile, Task et Scene, avec des diagrammes d'appel
 
 - [ ] Fusion de trois sauvegardes pour fusionner deux sauvegardes divergentes
-
-- [ ] Carte thermique pour visualiser les incendies en temps réel sur une période donnée, afin de déterminer quelles zones sont les plus touchées.
-
-- [x] Assistant de renommage et de portée des variables : renommer une variable, ou transformer une variable globale en locale, partout où elle est utilisée, en un seul Undo
 
 - [ ] Graph de dépendance du projet
 

@@ -307,35 +307,13 @@ Refer the the [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/cavea
 
 ## To-Do List (in no particular order)
 
-- [x] Support additional plugins
+- [x] Near-duplicate Finder to find Tasks that were copy/pasted with minor differences and offer to merge
 
-- [x] Import with Dependencies
+- [x] Project Dependency Graph
 
-- [x] Task Tests - Store and compare Task stepper sessions before and after changes to the Task
-
-- [x] Task Stepper: dry-run a Task action by action, showing which If, For and Goto branches run and what each variable holds
-
-- [x] Live Run Monitor: stream which Profiles and Tasks fire on the phone and light them up in the Diagram view
-
-- [x] TaskerNet update tracker: tell you when the author of a share you use has published a newer version, with a diff of the changes
-
-- [x] Missing-resource checker: verify that the files, folders, images, sounds, Scenes and apps your actions reference still exist
-
-- [x] Complexity and trend dashboard: track Task length, nesting, call-chain depth and findings over time
-
-- [x] Variable rename and scope assistant: rename a variable, or make a global local, everywhere it is used, as one Undo
-
-- [x] TaskerNet descriptions add/edit.
-
-- [x] Outbound Inventory: identify all external references
-
-- [x] Battery Audit
-
-- [x] Insert Requirements into TaskerNet description
-
-- [x] Variable Manager
-
-- [x] Notes and Tags support
+- [x] New Phone Migration Checklist
+ 
+- [x] Split-up Project
 
 - [ ] Map remaining Tasker preferences
 
@@ -349,9 +327,6 @@ Refer the the [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/cavea
 
 - [ ] Heat Map to capture live runs over a period show what fires when
 
-- [ ] Near-duplicate Finder to find Tasks that were copy/pasted with minor differences and offer to merge
-
-- [ ] Project Dependency Graph
 
 ## Privacy Statement
 

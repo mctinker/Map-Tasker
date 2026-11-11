@@ -304,35 +304,13 @@ Einzelheiten finden Sie im Dokument [Caveats](https://github.com/mctinker/Map-Ta
 
 ## To-Do-Liste (in keiner bestimmten Reihenfolge)
 
-- [x] Readiness Check (Bereitschaftsprüfung)
-
-- [x] Unterstützung zusätzlicher Plugins
-
-- [x] Import mit Abhängigkeiten (Import with Dependencies)
-
-- [x] Aufgaben-Tests – Speichern und Vergleichen von Aufgaben-Schritt-Sitzungen vor und nach Änderungen an der Aufgabe
-
-- [ ] Verbleibende Tasker-Einstellungen abbilden
-
-- [x] TaskerNet Aktualisierungs-Tracker: Informiert Sie, wenn der Autor einer von Ihnen verwendeten Software eine neuere Version veröffentlicht hat, zusammen mit einer Übersicht der Änderungen.
-
-- [x] Überprüfung auf fehlende Ressourcen: Stellen Sie sicher, dass die Dateien, Ordner, Bilder, Audiodateien, Szenen und Apps, auf die Ihre Aktionen verweisen, noch vorhanden sind.
-
-- [x] Task Stepper: eine Task Action für Action als "Trockenlauf" simulieren und zeigen, welche If-, For- und Goto-Zweige ausgeführt werden und was jede Variable enthält
-
 - [x] Live Run Monitor: live streamen, welche Profiles und Tasks auf dem Telefon ausgelöst werden, und sie in der Diagram-Ansicht hervorheben
 
 - [x] Aufgabenbeschreibungen in TaskerNet bearbeiten/hinzufügen.
 
-- [ ] Drei-Wege-Zusammenführung (Three-way merge) zweier Backups gegenüber einem gemeinsamen Vorfahren, Konflikt für Konflikt gelöst und in einem Schritt rückgängig gemacht
-
 - [x] Batterietest
 
-- [x] TaskerNet-Update-Tracker: benachrichtigt Sie, wenn der Autor eines von Ihnen verwendeten Shares eine neuere Version veröffentlicht, mit einem Diff der Änderungen
-
 - [x] Variablen-Manager
-
-- [x] Unterstützung für Notizen und Tags
 
 - [ ] Aufgaben-Einstellungen für Tasker speichern
 
@@ -345,10 +323,6 @@ Einzelheiten finden Sie im Dokument [Caveats](https://github.com/mctinker/Map-Ta
 - [ ] Aufgaben-Einstellungen für Tasker speichern/festlegen
 
 - [x] Komplexitäts- und Trend-Dashboard: Verfolgen von Task-Länge, Verschachtelung, Aufruf-Kettentiefe und Befunden im Zeitverlauf
-
-- [ ] Export einer Dokumentationswebsite: ein verlinkter Satz von Markdown- oder HTML-Seiten, eine pro Project, Profile, Task und Scene, mit Aufrufdiagrammen
-
-- [x] Assistent zum Umbenennen und für den Geltungsbereich von Variablen: eine Variable umbenennen oder eine globale in eine lokale umwandeln, überall dort, wo sie verwendet wird, als ein einziges Undo
 
 ## Datenschutzerklärung
 
