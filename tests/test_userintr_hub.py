@@ -182,6 +182,26 @@ async def test_a_row_click_opens_what_it_names_in_a_window_of_its_own_and_keeps_
 
 
 @pytest.mark.asyncio
+async def test_a_project_dependencies_row_click_follows_open_view_in_new_window(
+    seen: SimpleNamespace,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """That window is only opened from the main window, which no Map reuses, so its links do not force a new tab.
+
+    They used to, and with the checkbox off every click still opened another tab.
+    """
+    build = MagicMock(return_value=MagicMock())
+    patch_hub(monkeypatch, "build_project_dependencies_window", build)
+    _handlers().tools.project_dependencies_event()
+    target = mapjump.Target(kind=mapjump.TASK, key="1", name="Wake Up")
+
+    await build.call_args.args[0](target)()
+
+    assert seen.jumped == [target]
+    assert seen.new_window == [], "the jump is left to the user's setting"
+
+
+@pytest.mark.asyncio
 @pytest.mark.parametrize(("event", "builder", "attribute", "jump_at", "refresh_at"), [x for x in _LAUNCHERS if x[4]])
 async def test_applying_something_refreshes_the_pulldowns_and_nothing_else(
     seen: SimpleNamespace,
