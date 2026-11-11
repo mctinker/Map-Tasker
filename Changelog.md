@@ -10,7 +10,7 @@ All notable changes to this project will be documented in this file!
 
 - Added: __Project Dependencies__ in the Analyze section shows which Projects use Tasks, Scenes and global variables that live in other Projects, as a graph and a table, with every use a click into the Map. It tells you what is safe to split out or share, which Projects can only be separated together, and what would be left dangling if you deleted a Project.
 
-- Added: __Near-duplicates__ in the Refactor window finds Tasks that were copied and pasted with small differences, and turns the actions they share into one Task that each of them calls, with a preview first and one Undo. The shared Task gets a note, tagged #shared, naming the Tasks that call it; Undo reverses the merge but leaves that note in your notes file.
+- Added: __Near-Duplicates__ in the Refactor window finds Tasks that were copied and pasted with small differences, and turns the actions they share into one Task that each of them calls, with a preview first and one Undo. The shared Task gets a note, tagged #shared, naming the Tasks that call it; Undo reverses the merge but leaves that note in your notes file.
 
 ### Changed
 
