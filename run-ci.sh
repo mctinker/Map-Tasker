@@ -10,6 +10,9 @@
 #   ./run-ci.sh --quick      skip the test, audit and build gates (the slow ones)
 #
 # Keep this in step with .github/workflows/ci.yml when either changes.
+#
+# One difference on purpose: CI measures coverage on one leg only (Linux, Python 3.13) and runs the
+# tests plain on the other nine; this runs the one set of tests there is, so it measures it.
 
 set -uo pipefail
 

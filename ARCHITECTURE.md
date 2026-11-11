@@ -106,9 +106,11 @@ increase shows up in review with its reason.
 
 `.github/workflows/ci.yml`, on every push and pull request:
 
-* **test** -- the suite, in parallel (`pytest -n auto`, from pytest-xdist), with coverage on Ubuntu for Python 3.11 to 3.15,
-  and on Windows and macOS for 3.13 (paths, per-user folders, font discovery, the password store and the filesystem all
-  differ), then the per-layer coverage floors.
+* **test** -- the suite, in parallel (`pytest -n auto`, from pytest-xdist), on Ubuntu for Python 3.11 to 3.15, and on
+  Windows and macOS for 3.13 (paths, per-user folders, font discovery, the password store and the filesystem all
+  differ).  Coverage is measured on one leg, Ubuntu with Python 3.13 (`MEASURE_COVERAGE` in the workflow), which also
+  holds the per-layer coverage floors: tracing every line makes the suite about two thirds slower, and how much of the
+  code the tests reach does not depend on the system.
 * **lint** -- ruff, the four ratchets and the dead-code check, import layers and the format check.
 * **build distribution** -- `uv build` and `twine check`.
 

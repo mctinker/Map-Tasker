@@ -43,6 +43,13 @@ jobs:
     defaults:
       run:
         shell: bash
+    env:
+      # Coverage is measured on one leg: Linux on Python 3.13, the one lint and the build use.  It is a measure of
+      # how much of the code the tests reach, which does not change with the system or the Python version, and
+      # tracing every line makes the suite about two thirds slower (44 seconds against 73 on a fast machine; a
+      # runner with two cores waits minutes for it).  The other nine legs are there to find what differs between
+      # systems and versions, and run the same tests without the tracing.
+      MEASURE_COVERAGE: ${{ matrix.os == 'ubuntu-latest' && matrix.python-version == '3.13' }}
 
     steps:
       - uses: actions/checkout@v5
@@ -59,8 +66,18 @@ jobs:
 
       # -n auto: one worker per core, which is what the runner has to give.  No single test is slow, so the
       # time is spread evenly; tests/conftest.py puts PrimeItems back after each one, so none depends on
-      # the one before.  pytest-cov combines the workers' coverage.
+      # the one before.
+      - name: Run tests
+        if: env.MEASURE_COVERAGE != 'true'
+        run: >
+          uv run --no-sync pytest
+          -n auto
+          --junitxml=junit-${{ matrix.python-version }}.xml
+
+      # The same, measuring coverage on the one leg that does (see MEASURE_COVERAGE).  pytest-cov combines the
+      # workers' coverage, and fail_under in pyproject.toml fails the run below the floor.
       - name: Run tests with coverage
+        if: env.MEASURE_COVERAGE == 'true'
         run: >
           uv run --no-sync pytest
           -n auto
@@ -73,10 +90,11 @@ jobs:
       # a neglected one.  This holds each layer (gui, core, mapgen ...) to its own floor in
       # scripts/coverage_baseline.json, read from the .coverage data the run above just made.
       - name: Coverage by layer
+        if: env.MEASURE_COVERAGE == 'true'
         run: uv run --no-sync python scripts/coverage_ratchet.py
 
       - name: Summarise coverage
-        if: always()
+        if: always() && env.MEASURE_COVERAGE == 'true'
         run: |
           {
             echo "### Coverage (Python ${{ matrix.python-version }}, ${{ runner.os }})"
@@ -90,7 +108,8 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v5
         with:
-          # Artifact names must be unique within a run, and all three systems run 3.13.
+          # Artifact names must be unique within a run, and all three systems run 3.13.  Only the coverage leg
+          # has a coverage.xml; the others upload their test report alone.
           name: reports-${{ matrix.os == 'windows-latest' && 'windows-' || matrix.os == 'macos-latest' && 'macos-' || '' }}py${{ matrix.python-version }}
           path: |
             coverage.xml
