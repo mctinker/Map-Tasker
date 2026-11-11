@@ -98,7 +98,7 @@ async def test_picking_an_older_tasker_redraws_the_findings_at_once() -> None:
         await asyncio.sleep(0)
         shown = " ".join(_shown(user))
 
-        assert "NEWER-TASKER  [6.6.18] Action Java Code is new in Tasker 6.6.18." in shown
+        assert "NEWER-TASKER  [6.6.4] Action Java Code is new in Tasker 6.6.4 (a beta; released in 6.6.18)." in shown
         assert "Checked against Tasker 6.0.9" in shown
 
 
@@ -131,7 +131,9 @@ async def test_the_table_tab_holds_the_whole_table_with_what_the_file_uses() -> 
         rows = {row["name"]: row for row in table.rows}
 
         assert len(table.rows) == len(compat.table(PrimeItems))
-        assert rows["Action Java Code"]["release"] == "6.6.18"
+        assert rows["Action Java Code"]["release"] == "6.6.4"
+        assert rows["Action Java Code"]["post"].startswith("https://www.reddit.com/r/tasker/comments/")
+        assert rows["Action Google Drive Sign In"]["post"] == "", "dated from the release notes, so there is no post"
         assert rows["Action Java Code"]["used"] == 1
         assert rows["Action Google Drive List"]["used"] == ""
 

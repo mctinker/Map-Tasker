@@ -321,9 +321,10 @@ COMPAT_HELP_TEXT = (
     " Android is too old for it), REMOVED (gone or renamed), CHANGED (behaves differently between the version that wrote"
     " the file and the one you picked, in either direction) and GENERAL (changes to everything, such as the Android level"
     " Tasker targets).  Each names the places that use it, as a click into the Map.  The Table tab is the whole list, from"
-    " Tasker's release notes, release by release, with how many places the loaded file uses each.  It reads the notes'"
-    " first public release of each item, so a beta may have had it sooner; it does not know options added to an action that"
-    " already existed, or what a plugin needs.  Save Report writes it to a text file.  Nothing is changed.  \n"
+    " Tasker's release notes and its author's beta announcements, version by version, with how many places the loaded"
+    " file uses each.  Each item is dated from the first beta its author announced it in, or from the release notes where"
+    " no announcement says so; it does not know options added to an action that already existed, or what a plugin needs."
+    "  Save Report writes it to a text file.  Nothing is changed.  \n"
 )
 RESOURCES_HELP_TEXT = (
     "- Missing Resources: Do the files, folders, images, sounds, Scenes and apps your Tasks and Profiles use still"

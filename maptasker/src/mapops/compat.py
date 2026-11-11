@@ -11,8 +11,9 @@
 # friend, restoring last year's backup onto a new phone, or finally updating are all the    #
 # same question: WHAT IN THIS FILE DOES NOT SURVIVE THE TRIP?                              #
 #                                                                                        #
-# The answer comes from a curated table, compat.json, built from Tasker's own release notes: #
-# for each action, event and state the release that introduced it and the Android it needs;   #
+# The answer comes from a curated table, compat.json, built from Tasker's own release notes   #
+# and the author's [dev] beta posts: for each action, event and state the version that         #
+# introduced it and the Android it needs;                                                      #
 # for each release the removals, renames and behaviour changes that can break a configuration #
 # written before it.  This reads the loaded configuration for what it uses, and sets the       #
 # table against two versions -- the one the file was written by and the one you are going to.  #
@@ -31,9 +32,11 @@
 #                                                                                        #
 # WHAT IT CANNOT DO, said plainly because "nothing found" gets trusted:                    #
 #                                                                                        #
-#   * It is a floor.  The table holds what the release notes list as new, removed or changed   #
-#     and that a backup can show; an option added to an action that already existed is not      #
-#     there, since a backup cannot tell which Tasker an option needed.                         #
+#   * It is a floor.  The table holds what the release notes and beta posts list as new,        #
+#     removed or changed and that a backup can show; an option added to an action that already   #
+#     existed is not there, since a backup cannot tell which Tasker an option needed.          #
+#   * A version is the first the author announced the item in.  Where no beta post says so, it    #
+#     is the release notes' first release, which may be later than a beta that had it.          #
 #   * A plugin's own requirements are the plugin's business and are not in the file.            #
 #   * It reads action codes.  An action MapTasker has no code for is in the table for reference  #
 #     only, and cannot be found in a file.                                                   #
@@ -115,6 +118,7 @@ class Release:
     version: str
     date: str  # "" where the notes give none
     min_android: int  # the lowest Android API level Tasker itself runs on from here; 0 = not stated
+    beta: bool = False  # a version only a beta post announced, not one of the release notes' releases
 
 
 @dataclass(frozen=True)
@@ -124,9 +128,11 @@ class Item:
     key: str  # Tasker code + t, e or s; "" when MapTasker has no code for it
     kind: str  # action, event or state
     name: str
-    since: str
+    since: str  # the first version the author announced it in: a beta post, or else the release notes
     android: int  # lowest Android API level it works on; 0 = not stated
     note: str
+    released: str = ""  # the release the notes put it in, when a beta had it earlier; "" otherwise
+    post: str = ""  # the [dev] post that announced it, when one did
 
 
 @dataclass(frozen=True)
@@ -149,13 +155,24 @@ def _table() -> dict[str, Any]:
 
 def releases() -> list[Release]:
     """Every release in the table, oldest first."""
-    return [Release(row["version"], row["date"], row["min_android"]) for row in _table()["releases"]]
+    return [
+        Release(row["version"], row["date"], row["min_android"], row.get("beta", False)) for row in _table()["releases"]
+    ]
 
 
 def items() -> list[Item]:
     """Every action, event and state in the table, oldest first."""
     return [
-        Item(row["key"], row["kind"], row["name"], row["since"], row["android"], row["note"])
+        Item(
+            row["key"],
+            row["kind"],
+            row["name"],
+            row["since"],
+            row["android"],
+            row["note"],
+            row.get("released", ""),
+            row.get("post", ""),
+        )
         for row in _table()["items"]
     ]
 
@@ -257,6 +274,12 @@ def _label(item: Item) -> str:
     return f"{item.kind.capitalize()} {item.name}"
 
 
+def _new_in(item: Item) -> str:
+    """'Action Java Code is new in Tasker 6.6.4 (a beta; released in 6.6.18).' -- when it came in, and when it was released."""
+    earlier = f" (a beta; released in {item.released})" if item.released else ""
+    return f"{_label(item)} is new in Tasker {item.since}{earlier}."
+
+
 def _newer_tasker(used: dict[str, list[Target]], target: str) -> tuple[list[Finding], str, tuple[str, ...], int]:
     """What the file uses that the target release does not have, and how new a Tasker the file needs overall."""
     findings: list[Finding] = []
@@ -273,9 +296,7 @@ def _newer_tasker(used: dict[str, list[Target]], target: str) -> tuple[list[Find
             names.append(_label(item))
         if version_key(item.since) > version_key(target):
             findings.append(
-                Finding(
-                    NEWER_TASKER, item.since, f"{_label(item)} is new in Tasker {item.since}.", tuple(used[item.key])
-                ),
+                Finding(NEWER_TASKER, item.since, _new_in(item), tuple(used[item.key])),
             )
     findings.sort(key=lambda each: version_key(each.release), reverse=True)
     return findings, newest, tuple(names), count
@@ -364,6 +385,7 @@ class TableRow:
     name: str
     note: str
     used: int | None  # how many places the loaded file uses it; None when it cannot be told
+    source: str = ""  # the [dev] post that announced it, when one did
 
 
 def table(state: RunState) -> list[TableRow]:
@@ -373,8 +395,9 @@ def table(state: RunState) -> list[TableRow]:
     rows: list[TableRow] = []
     for item in items():
         android = f"  (needs {android_name(item.android)})" if item.android else ""
+        earlier = f"  (first in a beta; released in {item.released})" if item.released else ""
         count = len(used.get(item.key, ())) if loaded and item.key else None
-        rows.append(TableRow(item.since, "New", _label(item), f"{item.note}{android}", count))
+        rows.append(TableRow(item.since, "New", _label(item), f"{item.note}{android}{earlier}", count, item.post))
     for change in changes():
         count = sum(len(used.get(key, ())) for key in change.keys) if loaded and change.keys else None
         named = ", ".join(change.named) if change.named else "Everything"

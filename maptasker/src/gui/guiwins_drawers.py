@@ -823,7 +823,8 @@ def _create_compatibility_button(self: MyGui) -> None:
                 "Which of the actions, events and states in this file will not work on a Tasker version you pick, or "
                 "on an older Android, and which behaviours changed between the version that wrote the file and that "
                 "one -- for sharing a Project, restoring an old backup, or updating.\n\nThe Table tab is the whole "
-                "list from Tasker's release notes, release by release, with how many places this file uses each.  "
+                "list from Tasker's release notes and its author's beta announcements, version by version, with how "
+                "many places this file uses each.  "
                 "Every line is a click into the Map.\n\nNothing is changed.",
             ),
         ).style("white-space: pre-wrap")

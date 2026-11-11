@@ -82,23 +82,60 @@ def test_the_table_agrees_with_readiness_json_about_when_each_thing_came_in() ->
     """readiness.json was built from the same release notes by hand; two readings of one page must say one thing."""
     with open(READINESS_FILE, encoding="utf-8") as file:
         readiness = json.load(file)["items"]
-    ours = {item.key: item.since for item in compat.items() if item.key}
+    ours = {item.key: item for item in compat.items() if item.key}
 
     for key, row in readiness.items():
         if "since" in row:
-            assert ours.get(key) == row["since"], key
+            # The release the notes name: our 'since' when no beta had it earlier, and 'released' when one did.
+            assert row["since"] in {ours[key].since, ours[key].released}, key
 
 
 def test_the_table_file_is_where_the_code_looks_for_it() -> None:
     assert os.path.isfile(compat.TABLE_FILE)
 
 
-def test_scenes_v2_came_in_with_6_7_1_and_6_7_1_is_a_release_the_window_offers() -> None:
-    scene_v2 = [item for item in compat.items() if "Scene v2" in item.name or item.name == "Scene V2 Event"]
+def test_scenes_v2_came_in_with_6_7_0_but_two_of_its_actions_and_its_event_came_later() -> None:
+    since = {
+        item.name: item.since for item in compat.items() if "Scene v2" in item.name or item.name == "Scene V2 Event"
+    }
 
-    assert len(scene_v2) >= 9
-    assert {item.since for item in scene_v2} == {"6.7.1"}
-    assert "6.7.1" in {release.version for release in compat.releases()}
+    assert {name: since[name] for name in ("Show Scene v2", "Dismiss Scene v2", "Update Scene v2")} == {
+        "Show Scene v2": "6.7.0",
+        "Dismiss Scene v2": "6.7.0",
+        "Update Scene v2": "6.7.0",
+    }
+    assert since["Run Scene v2 Action"] == since["Scene V2 Event"] == "6.7.1"
+    assert since["Trigger Scene v2 Event"] == "6.7.6"
+    assert {"6.7.0", "6.7.1", "6.7.6"} <= {release.version for release in compat.releases()}
+
+
+def test_a_version_only_a_beta_post_announced_is_marked_as_a_beta_and_dated() -> None:
+    betas = [release for release in compat.releases() if release.beta]
+
+    assert len(betas) > 30
+    assert all(release.date for release in betas)
+    assert next(release for release in betas if release.version == "6.7.0").date == "2026-03-12"
+    assert not any(release.beta for release in compat.releases() if release.version == "6.7.8")
+
+
+def test_an_item_a_beta_had_before_the_release_notes_says_which_release_and_links_the_post() -> None:
+    java = next(item for item in compat.items() if item.name == "Java Code")
+
+    assert (java.since, java.released) == ("6.6.4", "6.6.18")
+    assert java.post.startswith("https://www.reddit.com/r/tasker/comments/")
+    for item in compat.items():
+        if item.released:
+            assert version_key(item.since) != version_key(item.released), item
+            assert item.post, item
+        if item.post:
+            assert item.post.startswith("https://www.reddit.com/r/tasker/comments/"), item
+
+
+def test_the_first_beta_an_item_was_announced_in_is_never_after_the_release_that_the_notes_name() -> None:
+    """Except where a later post is the evidence: a thing a beta added after the release notes' series began."""
+    for item in compat.items():
+        if item.released and version_key(item.since) > version_key(item.released):
+            pytest.fail(f"{item.name}: {item.since} is after the release {item.released}")
 
 
 def test_an_android_level_is_called_by_its_version() -> None:
@@ -173,9 +210,9 @@ def test_what_is_newer_than_the_target_is_found_with_where_it_is(loaded: None) -
     result = compat.check(PrimeItems, "6.0.9")
 
     newer = {finding.text: finding for finding in _tags(result, compat.NEWER_TASKER)}
-    assert "Action Java Code is new in Tasker 6.6.18." in newer
-    assert "Action Set Device Effects is new in Tasker 6.3.12." in newer
-    java = newer["Action Java Code is new in Tasker 6.6.18."]
+    assert "Action Java Code is new in Tasker 6.6.4 (a beta; released in 6.6.18)." in newer
+    assert "Action Set Device Effects is new in Tasker 6.3.8 (a beta; released in 6.3.12)." in newer
+    java = newer["Action Java Code is new in Tasker 6.6.4 (a beta; released in 6.6.18)."]
     assert [(place.kind, place.key, place.action) for place in java.places] == [(TASK, "10", 1)]
 
 
@@ -186,7 +223,7 @@ def test_nothing_is_newer_when_the_target_has_it_all(loaded: None) -> None:
 def test_the_newest_thing_used_says_how_new_a_tasker_the_file_needs(loaded: None) -> None:
     result = compat.check(PrimeItems, "6.7.8")
 
-    assert result.minimum == "6.6.18"
+    assert result.minimum == "6.6.4"
     assert result.minimum_names == ("Action Java Code",)
     assert result.items_used >= 5
 
@@ -340,7 +377,7 @@ def test_the_report_names_the_file_the_version_and_each_finding_with_its_places(
     assert "Written by Tasker 6.3.13" in text
     assert "It uses " in text and " actions, events and states the table can find." in text
     assert "Checked against Tasker 6.0.9, Android 13" in text
-    assert "NEWER-TASKER  [6.6.18] Action Java Code is new in Tasker 6.6.18." in text
+    assert "NEWER-TASKER  [6.6.4] Action Java Code is new in Tasker 6.6.4 (a beta; released in 6.6.18)." in text
     assert any(row.target is not None and row.target.key == "10" for row in rows)
 
 
@@ -360,7 +397,9 @@ def test_the_reference_table_is_newest_first_and_counts_what_the_file_uses(loade
         (version_key(row.release) for row in rows), reverse=True
     )
     java = next(row for row in rows if row.name == "Action Java Code")
-    assert (java.what, java.release, java.used) == ("New", "6.6.18", 1)
+    assert (java.what, java.release, java.used) == ("New", "6.6.4", 1)
+    assert "(first in a beta; released in 6.6.18)" in java.note
+    assert java.source.startswith("https://www.reddit.com/r/tasker/comments/")
 
 
 def test_a_row_with_no_code_cannot_be_counted_and_without_a_file_nothing_can(loaded: None) -> None:

@@ -71,7 +71,8 @@ class CompatibilityWindow:
         """Remember where to send a click, and start from the newest release and any Android."""
         self.make_jump = make_jump
         self.state = state
-        self.versions = [release.version for release in reversed(compat.releases())]
+        self.releases = list(reversed(compat.releases()))
+        self.versions = [release.version for release in self.releases]
         self.target = self.versions[0]
         self.android = 0
         self.result = compat.check(state, self.target, self.android)
@@ -89,7 +90,12 @@ class CompatibilityWindow:
             ui.label(self._written_by()).classes("text-sm text-gray-600 dark:text-gray-300")
             with ui.row().classes("w-full items-center gap-4"):
                 ui.select(
-                    {version: version for version in self.versions},
+                    {
+                        release.version: f"{release.version} ({translate_string('beta')})"
+                        if release.beta
+                        else release.version
+                        for release in self.releases
+                    },
                     value=self.target,
                     label=translate_string("Tasker version"),
                     on_change=lambda event: self.pick(target=str(event.value)),
@@ -139,6 +145,7 @@ class CompatibilityWindow:
                 "name": row.name,
                 "note": row.note,
                 "used": "" if row.used is None else row.used,
+                "post": row.source,
             }
             for number, row in enumerate(compat.table(self.state))
         ]
@@ -150,6 +157,7 @@ class CompatibilityWindow:
                     column("name", translate_string("Name")),
                     column("note", translate_string("Note")),
                     column("used", translate_string("Used here")),
+                    {**column("post", translate_string("Link")), "sortable": False},
                 ],
                 rows=rows,
                 row_key="key",
@@ -157,6 +165,11 @@ class CompatibilityWindow:
             .props("dense flat virtual-scroll")
             .classes("w-full")
             .style("height: 60vh")
+        )
+        # The post that announced it, as a link that opens in a tab of its own; blank where the release notes are the source.
+        table.add_slot(
+            "body-cell-post",
+            '<q-td :props="props"><a v-if="props.value" :href="props.value" target="_blank" rel="noopener">&#8599;</a></q-td>',
         )
         filter_box.bind_value(table, "filter")
 
