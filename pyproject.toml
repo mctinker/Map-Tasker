@@ -800,6 +800,7 @@ strict = [
     "maptasker/src/mapops/maprefac_model.py",
     "maptasker/src/mapops/maprefac_move.py",
     "maptasker/src/mapops/maprefac_similar.py",
+    "maptasker/src/mapops/maprefac_split.py",
     "maptasker/src/mapops/maprefac_variable.py",
     "maptasker/src/mapops/maprestore.py",
     "maptasker/src/mapops/mapscope.py",

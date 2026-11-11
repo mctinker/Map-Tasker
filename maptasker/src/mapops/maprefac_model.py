@@ -36,6 +36,7 @@ MOVE = "move"
 DUPLICATE = "duplicate"
 VARIABLE = "variable"
 SIMILAR = "similar"
+SPLIT = "split"
 
 
 @dataclass(frozen=True)
@@ -104,6 +105,9 @@ class Plan:
     steps: list[Step] = field(default_factory=list[Step])
     blocks: list[Block] = field(default_factory=list[Block])
     warnings: list[str] = field(default_factory=list[str])
+    # What is left joining two things the refactor has separated, each a clickable line: None for a refactor
+    # that separates nothing, and [] for one that did and left nothing joined -- which is an answer, and said.
+    crossings: list[Step] | None = None
     elements: tuple[Element, ...] = ()
     run: Callable[[], list[str]] | None = None
 

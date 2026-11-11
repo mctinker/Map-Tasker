@@ -16,6 +16,8 @@ All notable changes to this project will be documented in this file!
 
 - Added: __Near-Duplicates__ in the Refactor window finds Tasks that were copied and pasted with small differences, and turns the actions they share into one Task that each of them calls, with a preview first and one Undo. The shared Task gets a note, tagged #shared, naming the Tasks that call it; Undo reverses the merge but leaves that note in your notes file.
 
+- Added: __Split Project__ in the Refactor window moves the Tasks and Profiles you choose, with everything they need, into a new Project. The preview shows what comes along and why, and lists every use still joining the new Project to the rest, with one Undo afterwards.
+
 ### Changed
 
 ### Removed

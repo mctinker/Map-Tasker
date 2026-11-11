@@ -241,6 +241,15 @@ def report_rows(plan: Plan) -> list[Row]:
 
     if not plan.steps:
         rows.append(Row("  Nothing."))
+
+    if plan.crossings is not None:
+        rows.append(Row(""))
+        if plan.crossings:
+            rows.append(Row(f"STILL CROSSING THE NEW BOUNDARY ({len(plan.crossings)})"))
+            rows.extend(Row(f"      {step.text}", step.where) for step in plan.crossings)
+        else:
+            rows.append(Row("NOTHING CROSSES THE NEW BOUNDARY"))
+            rows.append(Row("  What is split off stands on its own, and so does what is left."))
     return rows
 
 

@@ -5,11 +5,12 @@
 #                                                                                        #
 # guiwins_refactor: where maprefac hangs off the GUI.                                    #
 #                                                                                        #
-# One dialog, six modes, one preview area.  Extract a run of a Task's actions into a     #
+# One dialog, seven modes, one preview area.  Extract a run of a Task's actions into a   #
 # Task of its own; inline a Perform Task; move a Task or a Profile to another Project;   #
 # duplicate a Project, Profile, Task or Scene; rename a variable, or change it between   #
 # global and local; find the actions several Tasks have copied from each other and make  #
-# them one Task they all call.                                                           #
+# them one Task they all call; split some Tasks and Profiles, with what they need, out   #
+# into a Project of their own.                                                           #
 #                                                                                        #
 # EVERYTHING BELOW IS ARRANGED AROUND ONE RULE, the same one the Replace tab is built    #
 # around: the Apply button is disabled until a preview exists FOR THE VALUES CURRENTLY   #
@@ -55,6 +56,7 @@ from maptasker.src.mapops import (
     maprefac_model,
     maprefac_move,
     maprefac_similar,
+    maprefac_split,
     maprefac_variable,
 )
 
@@ -63,9 +65,17 @@ if TYPE_CHECKING:
 
     from maptasker.src.core.primitem import RunState
 
-# The six modes, in the order they are offered.  Extract first because it is the one
+# The seven modes, in the order they are offered.  Extract first because it is the one
 # people come here for -- a Task that has grown too long is the reason anybody opens this.
-EXTRACT, INLINE, MOVE, DUPLICATE, VARIABLE, SIMILAR = "extract", "inline", "move", "duplicate", "variable", "similar"
+EXTRACT, INLINE, MOVE, DUPLICATE, VARIABLE, SIMILAR, SPLIT = (
+    "extract",
+    "inline",
+    "move",
+    "duplicate",
+    "variable",
+    "similar",
+    "split",
+)
 
 _MODE_LABELS = {
     EXTRACT: "Extract actions",
@@ -74,6 +84,7 @@ _MODE_LABELS = {
     DUPLICATE: "Duplicate",
     VARIABLE: "Variable",
     SIMILAR: "Near-duplicates",
+    SPLIT: "Split Project",
 }
 
 # One line under the toggle saying what the chosen mode does.  Worth the space: "Extract"
@@ -103,6 +114,10 @@ _MODE_BLURBS = {
     SIMILAR: (
         "Find actions that several Tasks have copied from each other, and make them one Task that each of those "
         "Tasks calls.  Labels are ignored when comparing, and a Task is only changed where it holds the shared run."
+    ),
+    SPLIT: (
+        "Choose some Tasks and Profiles and move them, with everything they need, into a new Project.  The preview "
+        "says what comes along and why, and lists every use still joining the new Project to the rest."
     ),
 }
 
@@ -250,7 +265,9 @@ class _RefactorDialog:
             "Variable -- rename a variable in every action, condition and Scene that uses it, or change it "
             "between global and local.  Always reads the whole configuration.\n\n"
             "Near-duplicates -- find a run of actions that two or more Tasks share, and turn it into one Task "
-            "that each of them calls.  Always reads the whole configuration.\n\n",
+            "that each of them calls.  Always reads the whole configuration.\n\n"
+            "Split Project -- move some Tasks and Profiles, and the Tasks, Scenes and Profiles' Tasks they need, "
+            "into a new Project, and report what is left joining it to the rest.\n\n",
         )
         self.blurb = ui.label(translate_string(_MODE_BLURBS[EXTRACT])).classes(
             "text-xs text-gray-500 italic mb-3 mt-1",
@@ -341,6 +358,8 @@ class _RefactorDialog:
             "duplicate_object",
             "duplicate_name",
             "similar_name",
+            "split_picks",
+            "split_name",
         ):
             widgets[key].on_value_change(invalidate)
 
@@ -372,6 +391,8 @@ class _RefactorDialog:
             widgets["similar_min"].value,
             widgets["similar_run"].value,
             (widgets["similar_name"].value or "").strip(),
+            tuple(sorted(widgets["split_picks"].value or [])),
+            (widgets["split_name"].value or "").strip(),
         )
 
     def invalidate(self) -> None:
@@ -553,8 +574,10 @@ def _row_classes(text: str) -> str:
         return "font-bold text-red-500"
     if text.startswith("BEFORE YOU DO THIS"):
         return "font-bold text-orange-600 dark:text-orange-400"
-    if text.startswith("WHAT WILL HAPPEN"):
+    if text.startswith(("WHAT WILL HAPPEN", "NOTHING CROSSES")):
         return "font-bold text-green-600 dark:text-green-400"
+    if text.startswith("STILL CROSSING"):
+        return "font-bold text-orange-600 dark:text-orange-400"
     return "text-gray-700 dark:text-gray-300"
 
 
@@ -754,6 +777,37 @@ def _build_similar_row(widgets: dict[str, Any]) -> None:
         widgets["similar_hint"] = ui.label("").classes("text-xs text-orange-600 dark:text-orange-400 mt-1")
 
 
+def _build_split_row(widgets: dict[str, Any]) -> None:
+    """Split Project: the Tasks and Profiles to take out, and what to call the Project they go into."""
+    with (
+        ui.column().classes("w-full gap-0 mt-2") as widgets["rows"][SPLIT],
+        ui.row().classes("w-full items-center gap-2"),
+    ):
+        widgets["split_picks"] = (
+            ui.select({}, label=translate_string("Tasks and Profiles to split out"), multiple=True, with_input=True)
+            .classes("flex-1 min-w-[360px]")
+            .props("dense use-chips")
+            .tooltip(
+                translate_string(
+                    "Choose as many Tasks and Profiles as you like.  Everything they need comes with them -- the "
+                    "Tasks they perform, the Scenes they show and the Tasks those run, and the Tasks a Profile "
+                    "runs -- and the preview says what pulled each one in.",
+                ),
+            )
+        )
+        widgets["split_name"] = (
+            ui.input(label=translate_string("New Project name"))
+            .classes("flex-1 min-w-[200px]")
+            .props("dense")
+            .tooltip(
+                translate_string(
+                    "What to call the new Project.  A name another Project already has is refused: that would be "
+                    "a move, and Move to a Project does it.",
+                ),
+            )
+        )
+
+
 def _build_mode_rows() -> dict[str, Any]:
     """Every mode's fields, built once and shown one row at a time.
 
@@ -771,6 +825,7 @@ def _build_mode_rows() -> dict[str, Any]:
     _build_duplicate_row(widgets)
     _build_variable_row(widgets)
     _build_similar_row(widgets)
+    _build_split_row(widgets)
 
     return widgets
 
@@ -836,6 +891,8 @@ def fill_options(widgets: dict[str, Any], state: RunState) -> None:
     _fill_duplicate_objects(widgets, state=state)
     _describe_extract_scope(widgets, state=state)
     _refresh_similar(widgets, state=state)
+    # What was chosen goes: after an Apply it has moved, and after a save the options are of another tree.
+    widgets["split_picks"].set_options(dict(maprefac_split.pick_choices(state=state)), value=[])
 
 
 def _describe_extract_scope(widgets: dict[str, Any], state: RunState) -> None:
@@ -1063,9 +1120,23 @@ def plan_for(mode_value: str, widgets: dict[str, Any], state: RunState) -> mapre
         DUPLICATE: _plan_duplicate,
         VARIABLE: _plan_variable,
         SIMILAR: _plan_similar,
+        SPLIT: _plan_split,
     }
     planner = planners.get(mode_value)
     return planner(widgets, state) if planner else None
+
+
+def _plan_split(widgets: dict[str, Any], state: RunState) -> maprefac_model.Plan | None:
+    """Split Project: the Tasks and Profiles chosen, and the Project they are to go into.
+
+    Nothing chosen, or no name yet, is the user's turn rather than a refusal: the preview is for the question
+    "what would this do", and there is nothing yet to ask it about.
+    """
+    picks = [maprefac_split.split_pick(key) for key in widgets["split_picks"].value or []]
+    name = (widgets["split_name"].value or "").strip()
+    if not picks or not name:
+        return None
+    return maprefac_split.plan_split([pick for pick in picks if pick[0]], name, state=state)
 
 
 def _plan_similar(widgets: dict[str, Any], state: RunState) -> maprefac_model.Plan | None:

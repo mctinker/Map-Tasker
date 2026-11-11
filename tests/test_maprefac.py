@@ -1135,6 +1135,7 @@ def _pickers() -> dict:
         "move_project",
         "duplicate_kind",
         "duplicate_object",
+        "split_picks",
         "extract_scope_note",
     )
     widgets = {key: _Box() for key in keys}

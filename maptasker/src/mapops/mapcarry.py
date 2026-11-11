@@ -91,6 +91,7 @@ from maptasker.src.mapops.maprefac_model import (
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
     from xml.etree.ElementTree import Element
 
     from maptasker.src.analysis.xmldiff import Configuration
@@ -389,6 +390,24 @@ def needs_of(source: Configuration, kind: str, key: str) -> Needs | None:
     owner = _owners(source, tag).get(key, "") if tag else ""
     walk = _Walk(source, Pick(kind, key, label, owner))
     walk.start()
+    walk.follow()
+    walk.inventory()
+    return walk.needs
+
+
+def needs_of_many(source: Configuration, picks: Sequence[tuple[str, str]], label: str) -> Needs:
+    """What several Tasks and Profiles take together, followed the way a single pick's are.
+
+    `picks` is (kind, key) pairs, TASK or PROFILE.  One walk over all of them rather than one walk each, so
+    something two of them need is found once and says what pulled it in first.  The result's pick is a
+    placeholder carrying `label`: nothing here is a Project, and nothing reads it but the preview's words.
+    """
+    walk = _Walk(source, Pick(PROJECT, label, label))
+    for kind, key in picks:
+        if kind == TASK:
+            walk.add_task(key, "chosen")
+        elif kind == PROFILE:
+            walk.add_profile(key, "chosen")
     walk.follow()
     walk.inventory()
     return walk.needs

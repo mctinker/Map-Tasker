@@ -300,6 +300,19 @@ SIMILAR_HELP_TEXT = (
     " #shared, naming the Tasks that call it (see Notes & Tags); that note lives in your notes file, so Undo reverses"
     " the merge and leaves the note.  Previewed before anything is done, and one press of Undo afterwards.  \n"
 )
+
+SPLIT_HELP_TEXT = (
+    "- Refactor > Split Project: Move some Tasks and Profiles, with everything they need, into a new Project.  Choose"
+    " the Tasks and Profiles and name the Project, then Preview.  What comes along is what Import With Dependencies"
+    " would take: the Tasks a Task performs, the Scenes it shows and the Tasks those run, and the Tasks a Profile"
+    " runs -- and each line says what pulled it in.  Nothing is copied or given a new id: they are the same objects,"
+    " listed by the new Project instead of the Projects that listed them.  Under the steps the preview lists every use"
+    " that still joins the new Project to the rest -- a Profile that stayed behind and runs a Task that moved, a Task"
+    " that stayed and performs one that moved, a global variable read on one side and set only on the other -- the"
+    " same lines Project Dependencies shows afterwards, each a click to where it is.  Perform Task calls by name, so"
+    " nothing stops working; the list is what to know before the new Project is exported, shared or deleted.  A"
+    " Project that is left empty is said so.  Previewed before anything is done, and one press of Undo afterwards.  \n"
+)
 PROJDEPS_HELP_TEXT = (
     "- Project Dependencies: Which Projects use Tasks, Scenes and global variables that live in other Projects.  A"
     " Project is where Tasker files things, not a wall around them, so a Task can perform a Task in another Project, a"
@@ -537,5 +550,5 @@ def build_help(translate: Callable[[str], str] | None = None) -> str:
     lookup: Callable[[str], str] = translate or (lambda text: text)
     return (
         f"MapTasker {VERSION} {lookup(HELP_HEADING)}  \n{lookup(COMMAND_REFERENCE_TEXT)}{lookup(INFO_TEXT)}"
-        f"{lookup(OUTPUT_FOLDER_HELP_TEXT)}{lookup(TASKERNET_UPDATES_HELP_TEXT)}{lookup(TASKSTEP_HELP_TEXT)}{lookup(TREND_HELP_TEXT)}{lookup(VARIABLE_HELP_TEXT)}{lookup(SIMILAR_HELP_TEXT)}{lookup(RESOURCES_HELP_TEXT)}{lookup(MONITOR_HELP_TEXT)}{lookup(PREBUILD_HELP_TEXT)}{lookup(CARRY_HELP_TEXT)}{lookup(TASKTESTS_HELP_TEXT)}{lookup(OUTBOUND_HELP_TEXT)}{lookup(TNDESC_HELP_TEXT)}{lookup(LAUNCHER_HELP_TEXT)}{lookup(DESCRIBE_HELP_TEXT)}{lookup(BATTERY_HELP_TEXT)}{lookup(VARMAN_HELP_TEXT)}{lookup(NOTES_HELP_TEXT)}{lookup(PROJDEPS_HELP_TEXT)}{lookup(COMPAT_HELP_TEXT)}{lookup(NEWPHONE_HELP_TEXT)}"
+        f"{lookup(OUTPUT_FOLDER_HELP_TEXT)}{lookup(TASKERNET_UPDATES_HELP_TEXT)}{lookup(TASKSTEP_HELP_TEXT)}{lookup(TREND_HELP_TEXT)}{lookup(VARIABLE_HELP_TEXT)}{lookup(SIMILAR_HELP_TEXT)}{lookup(SPLIT_HELP_TEXT)}{lookup(RESOURCES_HELP_TEXT)}{lookup(MONITOR_HELP_TEXT)}{lookup(PREBUILD_HELP_TEXT)}{lookup(CARRY_HELP_TEXT)}{lookup(TASKTESTS_HELP_TEXT)}{lookup(OUTBOUND_HELP_TEXT)}{lookup(TNDESC_HELP_TEXT)}{lookup(LAUNCHER_HELP_TEXT)}{lookup(DESCRIBE_HELP_TEXT)}{lookup(BATTERY_HELP_TEXT)}{lookup(VARMAN_HELP_TEXT)}{lookup(NOTES_HELP_TEXT)}{lookup(PROJDEPS_HELP_TEXT)}{lookup(COMPAT_HELP_TEXT)}{lookup(NEWPHONE_HELP_TEXT)}"
     )
