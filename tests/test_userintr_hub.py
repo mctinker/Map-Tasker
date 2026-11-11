@@ -187,6 +187,8 @@ async def test_a_row_click_opens_what_it_names_in_a_window_of_its_own_and_keeps_
     [
         ("project_dependencies_event", "build_project_dependencies_window"),
         ("notes_event", "build_notes_window"),
+        ("compatibility_event", "build_compatibility_window"),
+        ("new_phone_event", "build_new_phone_window"),
     ],
 )
 async def test_a_main_window_only_dialogs_row_click_follows_open_view_in_new_window(

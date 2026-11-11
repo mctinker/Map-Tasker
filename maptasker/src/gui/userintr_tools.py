@@ -167,13 +167,13 @@ class ToolEventHandlers(HandlerGroup):
         """Open the Compatibility Check: what in the loaded file breaks on which Tasker version, and the table behind it.
 
         Opens with nothing loaded, since the table is worth reading without a file.  Rebuilt on every press, for
-        variable_manager_event's reason, and its lines open in a window of their own for the same one.
+        variable_manager_event's reason.  Its lines follow "Open View In New Window" like any other jump, for the
+        reason project_dependencies_event gives.
         """
 
         def make_jump(target: mapjump.Target) -> Callable[[], Coroutine[Any, Any, None]]:
             async def go() -> None:
-                with opening_view_in_a_new_window(self.gui):
-                    await go_to_target(self.gui, target)
+                await go_to_target(self.gui, target)
 
             return go
 
@@ -184,13 +184,13 @@ class ToolEventHandlers(HandlerGroup):
 
         Opens with nothing loaded too, and says so.  Rebuilt on every press, for variable_manager_event's reason, so it
         reads the configuration and the fetched app lists as they are now; the ticks are read from their own file.  Its
-        Show In Map links open a window of their own, for the reason a refactor's do.
+        Show In Map links follow "Open View In New Window" like any other jump, for the reason
+        project_dependencies_event gives.
         """
 
         def make_jump(target: mapjump.Target) -> Callable[[], Coroutine[Any, Any, None]]:
             async def go() -> None:
-                with opening_view_in_a_new_window(self.gui):
-                    await go_to_target(self.gui, target)
+                await go_to_target(self.gui, target)
 
             return go
 
