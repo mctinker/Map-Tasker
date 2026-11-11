@@ -51,6 +51,10 @@ REFACTOR_FILE = "MapTasker_Refactor.txt"
 PROJDEPS_FILE = "MapTasker_ProjectDependencies.txt"
 # Which of a configuration's actions and features break on which Tasker versions -- see compat.py.
 COMPAT_FILE = "MapTasker_Compatibility.txt"
+# The new-phone checklist and the ticks that remember how far you got -- see newphone.py.  The ticks stay in the
+# current directory beside the notes and never in the backup; the report goes to the Output Folder.
+NEWPHONE_FILE = "MapTasker_NewPhone.json"
+NEWPHONE_REPORT_FILE = "MapTasker_NewPhone_Checklist.txt"
 # The preview of the repairs offered for Health Check findings -- see mapfix.py.  Its own
 # file rather than an addition to HEALTHCHECK_FILE: the check's report says what is wrong
 # and this one says what was done about it, and the second is worth keeping next to the

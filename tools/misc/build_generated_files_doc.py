@@ -205,6 +205,12 @@ DESCRIPTIONS: dict[str, dict[str, str]] = {
         "produced_by": "'Compatibility Check' > Save Report",
         "note": "What in the loaded file does not work on a chosen Tasker version, or an older Android, and what behaves differently there.",
     },
+    "MapTasker_NewPhone_Checklist.txt": {
+        "section": "Reports",
+        "location": OUTPUT,
+        "produced_by": "'New-Phone Checklist' > Save Report",
+        "note": "What is left to set up on a new phone after restoring the backup -- plugins and apps to install, special access to grant, global variables to enter and Profiles to enable -- with what has been ticked off.",
+    },
     "MapTasker_Monitor.txt": {
         "section": "Reports",
         "location": OUTPUT,
@@ -271,6 +277,12 @@ DESCRIPTIONS: dict[str, dict[str, str]] = {
         "location": CURRENT,
         "produced_by": "'App not listed?'",
         "note": "The Application list fetched from the device, kept between runs and keyed by device.  Nothing is lost if you delete it; it is fetched again.",
+    },
+    "MapTasker_NewPhone.json": {
+        "section": "Settings and remembered state",
+        "location": CURRENT,
+        "produced_by": "'New-Phone Checklist' ticks",
+        "note": "Which items of the New-Phone Checklist you have ticked off, kept between runs.  Never part of the backup.  Delete it, or use Clear ticks, to start the next phone.",
     },
     "MapTasker_Resources.json": {
         "section": "Settings and remembered state",

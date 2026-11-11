@@ -108,9 +108,19 @@ def _label(access_id: str) -> str:
     return _table()["access"][access_id]["label"]
 
 
-def _how(access_id: str) -> str:
+def access_how(access_id: str) -> str:
     """What the recipient has to do to have one kind of access."""
     return _table()["access"][access_id]["how"]
+
+
+def access_label(access_id: str) -> str:
+    """What the data file calls one kind of access (the public face of _label)."""
+    return _label(access_id)
+
+
+def access_adb(access_id: str) -> tuple[str, ...]:
+    """The commands to run from a computer to grant one kind of access, as they are typed; () when it has none."""
+    return tuple(_table()["access"][access_id].get("adb", ()))
 
 
 # ##################################################################################
@@ -214,12 +224,12 @@ class Readiness:
             self._version_section(),
             Section(
                 "Plugins",
-                tuple(Line(need.package, _places(need.used_by)) for need in self.plugins),
+                tuple(Line(need.package, places_text(need.used_by)) for need in self.plugins),
                 "No plugins are used.",
             ),
             Section(
                 "Apps",
-                tuple(Line(_app_text(need), _places(need.used_by)) for need in self.apps),
+                tuple(Line(app_text(need), places_text(need.used_by)) for need in self.apps),
                 "No apps are named.",
             ),
             Section("Special access", tuple(_access_line(need) for need in self.access), "No special access found."),
@@ -315,18 +325,18 @@ def _named(places: tuple[str, ...]) -> str:
     return f"{'; '.join(places[:_PLACES_NAMED])}{f'; and {left} more' if left > 0 else ''}"
 
 
-def _places(used_by: tuple[str, ...]) -> str:
+def places_text(used_by: tuple[str, ...]) -> str:
     """ "Used by: a; b; c; and 2 more" """
     return f"Used by: {_named(used_by)}"
 
 
-def _access_places(need: AccessNeed) -> str:
+def access_places(need: AccessNeed) -> str:
     """Who needs this access, and who merely accepts it among others."""
     needed = f"Needed by: {_named(need.used_by)}"
     return f"{needed}.  Also met by it: {_named(need.also_meets)}" if need.also_meets else needed
 
 
-def _app_text(need: AppNeed) -> str:
+def app_text(need: AppNeed) -> str:
     """An app as the recipient would look for it: its label and its package."""
     return f"{need.label} ({need.package})" if need.label and need.label != need.package else need.package
 
@@ -334,10 +344,10 @@ def _app_text(need: AppNeed) -> str:
 def _access_line(need: AccessNeed) -> Line:
     """One special-access entry: the access, or the choice of them, and how to set each up."""
     if len(need.any_of) == 1:
-        return Line(need.labels[0], _access_places(need), _how(need.any_of[0]))
+        return Line(need.labels[0], access_places(need), access_how(need.any_of[0]))
     choice = f"{', '.join(need.labels[:-1])} or {need.labels[-1]} (any one of them)"
-    setup = "  ".join(f"{_label(access_id)}: {_how(access_id)}" for access_id in need.any_of)
-    return Line(choice, _access_places(need), setup)
+    setup = "  ".join(f"{_label(access_id)}: {access_how(access_id)}" for access_id in need.any_of)
+    return Line(choice, access_places(need), setup)
 
 
 def _prompt_line(need: PromptNeed) -> Line:

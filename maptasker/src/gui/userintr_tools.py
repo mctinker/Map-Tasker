@@ -27,6 +27,7 @@ from maptasker.src.gui.guiwins_firesim import build_firesim_dialog
 from maptasker.src.gui.guiwins_fix import build_fix_dialog
 from maptasker.src.gui.guiwins_monitor import build_monitor_dialog
 from maptasker.src.gui.guiwins_nav import go_to_target, opening_view_in_a_new_window
+from maptasker.src.gui.guiwins_newphone import build_new_phone_window
 from maptasker.src.gui.guiwins_notes import build_notes_window
 from maptasker.src.gui.guiwins_projdeps import build_project_dependencies_window
 from maptasker.src.gui.guiwins_refactor import build_refactor_dialog
@@ -177,6 +178,23 @@ class ToolEventHandlers(HandlerGroup):
             return go
 
         build_compatibility_window(make_jump, self.state).open()
+
+    def new_phone_event(self) -> None:
+        """Open the New-Phone Checklist: what is left to set up after restoring the loaded backup onto a new phone.
+
+        Opens with nothing loaded too, and says so.  Rebuilt on every press, for variable_manager_event's reason, so it
+        reads the configuration and the fetched app lists as they are now; the ticks are read from their own file.  Its
+        Show In Map links open a window of their own, for the reason a refactor's do.
+        """
+
+        def make_jump(target: mapjump.Target) -> Callable[[], Coroutine[Any, Any, None]]:
+            async def go() -> None:
+                with opening_view_in_a_new_window(self.gui):
+                    await go_to_target(self.gui, target)
+
+            return go
+
+        build_new_phone_window(make_jump, self.state).open()
 
     def project_dependencies_event(self) -> None:
         """Open the Project Dependencies window: which Projects use Tasks, Scenes and globals that live in other Projects.

@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file!
 
 ### Added
 
+- Added: __New-Phone Checklist__ in the Analyze section lists what is left to set up after restoring a backup onto a new phone -- plugins and apps to install (flagged when the phone lacks them), special access with its commands ready to copy, global variables with their values, and Profiles to enable -- each with a tick-box. Your ticks are remembered between sessions.
+
 - Added: __Export for Reddit__ in the Map view's Export menu copies whatever the Map shows -- a Project, Profile, Task or Scene, or everything -- to the clipboard in Tasker's own text layout, as a code block ready to paste into a post on r/tasker. A copy is also saved in the Output Folder.
 
 - Added: __Compatibility Check__ in the Analyze section sets your file against a Tasker version you pick, and optionally an older Android, and lists the actions, events and states that version does not have, plus the behaviours that changed on the way. Its Table tab is the whole list from Tasker's release notes and the developer's beta posts, 5.0 to 6.7.8, with how many places your file uses each.

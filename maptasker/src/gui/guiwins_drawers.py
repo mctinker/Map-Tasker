@@ -803,6 +803,31 @@ def _create_analysis_buttons_section(self: MyGui) -> None:
     _create_notes_button(self)
     _create_project_dependencies_button(self)
     _create_compatibility_button(self)
+    _create_new_phone_button(self)
+
+
+def _create_new_phone_button(self: MyGui) -> None:
+    """New-Phone Checklist, after the other Analyze buttons: what is left to set up once a backup is restored?"""
+    new_phone_button = (
+        ui.button(
+            translate_string("New-Phone Checklist"),
+            color="teal",
+            on_click=self.event_handlers.tools.new_phone_event,
+            icon="checklist",
+        )
+        .classes("w-full justify-center")
+        .style("margin-top:-6px")
+    )
+    with new_phone_button:
+        ui.tooltip(
+            translate_string(
+                "After restoring this backup onto a new phone: a list to tick off of the plugins and apps to install "
+                "(the ones the phone does not have are flagged), the special access to grant with its commands ready "
+                "to copy, the global variables to enter with their values from the backup, and the Profiles to "
+                "enable.\n\nTicks are remembered between sessions.  Plugins and apps are checked against the app "
+                "list fetched from the phone.\n\nNothing is changed.",
+            ),
+        ).style("white-space: pre-wrap")
 
 
 def _create_compatibility_button(self: MyGui) -> None:

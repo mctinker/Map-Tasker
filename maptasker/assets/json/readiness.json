@@ -37,11 +37,13 @@
     },
     "write_secure_settings": {
       "label": "Write Secure Settings",
-      "how": "Granted once from a computer: adb shell pm grant net.dinglisch.android.taskerm android.permission.WRITE_SECURE_SETTINGS"
+      "how": "Granted once from a computer: adb shell pm grant net.dinglisch.android.taskerm android.permission.WRITE_SECURE_SETTINGS",
+      "adb": ["adb shell pm grant net.dinglisch.android.taskerm android.permission.WRITE_SECURE_SETTINGS"]
     },
     "read_logs": {
       "label": "Read Logs",
-      "how": "Granted once from a computer: adb shell pm grant net.dinglisch.android.taskerm android.permission.READ_LOGS"
+      "how": "Granted once from a computer: adb shell pm grant net.dinglisch.android.taskerm android.permission.READ_LOGS",
+      "adb": ["adb shell pm grant net.dinglisch.android.taskerm android.permission.READ_LOGS"]
     },
     "shizuku": {
       "label": "Shizuku",

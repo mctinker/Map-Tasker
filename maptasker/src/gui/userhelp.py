@@ -326,6 +326,17 @@ COMPAT_HELP_TEXT = (
     " no announcement says so; it does not know options added to an action that already existed, or what a plugin needs."
     "  Save Report writes it to a text file.  Nothing is changed.  \n"
 )
+NEWPHONE_HELP_TEXT = (
+    "- New-Phone Checklist: What is left to set up after restoring this backup onto a new phone, as one list to tick"
+    " off: the plugins and apps to install, the special access to grant (with the commands for a computer ready to"
+    " copy), the global variables to type back in (with their values from the backup) and the Profiles to switch on."
+    "  Pick the phone at the top and each plugin and app is marked as on it or not, from the app list fetched from"
+    " that phone with 'App not listed?'; with none fetched nothing is marked.  Ticks are saved as you make them and"
+    " kept between runs, in a file beside the notes and never in the backup; Clear ticks starts again for the next"
+    " phone.  Show values hides the variables' values, and Only what is left hides what is ticked.  Like the"
+    " Readiness check it is built from what is in the file, so a short list is not proof that nothing else is needed."
+    "  Save Report writes the list, ticks and all, to a text file.  Nothing is changed.  \n"
+)
 RESOURCES_HELP_TEXT = (
     "- Missing Resources: Do the files, folders, images, sounds, Scenes and apps your Tasks and Profiles use still"
     " exist on your Android device?  Press Check Device and MapTasker asks the device -- it puts a small helper Task"
@@ -526,5 +537,5 @@ def build_help(translate: Callable[[str], str] | None = None) -> str:
     lookup: Callable[[str], str] = translate or (lambda text: text)
     return (
         f"MapTasker {VERSION} {lookup(HELP_HEADING)}  \n{lookup(COMMAND_REFERENCE_TEXT)}{lookup(INFO_TEXT)}"
-        f"{lookup(OUTPUT_FOLDER_HELP_TEXT)}{lookup(TASKERNET_UPDATES_HELP_TEXT)}{lookup(TASKSTEP_HELP_TEXT)}{lookup(TREND_HELP_TEXT)}{lookup(VARIABLE_HELP_TEXT)}{lookup(SIMILAR_HELP_TEXT)}{lookup(RESOURCES_HELP_TEXT)}{lookup(MONITOR_HELP_TEXT)}{lookup(PREBUILD_HELP_TEXT)}{lookup(CARRY_HELP_TEXT)}{lookup(TASKTESTS_HELP_TEXT)}{lookup(OUTBOUND_HELP_TEXT)}{lookup(TNDESC_HELP_TEXT)}{lookup(LAUNCHER_HELP_TEXT)}{lookup(DESCRIBE_HELP_TEXT)}{lookup(BATTERY_HELP_TEXT)}{lookup(VARMAN_HELP_TEXT)}{lookup(NOTES_HELP_TEXT)}{lookup(PROJDEPS_HELP_TEXT)}{lookup(COMPAT_HELP_TEXT)}"
+        f"{lookup(OUTPUT_FOLDER_HELP_TEXT)}{lookup(TASKERNET_UPDATES_HELP_TEXT)}{lookup(TASKSTEP_HELP_TEXT)}{lookup(TREND_HELP_TEXT)}{lookup(VARIABLE_HELP_TEXT)}{lookup(SIMILAR_HELP_TEXT)}{lookup(RESOURCES_HELP_TEXT)}{lookup(MONITOR_HELP_TEXT)}{lookup(PREBUILD_HELP_TEXT)}{lookup(CARRY_HELP_TEXT)}{lookup(TASKTESTS_HELP_TEXT)}{lookup(OUTBOUND_HELP_TEXT)}{lookup(TNDESC_HELP_TEXT)}{lookup(LAUNCHER_HELP_TEXT)}{lookup(DESCRIBE_HELP_TEXT)}{lookup(BATTERY_HELP_TEXT)}{lookup(VARMAN_HELP_TEXT)}{lookup(NOTES_HELP_TEXT)}{lookup(PROJDEPS_HELP_TEXT)}{lookup(COMPAT_HELP_TEXT)}{lookup(NEWPHONE_HELP_TEXT)}"
     )
