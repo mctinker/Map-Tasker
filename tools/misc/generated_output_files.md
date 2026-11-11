@@ -21,6 +21,7 @@ The map and the diagram themselves, and what the 'Export' button writes.
 | `MapTasker_Diagram_Export.md/json/pdf` | Output folder | Diagram view > Export | The Diagram view exported as Markdown, JSON or PDF, one file per format. |
 | `MapTasker_Map.txt` | Output folder | The Diagram view, or the '-outline' runtime option | A textual diagram of the configuration, displayed in your default text editor.  Turn text wrapping off and use a monospace font when viewing it, or the columns will not line up. |
 | `MapTasker_Map_Export.md/json/pdf` | Output folder | Map view > Export | The Map view exported as Markdown, JSON or PDF, one file per format. |
+| `MapTasker_Map_Reddit.txt` | Output folder | Map view > Export > Export for Reddit | What the Map shows, written as Tasker's own text and indented as a Reddit code block, ready to paste into a post on r/tasker.  The same text is put on the clipboard. |
 
 ## Reports
 

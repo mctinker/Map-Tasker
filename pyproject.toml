@@ -792,6 +792,7 @@ strict = [
     "maptasker/src/mapops/mapdescribe.py",
     "maptasker/src/mapops/mapdraft.py",
     "maptasker/src/mapops/mapfix.py",
+    "maptasker/src/mapops/mapreddit.py",
     "maptasker/src/mapops/maprefac.py",
     "maptasker/src/mapops/maprefac_duplicate.py",
     "maptasker/src/mapops/maprefac_extract.py",

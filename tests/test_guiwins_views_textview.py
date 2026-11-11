@@ -23,6 +23,7 @@ from maptasker.src.gui import guiwins_mapstream, guiwins_textview, guiwins_views
 from maptasker.src.gui.guiwins_textview import NiceGuiTextView
 from maptasker.src.gui.userintr import MyGui
 from maptasker.src.mapgen import diagintr, mapexport
+from maptasker.src.mapops import mapreddit
 from nicegui import core, ui
 from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
@@ -642,3 +643,47 @@ async def test_an_export_that_cannot_be_made_or_saved_is_reported_and_one_that_r
             assert user.notify.contains("The export could not be saved: disk full")
             outcome["value"] = None
             await _built["view"].export_event(mapexport.MAP, "pdf")  # the user cancelled: nothing to say
+
+
+@pytest.mark.asyncio
+async def test_export_for_reddit_copies_the_post_and_says_where_the_copy_went(monkeypatch: pytest.MonkeyPatch) -> None:
+    copied: list[str] = []
+
+    async def io_bound(function: Callable, *args: Any, **kwargs: Any) -> tuple[str, str]:
+        return "/out/MapTasker_Map_Reddit.txt", "    Profile: A\n"
+
+    monkeypatch.setattr(guiwins_textview.run, "io_bound", io_bound)
+    monkeypatch.setattr(guiwins_textview.ui.clipboard, "write", copied.append)
+    async with _open(_make("Map View", {})) as user:
+        with required(user.client):
+            await _built["view"].export_reddit_event()
+        assert copied == ["    Profile: A\n"]
+        assert user.notify.contains("Copied to the clipboard, and saved to /out/MapTasker_Map_Reddit.txt")
+
+
+@pytest.mark.asyncio
+async def test_a_post_longer_than_reddit_allows_says_so_and_a_failed_export_copies_nothing(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    copied: list[str] = []
+    outcome: dict = {"value": ("/out/r.txt", "x" * 40001)}
+
+    async def io_bound(function: Callable, *args: Any, **kwargs: Any) -> object:
+        if isinstance(outcome["value"], Exception):
+            raise outcome["value"]
+        return outcome["value"]
+
+    monkeypatch.setattr(guiwins_textview.run, "io_bound", io_bound)
+    monkeypatch.setattr(guiwins_textview.ui.clipboard, "write", copied.append)
+    async with _open(_make("Map View", {})) as user:
+        with required(user.client):
+            await _built["view"].export_reddit_event()
+            assert user.notify.contains("more than a Reddit post can hold")
+            copied.clear()
+            outcome["value"] = mapreddit.RedditError("There is nothing in the Map to export.")
+            await _built["view"].export_reddit_event()
+            assert user.notify.contains("There is nothing in the Map to export.")
+            outcome["value"] = OSError("disk full")
+            await _built["view"].export_reddit_event()
+            assert user.notify.contains("The export could not be saved: disk full")
+        assert copied == []

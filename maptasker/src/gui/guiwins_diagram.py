@@ -138,13 +138,18 @@ def create_export_menu(view: NiceGuiTextView) -> None:
                 "'Export' saves what this view shows to a file in the Output Folder:\n\n"
                 "Markdown, for a wiki page, an issue or a note.\n"
                 "JSON, for a script to read.\n"
-                "PDF, for printing or sending, with searchable text and bookmarks.\n\n",
+                "PDF, for printing or sending, with searchable text and bookmarks.\n"
+                "Export for Reddit (Map only), Tasker's own text for a post on r/tasker, copied to the clipboard.\n\n",
             ),
             # Beside the button, not under it, where it would sit on top of the open menu.
         ).props('anchor="center right" self="center left"').style("white-space: pre-wrap")
         with ui.menu():
             for fmt, label in mapexport.FORMATS.items():
                 ui.menu_item(label, on_click=lambda _e=None, chosen=fmt: view.export_event(what, chosen))
+            if what == mapexport.MAP:
+                # Tasker's own text for a post on r/tasker: not a format of the Map, so it sits apart from them.
+                ui.separator()
+                ui.menu_item(translate_string("Export for Reddit"), on_click=view.export_reddit_event)
 
 
 def create_diagram_tools(view: NiceGuiTextView) -> None:

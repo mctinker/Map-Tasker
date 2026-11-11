@@ -62,6 +62,9 @@ DIAGRAM_FILE = "MapTasker_Map.txt"
 # answering to "MapTasker_Map".
 MAP_EXPORT_FILE = "MapTasker_Map_Export"
 DIAGRAM_EXPORT_FILE = "MapTasker_Diagram_Export"
+# The Map view's 'Export > Export for Reddit': the Map as Tasker's own text in a Reddit code block
+# -- see mapreddit.py.
+REDDIT_EXPORT_FILE = "MapTasker_Map_Reddit.txt"
 # The control-flow report (every Task's If/Else/For/Goto structure, linted) and the
 # flowchart drawn for one Task -- see taskflow.py.  Two files rather than one because
 # they are two different things: the report is prose about the whole configuration, the

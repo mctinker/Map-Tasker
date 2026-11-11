@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file!
 
 ### Added
 
+- Added: __Export for Reddit__ in the Map view's Export menu copies whatever the Map shows -- a Project, Profile, Task or Scene, or everything -- to the clipboard in Tasker's own text layout, as a code block ready to paste into a post on r/tasker. A copy is also saved in the Output Folder.
+
 - Added: __Compatibility Check__ in the Analyze section sets your file against a Tasker version you pick, and optionally an older Android, and lists the actions, events and states that version does not have, plus the behaviours that changed on the way. Its Table tab is the whole list from Tasker's release notes and the developer's beta posts, 5.0 to 6.7.8, with how many places your file uses each.
 
 - Added: __Project Dependencies__ in the Analyze section shows which Projects use Tasks, Scenes and global variables that live in other Projects, as a graph and a table, with every use a click into the Map. It tells you what is safe to split out or share, which Projects can only be separated together, and what would be left dangling if you deleted a Project.

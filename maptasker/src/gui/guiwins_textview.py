@@ -40,6 +40,7 @@ from maptasker.src.gui.guiwins_nav import (
 from maptasker.src.gui.guiwins_search import SEARCH_JAVASCRIPT_TIMEOUT, TextViewSearch
 from maptasker.src.gui.guiwins_views import scope_badge_text
 from maptasker.src.mapgen import diagintr, mapexport
+from maptasker.src.mapops import mapreddit
 
 if TYPE_CHECKING:
     from nicegui.events import ValueChangeEventArguments
@@ -822,6 +823,35 @@ class NiceGuiTextView(TextViewSearch):
             ui.notify(f"{translate_string('The export could not be saved:')} {error}", type="negative", position="top")
             return
         ui.notify(f"{translate_string('Exported to')} {path}", type="positive", position="top")
+
+    async def export_reddit_event(self) -> None:
+        """Put what the Map shows on the clipboard as Tasker's own text in a Reddit code block, and save a copy.
+
+        Run off the event loop, like export_event: a whole configuration is a lot of text to build.
+        """
+        try:
+            path, post = await run.io_bound(mapreddit.export, self.master_gui.state)
+        except mapreddit.RedditError as error:
+            ui.notify(str(error), type="warning", position="top")
+            return
+        except OSError as error:
+            ui.notify(f"{translate_string('The export could not be saved:')} {error}", type="negative", position="top")
+            return
+        ui.clipboard.write(post)
+        ui.notify(
+            f"{translate_string('Copied to the clipboard, and saved to')} {path}",
+            type="positive",
+            position="top",
+        )
+        if len(post) > mapreddit.POST_LIMIT:
+            ui.notify(
+                translate_string(
+                    "That is more than a Reddit post can hold (40,000 characters).  "
+                    "Show one Project, Profile or Task in the Map and export again.",
+                ),
+                type="warning",
+                position="top",
+            )
 
     def extract_first_font_name(self, text: str) -> str:
         """

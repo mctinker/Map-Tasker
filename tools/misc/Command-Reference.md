@@ -1066,7 +1066,7 @@ Save the 'Find/Replace' results to a text file.
 
 _Part of [Map / Diagram / Tree View Toolbar](#cmd-map-diagram-tree-view-toolbar)._
 
-Save what the view shows to a file in the current directory, as Markdown, JSON or PDF.
+Save what the view shows to a file in the current directory, as Markdown, JSON or PDF. On the Map, Export for Reddit puts Tasker's own text for what the Map shows on the clipboard, as a code block to paste into a post on r/tasker.
 
 **Caveats:**
 

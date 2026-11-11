@@ -105,7 +105,7 @@ INFO_TEXT = (
     "   - Ask AI: (in the Find/Replace window) Type the question in plain words, and the AI model selected on the Analyze tab fills in the Find boxes for you.  The search itself runs exactly as if you had picked them.\n"
     "   - Replace: (in the Find/Replace window) Change what Find finds -- swap one Task action for another, rewrite an action's argument, replace a Profile condition, or rename a variable everywhere it is used.  Every change is listed first, you tick the ones you want, and the whole lot is one press of Undo.\n"
     "   - Save Results: Save the 'Find/Replace' results to a text file.\n"
-    "   - Export: (Map and Diagram only) Save what the view shows to a file in the current directory, as Markdown, JSON or PDF.\n"
+    "   - Export: (Map and Diagram only) Save what the view shows to a file in the current directory, as Markdown, JSON or PDF.  On the Map, Export for Reddit puts Tasker's own text for what the Map shows on the clipboard, as a code block to paste into a post on r/tasker.\n"
     "   - Top / Bottom: Jump to the beginning or the end of the displayed output.\n"
     "   - Toggle Wrap: Turn line wrapping on or off in the displayed output.\n"
     "   - Profiles Per Line: (Diagram only) The number of Profiles drawn side-by-side on a single line.\n"

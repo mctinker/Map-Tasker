@@ -150,6 +150,12 @@ DESCRIPTIONS: dict[str, dict[str, str]] = {
         "produced_by": "Map view > Export",
         "note": "The Map view exported as Markdown, JSON or PDF, one file per format.",
     },
+    "MapTasker_Map_Reddit.txt": {
+        "section": "Views",
+        "location": OUTPUT,
+        "produced_by": "Map view > Export > Export for Reddit",
+        "note": "What the Map shows, written as Tasker's own text and indented as a Reddit code block, ready to paste into a post on r/tasker.  The same text is put on the clipboard.",
+    },
     "MapTasker_Diagram_Export": {
         "section": "Views",
         "location": OUTPUT,
