@@ -182,17 +182,26 @@ async def test_a_row_click_opens_what_it_names_in_a_window_of_its_own_and_keeps_
 
 
 @pytest.mark.asyncio
-async def test_a_project_dependencies_row_click_follows_open_view_in_new_window(
+@pytest.mark.parametrize(
+    ("event", "builder"),
+    [
+        ("project_dependencies_event", "build_project_dependencies_window"),
+        ("notes_event", "build_notes_window"),
+    ],
+)
+async def test_a_main_window_only_dialogs_row_click_follows_open_view_in_new_window(
     seen: SimpleNamespace,
     monkeypatch: pytest.MonkeyPatch,
+    event: str,
+    builder: str,
 ) -> None:
-    """That window is only opened from the main window, which no Map reuses, so its links do not force a new tab.
+    """These windows are only opened from the main window, which no Map reuses, so their links do not force a new tab.
 
     They used to, and with the checkbox off every click still opened another tab.
     """
     build = MagicMock(return_value=MagicMock())
-    patch_hub(monkeypatch, "build_project_dependencies_window", build)
-    _handlers().tools.project_dependencies_event()
+    patch_hub(monkeypatch, builder, build)
+    getattr(_handlers().tools, event)()
     target = mapjump.Target(kind=mapjump.TASK, key="1", name="Wake Up")
 
     await build.call_args.args[0](target)()
@@ -717,18 +726,3 @@ def test_a_press_of_notes_and_tags_builds_the_window_and_opens_it(
     build.assert_called_once()
     assert build.call_args.args[1] is handlers.gui.state
     window.open.assert_called_once()
-
-
-@pytest.mark.asyncio
-async def test_a_row_of_the_notes_window_opens_its_object_in_a_window_of_its_own(
-    seen: SimpleNamespace, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    build = MagicMock(return_value=MagicMock())
-    patch_hub(monkeypatch, "build_notes_window", build)
-    _handlers().tools.notes_event()
-    target = mapjump.Target(kind=mapjump.TASK, key="1", name="Wake Up")
-
-    await build.call_args.args[0](target)()
-
-    assert seen.jumped == [target]
-    assert seen.new_window == ["in", "out"]

@@ -150,14 +150,14 @@ class ToolEventHandlers(HandlerGroup):
         """Open the Notes & Tags window: the person's own notes and tags on Projects, Profiles and Tasks.
 
         Works with no file loaded, since the notes are in a file of their own.  Rebuilt on every press rather than kept,
-        so it reads the notes as they are now.  Its Show In Map opens a window of its own, for the reason
-        variable_manager_event gives.
+        so it reads the notes as they are now.  Its Show In Map follows "Open View In New Window" like any other jump,
+        and does not force a window of its own: that is there to keep a dialog that lives in the tab a Map would
+        reuse, and this one is only ever opened from the main window (see project_dependencies_event).
         """
 
         def make_jump(target: mapjump.Target) -> Callable[[], Coroutine[Any, Any, None]]:
             async def go() -> None:
-                with opening_view_in_a_new_window(self.gui):
-                    await go_to_target(self.gui, target)
+                await go_to_target(self.gui, target)
 
             return go
 
