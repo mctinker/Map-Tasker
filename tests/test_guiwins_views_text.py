@@ -379,8 +379,50 @@ def test_a_view_paints_itself_for_the_mode_the_window_is_in() -> None:
     assert view_theme_colors(fake_window()) == ("#ffffff", "#000000"), "a switch never touched is light"
 
 
-def test_the_windows_own_background_wins_over_the_default() -> None:
-    window = fake_window(dark_mode=True, color_lookup={"background": "#123456"})
+def test_a_background_the_user_chose_is_what_a_view_paints_itself_with() -> None:
+    """The palette's key is background_color; the lookup used to ask for "background" and never found it."""
+    from maptasker.src.core.colrmode import set_color_mode
+
+    chosen = {**set_color_mode("light"), "background_color": "LightGreen"}
+    window = fake_window(dark_mode=False, appearance_mode="light", color_lookup=chosen)
+    assert view_theme_colors(window) == ("LightGreen", "#000000")
+
+    chosen_dark = {**set_color_mode("dark"), "background_color": "#222623"}
+    assert view_theme_colors(fake_window(dark_mode=True, appearance_mode="dark", color_lookup=chosen_dark)) == (
+        "#222623",
+        "#ffffff",
+    )
+
+
+def test_the_text_follows_the_background_that_was_chosen_not_the_mode() -> None:
+    """A dark Background picked in light mode left black text on it, which nobody could read."""
+    from maptasker.src.core.colrmode import set_color_mode
+
+    dark_in_light = {**set_color_mode("light"), "background_color": "#14003c"}
+    light_in_dark = {**set_color_mode("dark"), "background_color": "LightYellow"}
+
+    assert view_theme_colors(fake_window(appearance_mode="light", color_lookup=dark_in_light)) == ("#14003c", "#ffffff")
+    assert view_theme_colors(fake_window(dark_mode=True, appearance_mode="dark", color_lookup=light_in_dark)) == (
+        "LightYellow",
+        "#000000",
+    )
+
+
+def test_the_palettes_own_background_does_not_repaint_the_window() -> None:
+    """Lavender is the output's default; the window has always had its own colours, and keeps them."""
+    from maptasker.src.core.colrmode import set_color_mode
+
+    for mode, dark, expected in (("light", False, ("#ffffff", "#000000")), ("dark", True, ("#1e293b", "#ffffff"))):
+        window = fake_window(dark_mode=dark, appearance_mode=mode, color_lookup=set_color_mode(mode))
+        assert view_theme_colors(window) == expected
+
+
+def test_a_bare_hex_background_is_given_its_hash_for_css() -> None:
+    from maptasker.src.core.colrmode import set_color_mode
+
+    window = fake_window(
+        dark_mode=True, appearance_mode="dark", color_lookup={**set_color_mode("dark"), "background_color": "123456"}
+    )
     assert view_theme_colors(window) == ("#123456", "#ffffff")
 
 
@@ -415,3 +457,131 @@ def test_a_highlighted_connector_is_not_bold() -> None:
 
     assert "background-color" in rule
     assert "font-weight" not in rule
+
+
+def test_the_chosen_background_is_pushed_to_the_page_body_and_the_default_is_left_alone(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from unittest.mock import MagicMock
+
+    from maptasker.src.core.colrmode import set_color_mode
+    from maptasker.src.gui import guiwins
+
+    scripts: list[str] = []
+    monkeypatch.setattr(guiwins.ui, "run_javascript", lambda script: scripts.append(script))
+    for lookup, expected in (
+        ({**set_color_mode("light"), "background_color": "LightGreen"}, "LightGreen"),
+        (set_color_mode("light"), "#ffffff"),
+    ):
+        window = fake_window(
+            dm_controller=MagicMock(), appearance_mode="light", color_lookup=lookup, extract_in_progress=True
+        )
+
+        guiwins.apply_appearance_mode(window, False)
+
+        assert scripts[-1] == f'document.body.style.backgroundColor = "{expected}";'
+
+
+def test_a_dark_background_chosen_in_light_mode_does_not_take_the_drawers_text_with_it(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The drawers keep their own white; the main area takes the chosen colour, and light text to go with it."""
+    from unittest.mock import MagicMock
+
+    from maptasker.src.core.colrmode import set_color_mode
+    from maptasker.src.gui import guiwins
+
+    monkeypatch.setattr(guiwins.ui, "run_javascript", lambda _script: None)
+    drawer, column = MagicMock(), MagicMock()
+    window = fake_window(
+        dm_controller=MagicMock(),
+        appearance_mode="light",
+        color_lookup={**set_color_mode("light"), "background_color": "#14003c"},
+        extract_in_progress=True,
+        gui_left_drawer=drawer,
+        gui_main_column=column,
+    )
+
+    guiwins.apply_appearance_mode(window, False)
+
+    drawer.style.assert_called_with("background-color: #ffffff !important; color: #000000 !important;")
+    column.style.assert_called_with("background-color: #14003c !important; color: #ffffff !important;")
+
+
+@pytest.mark.asyncio
+async def test_the_color_input_shows_the_colour_picked_on_its_button() -> None:
+    """The picker's big square is only the hue; the button beside the field is the colour that was picked."""
+    from unittest.mock import MagicMock
+
+    from maptasker.src.gui import guiwins_tabs
+    from nicegui import ui
+
+    from tests.nicegui_harness import found, open_page
+
+    window = fake_window(event_handlers=MagicMock())
+
+    async with open_page(lambda: guiwins_tabs.create_colors_tab(window)) as user:
+        (field,) = found(user, ui.color_input)
+
+        assert field.preview is True
+        assert field.button._style.get("background-color") == "#3f99ff"
+
+
+def test_switching_modes_does_not_repaint_a_map_but_does_repaint_the_other_views(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from unittest.mock import MagicMock
+
+    from maptasker.src.gui import guiwins
+
+    monkeypatch.setattr(guiwins.ui, "run_javascript", lambda _script: None)
+    map_area, diagram_area = MagicMock(), MagicMock()
+    views = [
+        fake_window(title="Map View", scroll_area=map_area),
+        fake_window(title="Diagram View", scroll_area=diagram_area),
+    ]
+    monkeypatch.setattr(guiwins, "live_views", lambda _window: views)
+    window = fake_window(
+        dm_controller=MagicMock(), appearance_mode="dark", color_lookup={}, textviews=views, gui_main_column=MagicMock()
+    )
+
+    guiwins.apply_appearance_mode(window, False)
+
+    map_area.style.assert_not_called()
+    diagram_area.style.assert_called_with("background-color: #ffffff !important;")
+
+
+def test_the_background_the_user_assigned_survives_a_switch_between_dark_and_light(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from unittest.mock import MagicMock
+
+    from maptasker.src.core.colrmode import set_color_mode
+    from maptasker.src.gui import guiwins
+
+    monkeypatch.setattr(guiwins.ui, "run_javascript", lambda _script: None)
+    window = fake_window(
+        dm_controller=MagicMock(),
+        appearance_mode="dark",
+        color_lookup={**set_color_mode("dark"), "background_color": "#8787e8"},
+        gui_main_column=MagicMock(),
+    )
+
+    guiwins.apply_appearance_mode(window, False)  # to light
+
+    assert window.color_lookup["background_color"] == "#8787e8"
+    assert window.color_lookup["project_color"] == set_color_mode("light")["project_color"], "the rest is the mode's"
+
+
+def test_without_an_assigned_background_a_switch_takes_the_new_modes_own() -> None:
+    from unittest.mock import MagicMock
+
+    from maptasker.src.core.colrmode import set_color_mode
+    from maptasker.src.gui import guiwins
+
+    window = fake_window(dm_controller=MagicMock(), appearance_mode="dark", color_lookup=set_color_mode("dark"))
+    with pytest.MonkeyPatch.context() as patch:
+        patch.setattr(guiwins.ui, "run_javascript", lambda _script: None)
+        guiwins.apply_appearance_mode(window, False)
+
+    assert window.color_lookup["background_color"] == set_color_mode("light")["background_color"]

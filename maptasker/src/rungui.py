@@ -199,6 +199,11 @@ def _register_popout_page(state: RunState) -> None:
         # .connector-highlight rule to apply, so nothing visibly highlights.
         inject_shared_head_styles(state=state)
 
+        # Light or dark as the app is, and not as the operating system is.  The main window states its mode outright
+        # (ui.dark_mode, see guiwins_drawers); this page is its own document and said nothing, so it took the
+        # system's -- a dark page, dark toolbar and light default text around a Map the app had set to light.
+        ui.dark_mode(value=bool(getattr(gui, "dark_mode", False)))
+
         # NiceGUI wraps every page's content in a padded ".nicegui-content" div; strip that
         # padding here so the view below can actually reach the browser's full width/height
         # instead of being inset by it.

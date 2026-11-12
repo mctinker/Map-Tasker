@@ -158,6 +158,19 @@ def _relative_luminance(rgb: tuple[int, int, int]) -> float:
     return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2]
 
 
+def darker(color: str, factor: float = 0.9) -> str:
+    """The colour a little darker -- each channel scaled by `factor` -- as "#rrggbb"; "" if it is not a colour.
+
+    The same hue and a slightly lower brightness, which is what a box on a page of that colour wants to be: told
+    apart from the page without being a different colour.  Black stays black.
+    """
+    try:
+        red, green, blue = _color_to_rgb(color)
+    except (ValueError, AttributeError, TypeError):
+        return ""
+    return f"#{round(red * factor):02x}{round(green * factor):02x}{round(blue * factor):02x}"
+
+
 # Whether a color is a dark one, i.e. whether what sits on it has to be light to be seen.
 def is_dark_color(color: str) -> bool:
     """

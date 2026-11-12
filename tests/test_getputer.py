@@ -263,3 +263,14 @@ def test_something_in_the_colour_table_that_is_not_a_colour_is_not_kept() -> Non
     assert effective_colors(spoiled, "light") == {**set_color_mode("light"), "project_color": "Red"}
     assert effective_colors("not a table", "light") == set_color_mode("light")
     assert effective_colors(None, 7) == set_color_mode("system")
+
+
+def test_the_chosen_background_is_only_a_background_that_differs_from_the_palettes() -> None:
+    from maptasker.src.core.colrmode import chosen_background, set_color_mode
+
+    assert chosen_background(set_color_mode("light"), "light") == ""
+    assert chosen_background({**set_color_mode("light"), "background_color": "Red"}, "light") == "Red"
+    assert chosen_background({"background_color": "Lavender"}, "light") == "", "Lavender is light mode's own"
+    assert chosen_background({"background_color": "Lavender"}, "dark") == "Lavender", "but a choice in dark mode"
+    assert chosen_background({"background_color": "abc123"}, "light") == "#abc123"
+    assert chosen_background(None, "light") == chosen_background({}, None) == ""

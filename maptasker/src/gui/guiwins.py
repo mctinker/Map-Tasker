@@ -32,6 +32,7 @@ these modules -- see any of their docstrings for which calls those are and why.
 from __future__ import annotations
 
 import functools
+import json
 import re
 import time
 from collections import deque
@@ -39,7 +40,7 @@ from typing import TYPE_CHECKING, Any, cast
 
 from nicegui import ui
 
-from maptasker.src.core.colrmode import set_color_mode
+from maptasker.src.core.colrmode import chosen_background, set_color_mode, text_on
 from maptasker.src.core.getputer import save_restore_args
 from maptasker.src.core.maputil2 import translate_string
 from maptasker.src.core.sysconst import (
@@ -724,19 +725,29 @@ def apply_appearance_mode(self: MyGui, is_dark: bool) -> None:
     # --- 2. Persist state on self ---
     # appearance_mode is what gets written to the settings file (it is in ARGUMENT_NAMES),
     # so setting it here is what makes the choice outlive the session.
+    was_chosen = chosen_background(self.color_lookup, self.appearance_mode)  # before the mode changes under it
     self.appearance_mode = "dark" if is_dark else "light"
     self.dark_mode = is_dark
     # A settings restore carries its own colors and is mid-way through applying them, so leave
     # them alone -- extract_settings() raises this flag for exactly this reason.
     if not getattr(self, "extract_in_progress", False):
         self.color_lookup = set_color_mode(self.appearance_mode)
-    bg = cast("dict[str, str]", self.color_lookup or {}).get("background", bg)
+        if was_chosen:
+            # The other colours are the mode's own, but the Background the user assigned is theirs: switching between
+            # dark and light must not take it back.
+            self.color_lookup["background_color"] = was_chosen
+    # The Background colour, when the user has chosen one.  It was looked up as "background" -- which no palette has
+    # -- so a colour chosen never reached the window.
+    chosen = chosen_background(self.color_lookup, self.appearance_mode)
+    bg = chosen or bg
+    drawer_fg = fg  # the drawers keep their own background, so they keep the mode's own text colour
+    fg = text_on(chosen, fg)  # but a dark colour chosen in light mode needs light text on it
 
     # --- 3. Push background color to the browser body ---
-    ui.run_javascript(f"document.body.style.backgroundColor = '{bg}';")
+    ui.run_javascript(f"document.body.style.backgroundColor = {json.dumps(bg)};")
 
     # --- 4. Apply styles to every named widget that exists ---
-    _style_named_widgets(self, drawer_bg, bg, fg)
+    _style_named_widgets(self, drawer_bg, drawer_fg, bg, fg)
 
     # --- 5. CRITICAL FIX: Force the text view's gui_toolbar color update ---
     _style_open_views(self, bg, fg, is_dark=is_dark)
@@ -757,12 +768,12 @@ def _style_toolbar(toolbar: ui.element | None, dark_background: str, *, is_dark:
         )
 
 
-def _style_named_widgets(self: MyGui, drawer_bg: str, bg: str, fg: str) -> None:
+def _style_named_widgets(self: MyGui, drawer_bg: str, drawer_fg: str, bg: str, fg: str) -> None:
     """The drawers and panels the window keeps by name, in the mode's colours."""
     for attr in ("gui_left_drawer", "gui_right_drawer"):
         widget = getattr(self, attr, None)
         if widget:
-            widget.style(f"background-color: {drawer_bg} !important; color: {fg} !important;")
+            widget.style(f"background-color: {drawer_bg} !important; color: {drawer_fg} !important;")
 
     for attr in (
         "gui_main_column",
@@ -790,7 +801,10 @@ def _style_open_views(self: MyGui, bg: str, fg: str, *, is_dark: bool) -> None:
         if apply_theme:
             apply_theme(bg, fg)
         scroll_area = getattr(textview, "scroll_area", None)
-        if scroll_area and not apply_theme:
+        # A Map keeps the background it was drawn on -- the one assigned to it, not the window's -- so switching
+        # between dark and light does not repaint it.
+        is_map = str(getattr(textview, "title", "")).startswith("Map")
+        if scroll_area and not apply_theme and not is_map:
             scroll_area.style(f"background-color: {bg} !important;")
 
         # Map / Diagram / Tree View >  Search / Clear / Top / Bottom Toolbar

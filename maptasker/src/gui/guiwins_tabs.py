@@ -257,7 +257,7 @@ def create_colors_tab(self: MyGui) -> None:
                     "Action Names",
                     "Scenes",
                     "Background",
-                    "TaskerNet Information",
+                    "TaskerNet Descriptions",
                     "Tasker Preferences",
                     "Highlight",
                     "Heading",
@@ -274,6 +274,10 @@ def create_colors_tab(self: MyGui) -> None:
                 label=translate_string("Choose Hex Color"),
                 value="#3f99ff",
                 on_change=lambda e: self.event_handlers.settings.handle_color_pick_event(e.value or ""),
+                # The button next to the field takes the colour that was picked, so the colour itself is on show.  The
+                # picker's big square is the hue only (a pale periwinkle sits in its top corner of a deep blue
+                # square), and it reads as the pick when it is not.
+                preview=True,
             )
             .classes("w-64 mb-0")
             .props("dense")

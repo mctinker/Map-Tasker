@@ -328,6 +328,7 @@ def popout(monkeypatch: pytest.MonkeyPatch, pages: dict[str, Any]):
     monkeypatch.setattr(rungui.ui, "page_title", lambda title: labels.append(f"title:{title}"))
     monkeypatch.setattr(rungui.ui, "query", lambda _q: SimpleNamespace(classes=lambda *_a, **_k: None))
     monkeypatch.setattr(rungui.ui, "column", lambda: SimpleNamespace(classes=lambda *_a, **_k: "the column"))
+    monkeypatch.setattr(rungui.ui, "dark_mode", lambda value=None: labels.append(f"dark:{value}"))
     monkeypatch.setattr(rungui, "inject_shared_head_styles", lambda state: None)
     monkeypatch.setattr(rungui, "register_finding_clicks", lambda gui: None)
     monkeypatch.setattr(rungui, "NiceGuiTextView", lambda gui, **kwargs: views.append(kwargs) or "the view")
@@ -344,6 +345,18 @@ def test_the_map_opens_in_a_window_of_its_own_with_where_it_was_built_for(popout
     assert view["the_data"] == {}, "a dict is what tells the view it is the Map"
     assert (view["jump_to"], view["map_scope"], view["built_for"]) == ("task:5", "Home", "Project 'Home'")
     assert popout.run.mygui.textview == "the view"
+
+
+@pytest.mark.parametrize("app_is_dark", [False, True])
+def test_a_popped_out_view_is_light_or_dark_as_the_app_is_not_as_the_system_is(
+    popout: SimpleNamespace, *, app_is_dark: bool
+) -> None:
+    """The page is its own document: left alone it follows the operating system, whatever the app was set to."""
+    popout.run.mygui.dark_mode = app_is_dark
+
+    popout.open("map")
+
+    assert f"dark:{app_is_dark}" in popout.labels
 
 
 def test_the_diagram_opens_with_nothing_handed_to_it(popout: SimpleNamespace) -> None:

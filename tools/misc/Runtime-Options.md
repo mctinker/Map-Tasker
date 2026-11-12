@@ -81,7 +81,7 @@ Each takes a color name (`-ch` lists the valid ones) or a hex value, as in `-cTa
 | `-cScene` | `CSCENE` |  | Provide a valid color for Scenes.  Example: -cScene Blue |
 | `-cActionLabel` | `CACTIONLABEL` |  | Provide a valid color for Task action 'labels'.  Example: -cActionLabel Blue |
 | `-cActionName` | `CACTIONNAME` |  | Provide a valid color for Task action 'names'.  Example: -cActionName Blue |
-| `-cTaskerNetInfo` | `CTASKERNETINFO` |  | Provide a valid color for TaskerNet 'information'.  Example: -cTaskerNetInfo Blue |
+| `-cTaskerNetInfo` | `CTASKERNETINFO` |  | Provide a valid color for TaskerNet 'descriptions'.  Example: -cTaskerNetInfo Blue |
 | `-cPreferences` | `CPREFERENCES` |  | Provide a valid color for Tasker 'preferences'.  Example: -cPreferences Blue |
 | `-cTrailingComments` | `CTRAILINGCOMMENTS` |  | Provide a valid color for Trailing Comments.  Example: -cTrailingComments Blue |
 | `-cHighlight` | `CHIGHLIGHT` |  | Provide a valid color for Highlight.  Example: -cHighlight Blue |

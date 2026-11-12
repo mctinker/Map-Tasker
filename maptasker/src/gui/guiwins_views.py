@@ -22,6 +22,7 @@ from typing import TYPE_CHECKING, Any, cast
 
 from nicegui import ui
 
+from maptasker.src.core.colrmode import chosen_background, text_on
 from maptasker.src.core.maputil2 import translate_string
 from maptasker.src.gui.guiwins_nav import (
     live_views,
@@ -83,8 +84,8 @@ def view_theme_colors(master_gui: MyGui) -> tuple[str, str]:
     is_dark = bool(getattr(master_gui, "dark_mode", False))
     bg = "#1e293b" if is_dark else "#ffffff"
     fg = "#ffffff" if is_dark else "#000000"
-    lookup: dict[str, str] = getattr(master_gui, "color_lookup", None) or {}
-    return lookup.get("background", bg), fg
+    chosen = chosen_background(getattr(master_gui, "color_lookup", None), getattr(master_gui, "appearance_mode", None))
+    return chosen or bg, text_on(chosen, fg)
 
 
 class NiceGuiTreeView:

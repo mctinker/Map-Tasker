@@ -12,6 +12,8 @@ from typing import TYPE_CHECKING, cast
 
 import darkdetect  # pyright: ignore[reportMissingTypeStubs]  (no stubs are published for it)
 
+from maptasker.src.core.htmlsafe import css_color, is_dark_color
+
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
@@ -100,6 +102,28 @@ def _named_colors(colors: object) -> dict[str, str]:
 def effective_colors(saved: object, appearance_mode: object) -> dict[str, str]:
     """The colours in force: the appearance mode's palette, with the colours saved for it laid over it."""
     return {**set_color_mode(_mode_of(appearance_mode)), **_named_colors(saved)}
+
+
+def chosen_background(colors: Mapping[str, str] | object, appearance_mode: object) -> str:
+    """The Background colour the user chose, as CSS wants it, or "" when they have not chosen one.
+
+    "Background" is the colour of the output (the Map, and every other view) and the palette gives it a default of
+    its own -- Lavender in light mode.  The window around the output has always had its own colours, and painting
+    it with the palette's default would change how everyone's window looks without anyone having asked.  So only a
+    Background that differs from the palette's is the user's choice, and only that reaches the window.
+    """
+    return css_color(color_overrides(colors, appearance_mode).get("background_color", ""))
+
+
+def text_on(background: str, fallback: str) -> str:
+    """The text colour for a window painted `background`: white on a dark colour, black on a light one.
+
+    `fallback` is what to use when the background is not a colour this can judge, which is also the case for the
+    window's own colours (the caller already knows which way round those go).
+    """
+    if not background:
+        return fallback
+    return "#ffffff" if is_dark_color(background) else "#000000"
 
 
 def color_overrides(colors: Mapping[str, str] | object, appearance_mode: object) -> dict[str, str]:

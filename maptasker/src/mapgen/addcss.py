@@ -11,12 +11,27 @@ import contextlib
 from typing import TYPE_CHECKING
 
 from maptasker.src.core import assettext
-from maptasker.src.core.htmlsafe import is_dark_color
+from maptasker.src.core.htmlsafe import darker, is_dark_color
 from maptasker.src.core.sysconst import FONT_FAMILY, SPACE_COUNT1, SPACE_COUNT2, SPACE_COUNT3, FormatLine
 
 if TYPE_CHECKING:
     from maptasker.src.core.primitem import RunState
     from maptasker.src.core.runcfg import RunConfig
+
+
+def box_colors(background: str) -> tuple[str, str]:
+    """(the background, the border) of the box around a TaskerNet description or a Task label.
+
+    The background is a slightly darker tone of the output's own, as the user assigned it, so the box is the page's
+    colour and still stands out from it; the border is chosen to show against that: light on a dark page, dark on a
+    light one.  With no background assigned (or one that is not a colour) there is no page colour to follow, and the
+    box keeps the shades it has always had.
+    """
+    dark = is_dark_color(background)
+    border = "#8a8f98" if dark else "#333"
+    if shaded := darker(background):
+        return shaded, border
+    return ("#2c3138" if dark else "#f9f9f9"), border
 
 
 def add_css(config: RunConfig, state: RunState) -> None:
@@ -56,16 +71,10 @@ def add_css(config: RunConfig, state: RunState) -> None:
         BLANK_TAB_3=SPACE_COUNT3[1],
     )
 
-    # The box drawn around a TaskerNet description or a Task label has to sit on the output's
-    # own background rather than on a fixed one: a light box lands as a slab of white in the
-    # middle of the dark mode's near-black page, and every color inside it -- all of which
-    # were chosen against the page background, not against the box -- is then the wrong way
-    # round.  Follow the background instead, so the box is a shade lighter than a dark page
-    # and a shade darker than a light one, with a border that shows up on either.
-    if is_dark_color(config.color("background_color", "")):
-        box_background, box_border = "#2c3138", "#8a8f98"
-    else:
-        box_background, box_border = "#f9f9f9", "#333"
+    # The box drawn around a TaskerNet description or a Task label is a slightly darker tone of the colour the user
+    # assigned to "Background", rather than a shade of its own: every colour inside it was picked against that
+    # background, so the box has to be recognisably the same colour.
+    box_background, box_border = box_colors(config.color("background_color", ""))
     # The vertical spacing is deliberately tight.  The box already stands out by its border
     # and its background, and a paragraph's own margin inside it -- a full line top and
     # bottom, on top of the box's margin and padding -- used to leave three and four blank

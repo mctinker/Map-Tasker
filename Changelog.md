@@ -22,6 +22,7 @@ All notable changes to this project will be documented in this file!
 
 ### Changed
 
+- Changed: The Colors tab category 'TaskerNet Information' is now called 'TaskerNet Descriptions', which is what it colors.
 - Changed: __Save To Android__ in the Task, Profile, Project and Scene editors is now one button that writes the file to the Tasker folder on the phone and also imports it into Tasker. Untick 'Also import into Tasker' in that window to write the file only; the choice is remembered.
 - Changed: When 'Check IDs' finds that the phone already uses a new Task's ID for something else, the warning now has a 'Use a new ID' button that gives the Task a free one and sends it again. It is offered only for a Task made in MapTasker, never for one already in your file.
 - Changed: The 'waiting up to N seconds' notice now also shows while MapTasker checks what Tasker already has before a save, and the time allowed for the phone's helper Tasks grows with the size of its configuration. A phone with a large configuration is no longer given up on early.
@@ -30,6 +31,10 @@ All notable changes to this project will be documented in this file!
 
 ### Fixed
 
+- Fixed: A Map, Diagram or other view opened in its own window now follows the app's Light or Dark mode. It followed the computer's setting instead, so with the app in light mode on a dark computer the window around the Map, its toolbar and its default text were dark.
+- Fixed: Switching between dark and light mode no longer repaints a Map that is already on screen, and the Background color you assigned now survives the switch. Before, the Map turned white or dark grey and the assigned color was reset to the new mode's own.
+- Fixed: The boxes around TaskerNet descriptions and Task labels in the Map are now a slightly darker tone of the Background color you assigned. They had a color of their own, which looked like a different background.
+- Fixed: A Background color you choose in the Colors tab now paints the window's main area, and the Tree and Scene views, as well as the Map, with light or dark text to suit it. It was only reaching the Map, so the rest of the window stayed white (or dark grey) whatever you picked.
 - Fixed: Named Tasks that are not called by any Profile, and that no Project lists, are now in the Map's directory. They were written at the end of the Map but left out of the directory, so there was no link to them.
 - Fixed: A connector in the Diagram view is no longer broken into pieces, so Jump to Start and Jump to End reach its ends, when a Task without a name is called after an action that has a label (such as an 'If'). The name made up for that Task had a line break in it, which split its line in two and pushed every connector passing it out of line.
 - Fixed: Clicking a link in the Project Dependencies, Notes & Tags, Compatibility Check or New-Phone Checklist windows now follows the 'Open View In New Window' checkbox. They opened another tab for every click even with the box unticked.
