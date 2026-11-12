@@ -328,6 +328,8 @@ max-complexity = 12
 'scripts/package_smoke.py' = ['S603', 'S607']
 # docs_check.py runs each documentation generator's --check, from the project's own interpreter.
 'scripts/docs_check.py' = ['S603']
+# release_guard.py asks GitHub through the `gh` CLI the runner already has, with a fixed command and the repository's own name.
+'scripts/release_guard.py' = ['S603', 'S607']
 # xmldata.py reads a Tasker backup with the standard library's own C parser, which is several times faster than
 # defusedxml's pure-Python one (S314).  What defusedxml was there to refuse -- a document that declares an entity -- is
 # refused before the parse begins (see ENTITY_DECLARATION).  Shares from strangers are still read with defusedxml.

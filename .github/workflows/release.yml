@@ -1,59 +1,94 @@
 name: Release
 
-# Publishing MapTasker to PyPI.  Nothing here runs on an ordinary push: it runs when a version tag is pushed.
+# Publishing MapTasker to PyPI.  Nothing here runs on an ordinary push: it runs when a version tag is pushed, or when
+# the rehearsal is started by hand.
 #
-#     1. Change `version` in pyproject.toml, commit it, and push the branch.  Wait for CI to go green.
+# THE RELEASE
+#
+#     1. Change `version` in pyproject.toml.  Run `python scripts/changelog_release.py stamp` (it puts that version
+#        and today's date in the Changelog's top heading), commit, and push the branch.  Wait for CI to go green.
 #     2. git tag v15.2.0 && git push origin v15.2.0        (the tag is "v" + the version in pyproject.toml)
-#     3. This workflow checks the tag, builds, tests the built wheel, and publishes to TestPyPI.
+#     3. This workflow checks the tag, the Changelog's heading and the `pypi` environment, builds, tests the built
+#        wheel, and publishes to TestPyPI.
 #     4. For a final version it then stops and waits for you to approve it, on the workflow run's page in GitHub
 #        (the "pypi" environment's required reviewer).  Approve, and it publishes to PyPI.
+#     5. It then creates the GitHub Release: the Changelog's section for the version, each change in one brief
+#        sentence, with the wheel and the sdist attached.
 #
-# A pre-release tag (v15.3.0rc1, v15.3.0a2, v15.3.0.dev1) goes to TestPyPI only, as publishtest-rc.sh did.
+# A pre-release tag (v15.3.0rc1, v15.3.0a2, v15.3.0.dev1) goes to TestPyPI only, as publishtest-rc.sh did, and its
+# GitHub Release is marked a pre-release.
 #
-# No password or token is stored anywhere: PyPI is told, once, that this repository's release.yml may publish
-# MapTasker (trusted publishing), and GitHub then vouches for each run.  One-time setup, by the project owner:
+# THE REHEARSAL
+#
+# Actions > Release > Run workflow tries all of the above that can be tried without publishing: the same checks, the
+# same build and package test, and an upload to TestPyPI -- of a throwaway version (X.Y.Z.devN, N the run number), so
+# the real version is not used up there -- and then it stops.  It never reaches PyPI, and makes no tag or GitHub
+# Release; it prints the release text in the run's summary instead.  A Changelog heading that is not stamped yet is
+# a warning there, since the rehearsal is for the days before it is.
+#
+# THE GUARD
+#
+# The v15.2.0 tag went straight to PyPI because the `pypi` environment had no required reviewer, and nothing held the
+# upload.  A PyPI release cannot be taken back, so `check` runs scripts/release_guard.py, which asks GitHub whether
+# `pypi` has a required reviewer and FAILS the whole run, rehearsal included, when it does not -- or when it cannot
+# find out.  GitHub only shows an environment's protection rules to a token with repository Administration (read),
+# which the workflow's own token is not given, so the guard needs the ENVIRONMENT_CHECK_TOKEN secret (below).
+#
+# One-time setup, by the project owner:
 #
 #   * pypi.org -> maptasker -> Publishing -> add a GitHub publisher:
 #         owner mctinker, repository Map-Tasker, workflow release.yml, environment pypi
 #   * test.pypi.org -> the same, with environment testpypi
 #   * GitHub -> the repository's Settings -> Environments: create "pypi" and add yourself as a required reviewer
-#     (that is the pause before the real upload; a PyPI release cannot be taken back), and create "testpypi".
+#     (that is the pause before the real upload), and create "testpypi".
+#   * GitHub -> Settings -> Secrets and variables -> Actions: a secret ENVIRONMENT_CHECK_TOKEN holding a fine-grained
+#     personal access token for this repository alone, with the one permission Administration: Read-only.
 
 on:
   push:
     tags: ["v*"]
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
   check:
-    name: check the tag
+    name: check the release
     runs-on: ubuntu-latest
     permissions:
       contents: read
       actions: read
     outputs:
-      version: ${{ steps.tag.outputs.version }}
-      final: ${{ steps.tag.outputs.final }}
+      version: ${{ steps.version.outputs.version }}
+      final: ${{ steps.version.outputs.final }}
+      rehearsal: ${{ steps.version.outputs.rehearsal }}
     steps:
       - uses: actions/checkout@v5
 
-      - name: The tag names the version in pyproject.toml
-        id: tag
+      - name: Which version, and is this a rehearsal
+        id: version
         run: |
-          version="${GITHUB_REF_NAME#v}"
           declared=$(python3 -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])")
-          if [ "$version" != "$declared" ]; then
-            echo "::error::Tag $GITHUB_REF_NAME says version $version, but pyproject.toml says $declared."
-            exit 1
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+            version="$declared"
+            rehearsal=true
+          else
+            version="${GITHUB_REF_NAME#v}"
+            rehearsal=false
+            if [ "$version" != "$declared" ]; then
+              echo "::error::Tag $GITHUB_REF_NAME says version $version, but pyproject.toml says $declared."
+              exit 1
+            fi
           fi
           # A final version is digits and dots only; anything else (rc1, a2, dev1) is a pre-release.
           if printf '%s' "$version" | grep -Eq '^[0-9]+(\.[0-9]+)*$'; then final=true; else final=false; fi
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "final=$final" >> "$GITHUB_OUTPUT"
+          echo "rehearsal=$rehearsal" >> "$GITHUB_OUTPUT"
 
       - name: CI passed on this exact commit
+        if: steps.version.outputs.rehearsal == 'false'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -64,6 +99,17 @@ jobs:
             echo "::error::No successful CI run for commit $GITHUB_SHA. Push the commit to a branch, wait for CI to pass, then tag it."
             exit 1
           fi
+
+      - name: The Changelog's heading names this version and has a date
+        # A release stops here when the heading is not stamped.  A rehearsal only says so.
+        continue-on-error: ${{ steps.version.outputs.rehearsal == 'true' }}
+        run: python3 scripts/changelog_release.py check --version "${{ steps.version.outputs.version }}"
+
+      - name: The pypi environment makes a person approve the upload
+        # Fails the run, rehearsal included, when `pypi` has no required reviewer -- or when that cannot be seen.
+        env:
+          GH_TOKEN: ${{ secrets.ENVIRONMENT_CHECK_TOKEN }}
+        run: python3 scripts/release_guard.py --environment pypi
 
   build:
     name: build and test the package
@@ -77,6 +123,14 @@ jobs:
         with:
           python-version: "3.13"
           enable-cache: true
+
+      - name: Make the rehearsal's version one nothing has used
+        # TestPyPI never takes a version twice.  A rehearsal uploaded as the real version would use it up there and
+        # make the real release fail at TestPyPI, so it goes up as X.Y.Z.devN.  Only this checkout is changed.
+        if: needs.check.outputs.rehearsal == 'true'
+        run: |
+          sed -i -E "0,/^version = \"[^\"]+\"/s//version = \"${{ needs.check.outputs.version }}.dev${{ github.run_number }}\"/" pyproject.toml
+          grep -n '^version' pyproject.toml
 
       - name: Build sdist and wheel
         run: uv build
@@ -111,13 +165,36 @@ jobs:
         with:
           repository-url: https://test.pypi.org/legacy/
 
+  rehearsal:
+    name: rehearsal report (stops here)
+    if: needs.check.outputs.rehearsal == 'true'
+    needs: [check, testpypi]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: What the release would say
+        run: |
+          {
+            echo "## Rehearsal of ${{ needs.check.outputs.version }}: stopped before PyPI"
+            echo
+            echo "The checks, the build, the package test and the TestPyPI upload all passed."
+            echo "No tag, no PyPI upload and no GitHub Release were made.  The release text would be:"
+            echo
+            echo '~~~markdown'
+            python3 scripts/changelog_release.py notes --version "${{ needs.check.outputs.version }}" \
+              --changelog-url "${{ github.server_url }}/${{ github.repository }}/blob/${{ github.sha }}/Changelog.md"
+            echo '~~~'
+          } >> "$GITHUB_STEP_SUMMARY"
+
   pypi:
     name: publish to PyPI
-    # A pre-release stops at TestPyPI.
-    if: needs.check.outputs.final == 'true'
+    # A pre-release stops at TestPyPI, and so does a rehearsal.
+    if: needs.check.outputs.final == 'true' && needs.check.outputs.rehearsal == 'false'
     needs: [check, build, testpypi]
     runs-on: ubuntu-latest
-    # Required reviewers on this environment make the run wait here until you approve it.
+    # Required reviewers on this environment make the run wait here until you approve it; `check` has already
+    # refused to start unless there is one.
     environment:
       name: pypi
       url: https://pypi.org/project/maptasker/${{ needs.check.outputs.version }}/
@@ -131,3 +208,40 @@ jobs:
 
       - name: Publish
         uses: pypa/gh-action-pypi-publish@release/v1
+
+  github-release:
+    name: create the GitHub Release
+    # After PyPI for a final version; after TestPyPI for a pre-release, which never goes to PyPI.  Never in a rehearsal.
+    if: >-
+      always() && needs.check.outputs.rehearsal == 'false' && needs.testpypi.result == 'success' &&
+      (needs.check.outputs.final == 'false' || needs.pypi.result == 'success')
+    needs: [check, testpypi, pypi]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # to create the release; nothing else is granted
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/download-artifact@v5
+        with:
+          name: dist
+          path: dist/
+
+      - name: Write the release text from the Changelog
+        run: |
+          python3 scripts/changelog_release.py notes --version "${{ needs.check.outputs.version }}" \
+            --changelog-url "${{ github.server_url }}/${{ github.repository }}/blob/${{ github.ref_name }}/Changelog.md" \
+            > release-notes.md
+          cat release-notes.md
+
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          flags=""
+          if [ "${{ needs.check.outputs.final }}" != "true" ]; then flags="--prerelease"; fi
+          gh release create "$GITHUB_REF_NAME" dist/* \
+            --verify-tag \
+            --title "MapTasker ${{ needs.check.outputs.version }}" \
+            --notes-file release-notes.md \
+            $flags

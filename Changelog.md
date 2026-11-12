@@ -23,8 +23,8 @@ All notable changes to this project will be documented in this file!
 ### Changed
 
 - Changed: The Colors tab category 'TaskerNet Information' is now called 'TaskerNet Descriptions', which is what it colors.
-- Changed: __Save To Android__ in the Task, Profile, Project and Scene editors is now one button that writes the file to the Tasker folder on the phone and also imports it into Tasker. Untick 'Also import into Tasker' in that window to write the file only; the choice is remembered.
-- Changed: When 'Check IDs' finds that the phone already uses a new Task's ID for something else, the warning now has a 'Use a new ID' button that gives the Task a free one and sends it again. It is offered only for a Task made in MapTasker, never for one already in your file.
+- Changed: __Save To Android__ in the Task, Profile, Project and Scene editors is now one button that saves the file to the Tasker folder and also imports it into Tasker. Untick 'Also import into Tasker' in that window to write the file only; the choice is remembered.
+- Changed: The 'Check IDs' warning now has a 'Use a new ID' button when the phone already uses a new Task's ID, which gives the Task a free one and sends it again. It is offered only for a Task made in MapTasker, never for one already in your file.
 - Changed: The 'waiting up to N seconds' notice now also shows while MapTasker checks what Tasker already has before a save, and the time allowed for the phone's helper Tasks grows with the size of its configuration. A phone with a large configuration is no longer given up on early.
 
 ### Removed
