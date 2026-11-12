@@ -13,7 +13,7 @@ from maptasker.src.core import scenelayout
 from maptasker.src.core.mapjump import SCENE
 from maptasker.src.core.maputil2 import translate_string
 from maptasker.src.edit import sceneedit, sceneedit_legacy, scenemodel
-from maptasker.src.gui.guiwins import android_device_fields
+from maptasker.src.gui.guiwins import android_device_fields, use_save_or_import
 from maptasker.src.gui.guiwins_designers import designer_for
 from maptasker.src.gui.guiwins_editor import SCENE_REDACT_FIELD, PendingChangesBanner, editor_state, explain
 from maptasker.src.gui.guiwins_impact import build_impact_panel
@@ -305,7 +305,8 @@ def _build_scene_save_buttons(
         scene_to_android,
         translate_string(
             "This will write the Scene as a standalone file onto your Android device, under "
-            "/Tasker/scenes -- it does not import it into Tasker's live configuration.\n\n"
+            "/Tasker/scenes, and -- unless you untick 'Also import into Tasker' in the next window -- "
+            "opens Android's 'Open with...' chooser so you can import it into Tasker.\n\n"
             "The 'Http Server Example' and 'Tasker HTTP API' Tasker Projects must both be installed and active on the Android "
             "device, with the server running.\n\n"
             "The Android device must be on the same network, and the IP Address and Port must "
@@ -477,9 +478,9 @@ def build_save_scene_to_android_dialog(
     """Prompts for the Android device's IP address and port, then writes the
     Scene as a standalone .scn.xml file onto the device's storage under
     /Tasker/scenes, via the Tasker HTTP Server Example's /upload endpoint (see
-    sceneedit.save_scene_to_android).  This does not import it into Tasker's live
-    configuration.  On success both this prompt and the parent (Edit Scene)
-    dialog are closed.  Mirrors build_save_project_to_android_dialog.
+    sceneedit.save_scene_to_android).  Unless "Also import into Tasker" is unticked, it
+    then goes on to Tasker's own import screen (see import_scene_into_tasker_event).
+    On success both this prompt and the parent (Edit Scene) dialog are closed.  Mirrors build_save_project_to_android_dialog.
 
     field_refs is the parent dialog's, and is carried through for the save
     handler, which applies those edits before uploading -- the upload renders
@@ -489,56 +490,57 @@ def build_save_scene_to_android_dialog(
     """
     with ui.dialog().props("persistent") as android_dialog, ui.card().classes("min-w-[350px] p-6"):
         ui.label(translate_string("Save Scene To Android Device")).classes("text-lg font-bold text-blue-600")
-        android_field_refs = android_device_fields(self)
+        android_field_refs = android_device_fields(
+            self,
+            import_tooltip=translate_string(
+                "This sends the Scene -- and every Task its elements fire -- to the Android "
+                "device under its own name, into /Tasker/scenes, and opens Android's "
+                "'Open with...' chooser for it.\n\n"
+                "If Tasker is in that chooser, pick it.  A Scene is the one kind Tasker has been "
+                "seen to refuse when it is handed one, so if it is not there -- or nothing "
+                "happens -- finish it with Tasker's 'Scenes > Import One Scene' and pick the "
+                "Scene by name.  The file is on the device either way, and the message tells you "
+                "its name.\n\n"
+                "You will be asked before it replaces a file already at that path.\n\n"
+                "Untick it to write the file to /Tasker/scenes and nothing more.\n\n"
+                "The 'Http Server Example' and 'Tasker HTTP API' Tasker Projects must both be installed and running, and "
+                "Tasker must be 6.2 or higher.\n\n"
+                "The device will ask you to authorize MapTasker the first time.",
+            ),
+        )
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
             ui.button(translate_string("Cancel"), on_click=android_dialog.close).props("outline")
+            # One button; the "Also import into Tasker" box says how far it goes.  See
+            # guiwins.build_save_to_android_dialog.
             save_to_android = ui.button(
-                translate_string("Save As File"),
-                on_click=lambda: self.event_handlers.android.save_scene_to_android_event(
-                    edited_scene,
-                    field_refs,
+                translate_string("Save To Android"),
+                on_click=use_save_or_import(
                     android_field_refs,
-                    android_dialog,
-                    parent_dialog,
+                    lambda: self.event_handlers.android.save_scene_to_android_event(
+                        edited_scene,
+                        field_refs,
+                        android_field_refs,
+                        android_dialog,
+                        parent_dialog,
+                    ),
+                    lambda: self.event_handlers.android.import_scene_into_tasker_event(
+                        edited_scene,
+                        field_refs,
+                        android_field_refs,
+                        android_dialog,
+                        parent_dialog,
+                    ),
                 ),
-            ).props("outline")
+            ).classes("bg-blue-600")
             with save_to_android:
                 ui.tooltip(
                     translate_string(
-                        "This will write the Scene as a standalone file onto the Android device, "
-                        "under /Tasker/scenes.\n\n"
+                        "This writes the Scene as a standalone file onto the Android device, "
+                        "under /Tasker/scenes, and -- unless 'Also import into Tasker' is unticked -- opens Android's "
+                        "'Open with...' chooser so you can import it into Tasker.\n\n"
                         "The IP Address and Port must match the Android device's Tasker server settings.\n\n"
                         "Watch the Android device while this runs: Tasker asks you to authorize the "
                         "connection several times for one save, and a prompt left untapped fails it.",
-                    ),
-                ).style("white-space: pre-wrap")
-            # The Profile and Project dialogs' pair, for a Scene -- see
-            # guiwins_profedit.build_save_profile_to_android_dialog for why these are two buttons.
-            import_into_tasker = ui.button(
-                translate_string("Import Into Tasker"),
-                on_click=lambda: self.event_handlers.android.import_scene_into_tasker_event(
-                    edited_scene,
-                    field_refs,
-                    android_field_refs,
-                    android_dialog,
-                    parent_dialog,
-                ),
-            ).classes("bg-blue-600")
-            with import_into_tasker:
-                ui.tooltip(
-                    translate_string(
-                        "This sends the Scene -- and every Task its elements fire -- to the Android "
-                        "device under its own name, into /Tasker/scenes, and opens Android's "
-                        "'Open with...' chooser for it.\n\n"
-                        "If Tasker is in that chooser, pick it.  A Scene is the one kind Tasker has been "
-                        "seen to refuse when it is handed one, so if it is not there -- or nothing "
-                        "happens -- finish it with Tasker's 'Scenes > Import One Scene' and pick the "
-                        "Scene by name.  The file is on the device either way, and the message tells you "
-                        "its name.\n\n"
-                        "You will be asked before it replaces a file already at that path.\n\n"
-                        "The 'Http Server Example' and 'Tasker HTTP API' Tasker Projects must both be installed and running, and "
-                        "Tasker must be 6.2 or higher.\n\n"
-                        "The device will ask you to authorize MapTasker the first time.",
                     ),
                 ).style("white-space: pre-wrap")
 

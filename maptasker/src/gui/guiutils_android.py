@@ -154,7 +154,11 @@ def remember_android_address(gui: "MyGui", ipaddr: str, port: str) -> None:
 
 def phone_wait_line(ip_address: str, ip_port: str, route: str = "api/tasks", *, named: bool = False) -> str:
     """A sentence saying a request to this phone can take a while, with how long it will be waited for; "" if not."""
-    wait = devicewait.long_wait(ip_address, ip_port, route, named=named)
+    return wait_line(devicewait.long_wait(ip_address, ip_port, route, named=named))
+
+
+def wait_line(wait: float | None) -> str:
+    """The sentence for a wait of this many seconds, or "" when there is none worth mentioning (None)."""
     if wait is None:
         return ""
     return (

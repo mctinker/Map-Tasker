@@ -8,16 +8,17 @@ from typing import TYPE_CHECKING, Any
 
 from nicegui import run, ui
 
-from maptasker.src.core import presave
+from maptasker.src.core import devicewait, presave
 from maptasker.src.core.maputil2 import (
     http_request,
     suppress_logged,
     translate_string,
 )
 from maptasker.src.core.sysconst import logger
-from maptasker.src.device import devicecheck, devicefiles, deviceoffer, deviceverify
+from maptasker.src.device import devicecheck, devicefiles, deviceoffer, devicetask, deviceverify
 from maptasker.src.gui.guiutils_android import (
     clear_android_buttons,
+    wait_line,
 )
 from maptasker.src.gui.guiwins import build_round_trip_report_dialog
 from maptasker.src.mapgen.getbakup import validate_xml_file
@@ -33,6 +34,23 @@ if TYPE_CHECKING:
     )
     from maptasker.src.gui.userintr import MyGui
     from maptasker.src.gui.userintr_group import HandlerGroup
+
+
+class TaskerLines(list[str]):
+    """The prompt's lines about what Tasker already has, with what the ID check found behind them.
+
+    A plain list to everything that only shows them.  `clashes` is the IDs the device has given to something
+    else, and `highest_id` the highest it has given out: what a save needs to offer the object a new one.
+    """
+
+    clashes: list[devicecheck.IdFinding]
+    highest_id: int
+
+    def __init__(self, lines: list[str], clashes: list[devicecheck.IdFinding], highest_id: int) -> None:
+        """The lines, then the clashing IDs found and the highest ID the device has."""
+        super().__init__(lines)
+        self.clashes = clashes
+        self.highest_id = highest_id
 
 
 async def what_tasker_already_has(
@@ -70,11 +88,20 @@ async def what_tasker_already_has(
 
     check = None
     id_lines: list[str] = []
+    clashes: list[devicecheck.IdFinding] = []
+    highest_id = 0
     if check_ids:
-        ui.notify("Taking a fresh backup on the device to check IDs -- this can take a little while.", type="info")
+        ui.notify(
+            "Taking a fresh backup on the device to check IDs -- this can take a little while."
+            + wait_line(devicewait.worth_telling(devicecheck.id_check_poll_seconds(ip_address, ip_port))),
+            type="info",
+            multi_line=True,
+        )
         checked = await run.io_bound(devicecheck.check_against_device_backup, ip_address, ip_port, xml, state=state)
         check, findings, problem = checked
         id_lines = [f"Could not check IDs: {problem}"] if problem else devicecheck.describe_id_findings(findings)
+        clashes = [finding for finding in findings if finding.is_clash]
+        highest_id = check.highest_id if check is not None else 0
 
     if check is None:
         if sent.get("Project"):
@@ -82,15 +109,22 @@ async def what_tasker_already_has(
             # -- worth saying before it happens rather than leaving the button looking stuck.
             ui.notify(
                 "Checking which Projects, Profiles, Scenes and Tasks Tasker already has -- "
-                "a small MapTasker Task runs on the device for this.",
+                "a small MapTasker Task runs on the device for this."
+                + wait_line(devicewait.worth_telling(devicetask.object_list_poll_seconds(ip_address, ip_port))),
                 type="info",
+                multi_line=True,
+            )
+        elif line := wait_line(devicewait.longer_than_usual(ip_address, ip_port, "api/profiles")):
+            # Only for a phone that has shown it is slow over its lists: on any other these checks are quick.
+            ui.notify(
+                "Checking which Profiles, Scenes and Tasks Tasker already has." + line, type="info", multi_line=True
             )
         check = await run.io_bound(devicecheck.check_tasker_for_existing, ip_address, ip_port, sent, state=state)
 
     name_lines = devicecheck.describe_tasker_check(check)
     if any(check.present.values()):
         name_lines.append(consequence)
-    return [*name_lines, *id_lines]
+    return TaskerLines([*name_lines, *id_lines], clashes, highest_id)
 
 
 # What a prompt says after naming what Tasker already has, by how the objects would get there.
@@ -121,6 +155,9 @@ class FileSave:
     # Says how it went, instead of the plain "saved": (ip address, port, where it landed, the note about the
     # copy it replaced) -> False to leave the dialogs open.  The Task import uses it to wait for Tasker.
     report: Callable[[str, str, str, str], Awaitable[bool]] | None = None
+    # Gives the object a different ID when the device has its own on something else: (the clashing IDs, the highest
+    # ID the device has) -> the new ID, or "" when this one cannot be renumbered.  None where it is never offered.
+    new_id: Callable[[set[str], int], str] | None = None
 
 
 def check_ids_ticked(android_field_refs: dict[str, Any]) -> bool:

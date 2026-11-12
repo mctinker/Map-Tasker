@@ -30,13 +30,14 @@ keeps that true regardless of what an earlier test did.
 import asyncio
 import contextlib
 from datetime import date, timedelta
+from types import SimpleNamespace
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 from urllib.parse import parse_qs, urlparse
 
 import pytest
 from maptasker.src.analysis import timecomp
-from maptasker.src.core import clock, timeline
+from maptasker.src.core import clock, devicewait, timeline
 from maptasker.src.core.initparg import ProgramArguments
 from maptasker.src.core.mapfonts import get_monospaced_fonts
 from maptasker.src.core.primitem import SINGLE_ITEM_LABELS, PrimeItems
@@ -2220,6 +2221,41 @@ def test_the_save_to_android_panel_options_are_saved_settings() -> None:
         assert defaults[name] is False
 
 
+def test_also_importing_into_tasker_is_a_saved_setting_that_is_on_by_default() -> None:
+    """Saving to the Android device also imports unless the person has turned that off, and it is kept."""
+    from maptasker.src.core.initparg import initialize_runtime_arguments
+    from maptasker.src.core.sysconst import ARGUMENT_NAMES
+
+    assert "android_import" in ARGUMENT_NAMES
+    assert initialize_runtime_arguments()["android_import"] is True
+
+
+def test_the_one_save_button_imports_when_the_box_is_ticked_and_writes_the_file_only_when_it_is_not() -> None:
+    """The box is read when the button is pressed, so changing it after the panel opened is honoured."""
+    box = SimpleNamespace(value=True)
+    pressed: list[str] = []
+    choose = guiwins.use_save_or_import(
+        {"import_too": box}, lambda: pressed.append("file"), lambda: pressed.append("import")
+    )
+
+    choose()
+    box.value = False
+    choose()
+    box.value = True
+    choose()
+
+    assert pressed == ["import", "file", "import"]
+
+
+def test_a_panel_with_no_import_box_still_imports_as_it_always_did() -> None:
+    """The box is what turns the import off; a panel that has none keeps the default of doing both."""
+    pressed: list[str] = []
+
+    guiwins.use_save_or_import({}, lambda: pressed.append("file"), lambda: pressed.append("import"))()
+
+    assert pressed == ["import"]
+
+
 def test_an_android_address_entered_is_kept_for_the_next_session(monkeypatch) -> None:
     """Entering an address writes the settings file then and there, and survives a local file
     load clearing android_ipaddr -- the next dialog still opens on it."""
@@ -2498,6 +2534,39 @@ async def test_nothing_in_tasker_means_no_lines_and_a_project_check_is_announced
 
     assert lines == []
     assert notes and "Projects" in notes[0]
+
+
+@pytest.mark.asyncio
+async def test_the_helper_checks_say_how_long_the_phone_will_be_waited_for(monkeypatch):
+    """The helper Task and the backup are polled for half a minute or more: said before they start, not after."""
+    from maptasker.src.device import devicecheck
+
+    notes = _inline_tasker_check(monkeypatch, lambda _sent: ({"Project": []}, {}))
+    monkeypatch.setattr(
+        userintr_android_support.devicecheck,
+        "check_against_device_backup",
+        lambda _ip, _port, _xml, **_kw: (devicecheck.TaskerCheck({"Project": []}, {}, {}), [], ""),
+    )
+
+    await _REAL_WHAT_TASKER_ALREADY_HAS("192.168.0.210", "1821", lambda: _ONE_PROJECT, "C", state=PrimeItems)
+    await _REAL_WHAT_TASKER_ALREADY_HAS(
+        "192.168.0.210", "1821", lambda: _ONE_PROJECT, "C", check_ids=True, state=PrimeItems
+    )
+
+    assert "Projects" in notes[0] and "waiting up to 30 seconds" in notes[0]
+    assert "fresh backup" in notes[1] and "waiting up to 60 seconds" in notes[1]
+
+
+@pytest.mark.asyncio
+async def test_a_plain_list_check_on_a_large_phone_says_it_is_waiting(monkeypatch):
+    """No helper Task here -- the lists are asked for directly, and a big phone takes a while over them."""
+    notes = _inline_tasker_check(monkeypatch, lambda _sent: ({"Task": []}, {}))
+    for objects, count in (("profiles", 237), ("scenes", 62), ("tasks", 534)):
+        devicewait.assume_size(objects, count)
+
+    await _REAL_WHAT_TASKER_ALREADY_HAS("192.168.0.210", "1821", lambda: _ONE_TASK, "C", state=PrimeItems)
+
+    assert notes and "Profiles, Scenes and Tasks" in notes[0] and "waiting up to" in notes[0]
 
 
 @pytest.mark.asyncio

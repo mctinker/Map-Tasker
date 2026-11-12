@@ -541,6 +541,61 @@ async def test_what_tasker_already_has_is_put_in_the_prompt_even_for_a_new_file(
 
 
 @pytest.mark.asyncio
+async def test_an_id_the_phone_has_taken_offers_a_new_one_and_sends_the_save_again(
+    phone: FakeTasker, window: Window, asked: list, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from maptasker.src.device import devicecheck
+    from maptasker.src.gui.userintr_android_support import TaskerLines
+
+    clash = devicecheck.IdFinding("Task", "$ItWorked", "1101", "Task", "$NewTask", "1101")
+    answers = [TaskerLines(["ID 1101 is taken."], [clash], 1500), TaskerLines([], [], 0)]
+
+    async def has(*_a: Any, **_k: Any) -> list[str]:
+        return answers.pop(0)
+
+    monkeypatch.setattr(userintr_android, "what_tasker_already_has", has)
+    renumbered: list[tuple[set[str], int]] = []
+
+    def new_id(clashing: set[str], highest: int) -> str:
+        renumbered.append((clashing, highest))
+        return "1501"
+
+    async def press_the_button(a: ui.dialog, p: ui.dialog) -> None:
+        await window.handlers._save_file_to_device(_file_save(phone, [], new_id=new_id), _refs(phone), a, p)
+        assert asked[0]["on_new_id"] is not None, "the prompt offers it"
+        await asked[0]["on_new_id"]()  # in the page, where the notices it puts up have somewhere to go
+
+    async for user in _in_a_page(window, press_the_button):
+        assert any("now has ID 1501" in text for text in user.notify.messages)
+
+    assert renumbered == [({"1101"}, 1500)], "past the highest the phone reported"
+    assert len(asked) == 1 or asked[1].get("on_new_id") is None, "the second check found nothing to renumber"
+
+
+@pytest.mark.asyncio
+async def test_a_clash_is_not_offered_a_new_id_when_the_save_cannot_renumber(
+    phone: FakeTasker, window: Window, asked: list, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from maptasker.src.device import devicecheck
+    from maptasker.src.gui.userintr_android_support import TaskerLines
+
+    clash = devicecheck.IdFinding("Task", "$ItWorked", "1101", "Task", "$NewTask", "1101")
+
+    async def has(*_a: Any, **_k: Any) -> list[str]:
+        return TaskerLines(["ID 1101 is taken."], [clash], 1500)
+
+    monkeypatch.setattr(userintr_android, "what_tasker_already_has", has)
+
+    async for _user in _in_a_page(
+        window,
+        lambda a, p: window.handlers._save_file_to_device(_file_save(phone, []), _refs(phone), a, p),
+    ):
+        pass
+
+    assert "on_new_id" not in asked[0], "the prompt is the one it always was"
+
+
+@pytest.mark.asyncio
 async def test_a_save_that_fails_on_the_phone_says_so_and_keeps_nothing(
     phone: FakeTasker, window: Window, asked: list, tasker_asked_nothing: None
 ) -> None:

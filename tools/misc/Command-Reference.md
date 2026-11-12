@@ -822,19 +822,19 @@ Write the entire configuration to a new, timestamped file beside the loaded one.
 _Part of [Add, Edit and Save](#cmd-add-edit-and-save)._
 
 **Type:** Command  
-**Where:** Add Profile Buttons; Edit Profile Buttons; Edit Project Buttons (and 3 more)
+**Where:** Add Profile Buttons; Edit Profile Buttons; Edit Project Buttons (and 9 more)
 
 Write the object back to your Android device -- 'Save As File' puts it on the device as a file, and 'Import Into Tasker' hands it to Tasker itself (a Task goes straight in; a Profile, Project or Scene opens Tasker's import screen).
 
 **Hover text:**
 
-* This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration. Watch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it.
-* This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration. Watch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it.
-* This will write the Project, and everything in it -- every Profile and Task -- as a standalone file onto your Android device, under /Tasker/projects -- it does not import it into Tasker's live configuration. Watch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it.
+* This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles, and -- unless you untick 'Also import into Tasker' in the next window -- opens Android's 'Open with...' chooser so you can import it into Tasker. Watch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it.
+* This writes the Profile as a standalone file onto the Android device, under /Tasker/profiles, and -- unless 'Also import into Tasker' is unticked -- opens Android's 'Open with...' chooser so you can import it into Tasker. Watch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it.
+* This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles, and -- unless you untick 'Also import into Tasker' in the next window -- opens Android's 'Open with...' chooser so you can import it into Tasker. Watch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it.
 
-**Opens:** Save Profile To Android, Save Project To Android, Save Scene To Android, Save To Android
+**Opens:** Save Profile To Android, Overwrite Confirm, Save Project To Android, Save Scene To Android, Save To Android
 
-**Commands in it:** Verify, Check IDs, Save As File, Import Into Tasker
+**Commands in it:** Verify, Check IDs
 
 **Caveats:**
 

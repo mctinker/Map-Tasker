@@ -26,6 +26,9 @@ One check is a diagnostic and is not in the default set: import-probe imports a 
 phone refuses.  It runs by itself when helper-round-trip fails, to say why, and with --only import-probe.  It leaves
 Tasks named "MapTasker Device Check <date>" in your Task list, which only you can delete (Tasker's HTTP API cannot).
 
+The `lists` and `helper-round-trip` checks also keep what they measured -- seconds, objects held, seconds per object against
+the code's guess, and the wait devicewait would have given -- under `measured`, to settle those guesses.
+
 Each run is appended to device_check_results.json (--results) as {when, device, checks: [{id, status, detail}]},
 and a summary table is printed.  Exit status 0 when nothing failed (a skipped check is not a failure), 1 if any did.
 """
@@ -37,7 +40,7 @@ import json
 import sys
 import time
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 
@@ -66,6 +69,8 @@ class Outcome:
 
     status: str
     detail: str = ""
+    # Numbers a check took, kept in the results file beside the detail: what to put the code's guesses against.
+    measured: dict[str, object] = field(default_factory=dict[str, object])
 
 
 @dataclass
@@ -152,21 +157,69 @@ def _lists(device: Device) -> Outcome:
     code, key = auth_key_for(device.address, device.port)
     if code != 0:
         return Outcome(FAIL, str(key))
+    from maptasker.src.core import devicewait
+
     problems, took = [], []
+    measured: dict[str, object] = {}
     for endpoint in ("api/profiles", "api/tasks", "api/scenes"):
         # The whole list: the phone goes through its whole configuration, which takes more than the usual five seconds
         # (measured on a real phone: Tasks and Profiles both timed out at five, and Profiles again at thirty).
+        objects = devicewait.kind_of(endpoint)[1]
+        # What the program would have waited before it knew anything about this phone (or, with --backup, what
+        # the backup says it has) -- the wait the first list is actually given.
+        guessed = devicewait.wait_for(device.address, device.port, endpoint)
         started = time.monotonic()
         code, response = http_request(device.address, device.port, "", endpoint, "", key)
-        took.append(f"{endpoint} {time.monotonic() - started:.1f}s")
-        if code != 0:
+        seconds = time.monotonic() - started
+        took.append(f"{endpoint} {seconds:.1f}s")
+        count = None
+        if code == 0:
+            try:
+                parsed = json.loads(response)
+                count = len(parsed) if isinstance(parsed, list) else None
+            except (ValueError, TypeError):
+                problems.append(f"{endpoint}: not JSON")
+        else:
             problems.append(f"{endpoint}: {response}{_percent_hint(device, endpoint, str(response))}")
-            continue
-        try:
-            json.loads(response)
-        except (ValueError, TypeError):
-            problems.append(f"{endpoint}: not JSON")
-    return Outcome(FAIL if problems else PASS, "; ".join(problems) or f"listed ({', '.join(took)})")
+        if count is not None:
+            devicewait.note_size(device.address, device.port, objects, count)
+        measured[endpoint] = _list_measurement(device, endpoint, objects, seconds, count, guessed, answered=code == 0)
+        took[-1] += _list_verdict(measured[endpoint])
+    return Outcome(FAIL if problems else PASS, "; ".join(problems) or f"listed ({'; '.join(took)})", measured=measured)
+
+
+def _list_measurement(
+    device: Device, endpoint: str, objects: str, seconds: float, count: int | None, guessed: float, *, answered: bool
+) -> dict[str, object]:
+    """What one list took, how many objects it held, and what devicewait would have waited and charged per object."""
+    from maptasker.src.core import devicewait
+
+    # After the count is known the wait is sized for the phone; this is the wait the NEXT list would be given.
+    informed = devicewait.wait_for(device.address, device.port, endpoint)
+    per_object = seconds / count if count else None
+    return {
+        "seconds": round(seconds, 2),
+        "objects": count,
+        "answered": answered,
+        "seconds_per_object": round(per_object, 4) if per_object is not None else None,
+        "guessed_per_object": devicewait.SECONDS_PER_OBJECT.get(objects, 0.0),
+        "wait_before_knowing": round(guessed, 1),
+        "wait_knowing_size": round(informed, 1),
+    }
+
+
+def _list_verdict(measurement: object) -> str:
+    """' (35 objects, 0.0123s each; would have waited 30s: enough)' -- whether the wait would have been enough."""
+    assert isinstance(measurement, dict)
+    if not measurement["answered"]:
+        return " (no answer)"
+    count, each = measurement["objects"], measurement["seconds_per_object"]
+    waited, seconds = measurement["wait_before_knowing"], measurement["seconds"]
+    enough = "enough" if isinstance(waited, float) and isinstance(seconds, float) and seconds <= waited else "TOO SHORT"
+    return (
+        f" ({count} objects, {each}s each against a guess of {measurement['guessed_per_object']}s; "
+        f"would have waited {waited}s cold, {measurement['wait_knowing_size']}s knowing the size: {enough})"
+    )
 
 
 def _upload_round_trip(device: Device) -> Outcome:
@@ -188,14 +241,35 @@ def _upload_round_trip(device: Device) -> Outcome:
 
 
 def _helper_round_trip(device: Device) -> Outcome:
+    from maptasker.src.core import devicewait
     from maptasker.src.core.primitem import PrimeItems
     from maptasker.src.device import devicetask
 
-    code, message, names = devicetask.fetch_tasker_object_names(device.address, device.port, state=PrimeItems)
+    # What the program would poll for before it knew this phone, and how long the helper really took: the poll counts
+    # were set on an idle phone, and are meant to grow with the configuration.
+    budget = devicetask.object_list_poll_seconds(device.address, device.port)
+    started = time.monotonic()
+    code, message, names = devicetask.fetch_tasker_object_names(
+        device.address, device.port, state=PrimeItems, fresh=True
+    )
+    seconds = time.monotonic() - started
     if code != 0:
-        return Outcome(FAIL, message)
+        return Outcome(FAIL, message, measured={"seconds": round(seconds, 1), "poll_budget": round(budget, 1)})
     counts = ", ".join(f"{len(found)} {kind}s" for kind, found in names.items())
-    return Outcome(PASS, f"MapTasker's helper Task was installed, run and its answer read: {counts}")
+    total = sum(len(found) for found in names.values())
+    enough = "enough" if seconds <= budget else "TOO SHORT"
+    return Outcome(
+        PASS,
+        f"MapTasker's helper Task was installed, run and its answer read: {counts}; took {seconds:.1f}s "
+        f"(budget {budget:g}s cold, {devicetask.object_list_poll_seconds(device.address, device.port):g}s now: {enough})",
+        measured={
+            "seconds": round(seconds, 1),
+            "objects": total,
+            "poll_budget_before_knowing": round(budget, 1),
+            "poll_budget_now": round(devicetask.object_list_poll_seconds(device.address, device.port), 1),
+            "reference_objects": devicewait.HELPER_REFERENCE_OBJECTS,
+        },
+    )
 
 
 def _import_probe(device: Device) -> Outcome:
@@ -405,7 +479,7 @@ def load_backup(path: Path) -> None:
         taskerd.get_the_xml_data(state=PrimeItems)
 
 
-def run_one(device: Device, check: Check) -> dict[str, str]:
+def run_one(device: Device, check: Check) -> dict[str, object]:
     """Run one check and say what it found."""
     if check.needs_backup and not device.has_backup:
         outcome = Outcome(SKIP, "needs --backup")
@@ -415,10 +489,15 @@ def run_one(device: Device, check: Check) -> dict[str, str]:
         except Exception as error:  # a check that breaks is a result, not the end of the run
             outcome = Outcome(FAIL, f"{type(error).__name__}: {error}")
     print(f"  {outcome.status.upper():5} {check.id:20} {outcome.detail}")
-    return {"id": check.id, "status": outcome.status, "detail": outcome.detail}
+    return {
+        "id": check.id,
+        "status": outcome.status,
+        "detail": outcome.detail,
+        **({"measured": outcome.measured} if outcome.measured else {}),
+    }
 
 
-def run_checks(device: Device, chosen: list[Check]) -> list[dict[str, str]]:
+def run_checks(device: Device, chosen: list[Check]) -> list[dict[str, object]]:
     """Run these checks, in order, and return what each found.
 
     A diagnostic that names one of them (after_failure_of) runs right after it, if it failed and the diagnostic was not

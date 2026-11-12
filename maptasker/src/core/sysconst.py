@@ -177,9 +177,10 @@ ARGUMENT_NAMES = {
     # The address last entered in any Android dialog -- see guiutils_android.remember_android_address.
     "android_last_ipaddr": "Last Android IP Address Used",
     "android_last_port": "Last Android Port Number Used",
-    # The Save To Android panels' two checkboxes -- see guiwins.android_device_fields.
+    # The Save To Android panels' three checkboxes -- see guiwins.android_device_fields.
     "android_check_ids": "Check IDs Before Saving To Android",
     "android_verify": "Verify XML Before Saving To Android",
+    "android_import": "Also Import Into Tasker When Saving To Android",
     "appearance_mode": "Appearance Mode",
     "bold": "Bold Names",
     "close_tabs_on_exit": "Close Tabs on Exit",

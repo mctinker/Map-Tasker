@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pytest
-from maptasker.src.core import maputil2
+from maptasker.src.core import devicewait, maputil2
 from maptasker.src.device import deviceoffer, deviceserver, devicetask, deviceverify
 
 from tests.faketasker import FakeTasker
@@ -70,6 +70,53 @@ def test_the_upload_round_trip_leaves_nothing_on_the_phone(phone: FakeTasker) ->
     BY_ID["upload-round-trip"].run(_device(phone))
 
     assert "/Tasker/maptasker_check.txt" not in phone.files
+
+
+def test_the_lists_check_keeps_how_long_each_took_how_many_it_held_and_what_would_have_been_waited(
+    phone: FakeTasker,
+) -> None:
+    outcome = BY_ID["lists"].run(_device(phone))
+
+    assert set(outcome.measured) == {"api/profiles", "api/tasks", "api/scenes"}
+    for measurement in outcome.measured.values():
+        assert isinstance(measurement, dict)
+        assert measurement["answered"] is True
+        assert isinstance(measurement["objects"], int)
+        assert measurement["seconds"] >= 0
+        assert measurement["wait_before_knowing"] == 30  # nothing was known about this phone yet
+        assert measurement["wait_knowing_size"] >= 30
+    assert "against a guess of" in outcome.detail
+    assert "would have waited 30.0s cold" in outcome.detail
+
+
+def test_a_list_that_took_longer_than_it_would_have_been_waited_for_is_called_too_short() -> None:
+    measurement = dc._list_measurement(
+        dc.Device("192.168.0.9", "1821", lambda _q, _a: -1), "api/profiles", "profiles", 41.0, 237, 30.0, answered=True
+    )
+
+    assert "TOO SHORT" in dc._list_verdict(measurement)
+    assert measurement["seconds_per_object"] == round(41.0 / 237, 4)
+    assert measurement["guessed_per_object"] == devicewait.SECONDS_PER_OBJECT["profiles"]
+
+
+def test_the_helper_round_trip_records_how_long_the_helper_took_against_its_poll_budget(phone: FakeTasker) -> None:
+    objects = f"MAPTASKER-OBJECTS 1\nPROJECTS\nHome\nPROFILES\nDawn\nSCENES\n%mtscenes\nTASKS\nMorning\n{END}"
+    phone.writes(devicetask.OBJECT_LIST_TASK_NAME, "/Tasker/maptasker_objects.txt", objects, installed=False)
+
+    outcome = BY_ID["helper-round-trip"].run(_device(phone))
+
+    assert outcome.status == dc.PASS, outcome.detail
+    assert outcome.measured["objects"] == 3
+    budget = devicetask._OBJECT_LIST_POLL_ATTEMPTS * devicetask.RESULT_POLL_SECONDS  # the tests poll with no pause
+    assert outcome.measured["poll_budget_before_knowing"] == budget
+    assert f"budget {budget:g}s cold" in outcome.detail
+
+
+def test_a_run_keeps_what_was_measured_in_the_results_file(phone: FakeTasker) -> None:
+    result = dc.run_one(_device(phone), BY_ID["lists"])
+
+    assert result["status"] == dc.PASS
+    assert "api/tasks" in result["measured"]  # type: ignore[operator]
 
 
 def test_a_phone_without_the_server_project_fails_that_check(phone: FakeTasker) -> None:

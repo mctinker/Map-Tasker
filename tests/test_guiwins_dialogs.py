@@ -264,6 +264,34 @@ async def test_a_prompt_raised_by_tasker_alone_offers_continue_and_names_what_ta
 
 
 @pytest.mark.asyncio
+async def test_a_clashing_id_offers_a_new_one_and_closes_the_prompt_first() -> None:
+    page, confirmed = _overwrite_page(file_absent=True, tasker_lines=["ID 1101 is taken."])
+    asked: list[str] = []
+
+    async def new_id() -> None:
+        asked.append("new id")
+
+    def with_new_id() -> None:
+        guiwins_dialogs.build_overwrite_confirm_dialog(
+            "f", lambda: confirmed.append("yes"), file_absent=True, tasker_lines=["ID 1101 is taken."], on_new_id=new_id
+        )
+
+    async with open_page(with_new_id) as user:
+        await click(user, "Use a new ID")
+        assert asked == ["new id"]
+        assert confirmed == [], "a new ID is not the same as going ahead"
+        assert not dialogs(user)[0].value
+    del page
+
+
+@pytest.mark.asyncio
+async def test_there_is_no_new_id_button_unless_one_is_offered() -> None:
+    page, _confirmed = _overwrite_page(file_absent=True, tasker_lines=["Profile 'A' is already in Tasker."])
+    async with open_page(page) as user:
+        assert "Use a new ID" not in {e.text for e in found(user, ui.button)}
+
+
+@pytest.mark.asyncio
 async def test_a_confirmation_that_is_a_coroutine_is_run_to_the_end() -> None:
     finished: list[str] = []
 

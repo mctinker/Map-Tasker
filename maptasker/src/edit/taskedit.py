@@ -165,6 +165,31 @@ def next_unique_task_or_profile_id(reserved: set[str] | None = None, *, state: R
     return max(max(existing_ids, default=0) + 1, floor)
 
 
+def renumber_new_task(
+    edited_task: EditableTask, clashing_ids: set[str], highest_device_id: int, *, state: RunState
+) -> str:
+    """Give a Task that was made here, and is not in the loaded configuration yet, an ID the device has not used.
+
+    The device has its own ID on something else, so the Task would be left out or would overwrite that.  The
+    new one is above every ID the device has (`highest_device_id`, from its backup) and above every one this
+    configuration has, which keeps it clear of both.  Returns the new ID, or "" and changes nothing when this
+    Task's ID is not one of `clashing_ids`, or the Task is one the configuration already holds: that one is
+    referred to by ID from Profiles and Scenes, and renumbering it would orphan them.
+    """
+    if edited_task.task_id not in clashing_ids or edited_task.task_id in state.tasker_root_elements.get(
+        "all_tasks", {}
+    ):
+        return ""
+    new_id = str(max(next_unique_task_or_profile_id(state=state), highest_device_id + 1))
+    edited_task.task_id = new_id
+    id_element = edited_task.task_element.find("id")
+    if id_element is not None:
+        id_element.text = new_id
+    if edited_task.task_element.get("sr", "").startswith("task"):
+        edited_task.task_element.set("sr", f"task{new_id}")
+    return new_id
+
+
 def create_new_task(
     name: str, priority: str, reserved_ids: set[str] | None = None, *, state: RunState
 ) -> EditableTask | str:

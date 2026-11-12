@@ -826,15 +826,15 @@ def _render_task_save_buttons(
     with task_to_android:
         ui.tooltip(
             translate_string(
-                "This opens a choice of two: write the Task as a standalone file onto your Android "
-                "device under /Tasker/tasks, or import it straight into Tasker's live "
-                "configuration.\n\n"
+                "This writes the Task as a standalone file onto your Android device under /Tasker/tasks "
+                "and, unless you untick 'Also import into Tasker' in the next window, imports it straight "
+                "into Tasker's live configuration.\n\n"
                 "The 'Http Server Example' and 'Tasker HTTP API' Tasker Projects must both be installed and active on the Android "
                 "device, with the server running (see the README's Direct XML Retrieval notes), and "
                 "Tasker must be 6.2 or higher.\n\n"
                 "The Android device must be on the same network, and the IP Address and Port must "
                 "match its Tasker server settings.\n\n"
-                "Watch the Android device while either one runs: Tasker asks you to authorize "
+                "Watch the Android device while this runs: Tasker asks you to authorize "
                 "the connection several times for one save, and a prompt left untapped fails it.\n\n"
                 "You must exit and restart Tasker to see an imported Task in the Tasker UI.",
             ),

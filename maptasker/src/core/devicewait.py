@@ -15,12 +15,18 @@ Tasker refuses.  So the waits are decided here, in one place, for every request 
   * a request that timed out makes the next one of its kind wait twice as long, up to a limit, so that trying again
     is not trying the same thing that has just failed.
 
+A helper Task is a different wait: MapTasker runs a small Task on the phone and polls for the file it writes, a fixed
+number of times.  Those counts were set on an idle phone too, and a Task that walks the whole configuration (the object
+list, the ID-check backup) takes longer on a larger one.  poll_attempts gives them the same treatment -- the count a
+phone of the reference size needed, more for a bigger configuration, and a multiple of what the phone last took.
+
 Nothing here makes a request or touches the user interface.  The session's memory is process-wide and thread-safe,
 since the requests are made from worker threads.
 """
 
 from __future__ import annotations
 
+import math
 import threading
 from collections import deque
 from dataclasses import dataclass, field
@@ -58,11 +64,15 @@ MAX_WAIT_SECONDS = 180.0
 # guess made from the two measurements there are: Tasks ~0.009 each on an idle phone, and Profiles more than ~0.13
 # each (237 of them took more than thirty seconds).  Doubled by COLD_MARGIN, and replaced by what the phone really
 # takes as soon as it has answered once.
-_SECONDS_PER_OBJECT = {"profiles": 0.3, "scenes": 0.15, "tasks": 0.012, "globals": 0.01}
+SECONDS_PER_OBJECT = {"profiles": 0.3, "scenes": 0.15, "tasks": 0.012, "globals": 0.01}
 _COLD_MARGIN = 2.0
 # Once the phone has answered, the next wait is this many times the slowest of its recent answers.
 _LEARNED_MARGIN = 3.0
 _RECENT_ANSWERS = 5
+
+# The configuration the fixed poll counts were set for, in objects (Profiles + Scenes + Tasks).  A guess about where
+# they stopped being enough; tools/device_check.py records how long the helper Tasks really take, to replace it.
+HELPER_REFERENCE_OBJECTS = 300
 
 # A wait this long is worth telling the person about before it starts.
 LONG_WAIT_SECONDS = 10.0
@@ -146,8 +156,8 @@ def wait_for(ip_address: str, ip_port: str, route: str, *, method: str = "get", 
         return base
 
     candidates = [base]
-    if objects in _SECONDS_PER_OBJECT:
-        candidates.append(_SECONDS_PER_OBJECT[objects] * size_of(ip_address, ip_port, objects) * _COLD_MARGIN)
+    if objects in SECONDS_PER_OBJECT:
+        candidates.append(SECONDS_PER_OBJECT[objects] * size_of(ip_address, ip_port, objects) * _COLD_MARGIN)
     with _lock:
         seen = _seen.get((device_key(ip_address, ip_port), _key_of(kind, objects)))
         if seen is not None:
@@ -180,6 +190,68 @@ def record(
         else:
             seen.recent.append(seconds)
             seen.last_timeout = 0.0
+
+
+def _helper_key(kind: str) -> str:
+    return f"helper:{kind}"
+
+
+def poll_seconds(ip_address: str, ip_port: str, kind: str, base_attempts: int, interval_seconds: float) -> float:
+    """How long to poll for a helper Task's file: its fixed budget, or more when this phone has shown it needs it.
+
+    `kind` names the helper ("object-list", "backup").  Never less than `base_attempts` polls apart; scaled up by how
+    far the phone's configuration is past HELPER_REFERENCE_OBJECTS when that is known; and a multiple of the longest
+    recent run, or twice the budget of a run that gave up.
+    """
+    base = base_attempts * interval_seconds
+    total = sum(size_of(ip_address, ip_port, objects) for objects in ("profiles", "scenes", "tasks"))
+    candidates = [base, base * total / HELPER_REFERENCE_OBJECTS]
+    with _lock:
+        seen = _seen.get((device_key(ip_address, ip_port), _helper_key(kind)))
+        if seen is not None:
+            if seen.recent:
+                candidates.append(_LEARNED_MARGIN * max(seen.recent))
+            if seen.last_timeout:
+                candidates.append(2 * seen.last_timeout)
+    return min(max(base, MAX_WAIT_SECONDS), max(candidates))
+
+
+def poll_attempts(ip_address: str, ip_port: str, kind: str, base_attempts: int, interval_seconds: float) -> int:
+    """poll_seconds as a number of polls `interval_seconds` apart (a poll with no wait between is not scaled)."""
+    if interval_seconds <= 0:
+        return base_attempts
+    seconds = poll_seconds(ip_address, ip_port, kind, base_attempts, interval_seconds)
+    return max(base_attempts, math.ceil(seconds / interval_seconds))
+
+
+def record_poll(ip_address: str, ip_port: str, kind: str, seconds: float, *, timed_out: bool = False) -> None:
+    """Remember how long a helper Task took to write its file, or that it was given up on after `seconds`."""
+    with _lock:
+        seen = _seen.setdefault((device_key(ip_address, ip_port), _helper_key(kind)), _Seen())
+        if timed_out:
+            seen.last_timeout = seconds
+            seen.timeouts += 1
+        else:
+            seen.recent.append(seconds)
+            seen.last_timeout = 0.0
+
+
+def longer_than_usual(
+    ip_address: str, ip_port: str, route: str, *, method: str = "get", named: bool = False
+) -> float | None:
+    """The wait for this request when it is more than the base for its kind -- a big phone, or a slow one -- else None.
+
+    For a request that is quick on an ordinary phone, where the base wait is only a ceiling: telling the person about
+    every one of those would be telling them about nothing.
+    """
+    kind, _objects = kind_of(route, method, named=named)
+    wait = wait_for(ip_address, ip_port, route, method=method, named=named)
+    return wait if wait > BASE_WAIT_SECONDS[kind] else None
+
+
+def worth_telling(seconds: float) -> float | None:
+    """`seconds`, when a wait that long is worth telling the person about before it starts; else None."""
+    return seconds if seconds >= LONG_WAIT_SECONDS else None
 
 
 def long_wait(ip_address: str, ip_port: str, route: str, *, method: str = "get", named: bool = False) -> float | None:

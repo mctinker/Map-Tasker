@@ -2937,6 +2937,61 @@ def test_one_backup_answers_names_and_ids_without_the_project_helper(tasker_devi
     assert devicetask.OBJECT_LIST_TASK_NAME not in tasker_device.installed
 
 
+def test_the_device_backup_also_says_the_highest_id_it_has_given_out(tasker_device: _FakeTasker) -> None:
+    check, _findings, _problem = devicecheck.check_against_device_backup(
+        "192.168.0.210", "1821", _SENT_FOR_IDS, state=PrimeItems
+    )
+
+    device = devicecheck.parse_tasker_xml(tasker_device.backup)
+    assert check is not None
+    assert check.highest_id == devicecheck.highest_id_in(required(device)) > 0
+
+
+def test_the_highest_id_is_a_task_or_profile_number_never_a_project_uuid() -> None:
+    root = devicecheck.parse_tasker_xml(
+        "<TaskerData><Project><id>6e1f2a</id><name>P</name></Project>"
+        "<Profile><id>12</id></Profile><Task><id>40</id><nme>T</nme></Task><Task><id>7</id></Task></TaskerData>"
+    )
+
+    assert devicecheck.highest_id_in(required(root)) == 40
+    assert devicecheck.highest_id_in(required(devicecheck.parse_tasker_xml("<TaskerData/>"))) == 0
+
+
+def test_a_task_made_here_whose_id_the_device_has_taken_gets_one_above_everything_the_device_has(loaded: None) -> None:
+    task = expect(taskedit.create_new_task("Opener3", "3", state=PrimeItems), EditableTask)
+    old_id = task.task_id
+
+    new_id = taskedit.renumber_new_task(task, {old_id}, 90_000, state=PrimeItems)
+
+    assert int(new_id) == 90_001
+    assert task.task_id == new_id
+    assert task.task_element.findtext("id") == new_id
+    assert task.task_element.get("sr") == f"task{new_id}"
+
+
+def test_a_new_id_is_never_lower_than_the_configuration_needs(loaded: None) -> None:
+    task = expect(taskedit.create_new_task("Opener4", "3", state=PrimeItems), EditableTask)
+    wanted = taskedit.next_unique_task_or_profile_id(state=PrimeItems)
+
+    assert int(taskedit.renumber_new_task(task, {task.task_id}, 3, state=PrimeItems)) == wanted
+
+
+def test_a_task_the_configuration_already_holds_is_not_renumbered(loaded: None) -> None:
+    held_id = next(iter(PrimeItems.tasker_root_elements["all_tasks"]))
+    task = expect(taskedit.load_task_for_edit_by_id(held_id, state=PrimeItems), EditableTask)
+
+    assert taskedit.renumber_new_task(task, {held_id}, 90_000, state=PrimeItems) == ""
+    assert task.task_id == held_id
+
+
+def test_a_task_whose_id_is_not_the_clashing_one_is_left_alone(loaded: None) -> None:
+    task = expect(taskedit.create_new_task("Opener5", "3", state=PrimeItems), EditableTask)
+    before = task.task_id
+
+    assert taskedit.renumber_new_task(task, {"1"}, 90_000, state=PrimeItems) == ""
+    assert task.task_id == before
+
+
 def test_a_backup_that_is_not_a_configuration_is_refused(tasker_device: _FakeTasker) -> None:
     tasker_device.backup = "<html><body>Not found</body></html>"
 

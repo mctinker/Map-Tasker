@@ -157,6 +157,7 @@ RESTORE_KEYS_TO_IGNORE = frozenset(
         # guiwins.android_device_fields.
         "android_check_ids",
         "android_verify",
+        "android_import",
         # Only read when an Android dialog opens -- see guiutils_android.android_address_defaults.
         "android_last_ipaddr",
         "android_last_port",
@@ -357,6 +358,7 @@ class MyGui:
     # Plain values the settings and the event handlers keep.
     android_check_ids: bool
     android_verify: bool
+    android_import: bool
     close_tabs_on_exit: bool
     default_font: str
     doing_diagram: bool

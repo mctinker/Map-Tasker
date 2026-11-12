@@ -19,7 +19,7 @@ import pytest
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.edit import profedit
 from maptasker.src.edit.profedit import EditableProfile
-from maptasker.src.gui import guiwins_profedit
+from maptasker.src.gui import guiwins, guiwins_profedit
 from maptasker.src.gui.userintr import MyGui
 from nicegui import core, ui
 from nicegui.testing.user_interaction import UserInteraction
@@ -400,23 +400,37 @@ def _delete_page() -> None:
     guiwins_profedit.build_delete_profile_dialog(_gui(), required(edited), SimpleNamespace(name="parent"))
 
 
+def _import_box(user: User) -> ui.checkbox:
+    """The panel's "Also import into Tasker" box, shown or not."""
+    (box,) = (e for e in all_elements(user) if isinstance(e, ui.checkbox) and e.text == "Also import into Tasker")
+    return box
+
+
 @pytest.mark.asyncio
-async def test_the_android_panel_offers_the_device_fields_and_both_ways_to_send() -> None:
+async def test_the_android_panel_offers_the_device_fields_and_one_save_that_can_also_import() -> None:
     async with _open(_android_page) as user:
         assert "Save Profile To Android Device" in _labels(user)
         assert {"Android IP Address", "Port"} <= set(_inputs(user))
-        assert {"Cancel", "Save As File", "Import Into Tasker"} <= set(_buttons(user))
+        assert {"Cancel", "Save To Android"} <= set(_buttons(user))
+        assert not {"Save As File", "Import Into Tasker"} & set(_buttons(user)), "the pair is one button now"
+        assert _import_box(user).value is True, "importing is what the button does unless it is switched off"
 
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
-    ("label", "event"),
-    [("Save As File", "save_profile_to_android_event"), ("Import Into Tasker", "import_profile_into_tasker_event")],
+    ("also_import", "event"),
+    [(True, "import_profile_into_tasker_event"), (False, "save_profile_to_android_event")],
 )
-async def test_each_android_button_reports_the_profile_and_both_sets_of_fields(label: str, event: str) -> None:
+async def test_the_save_button_imports_when_the_box_is_ticked_and_writes_only_the_file_when_it_is_not(
+    monkeypatch: pytest.MonkeyPatch, *, also_import: bool, event: str
+) -> None:
+    monkeypatch.setattr(guiwins, "remember_android_panel_option", lambda *_a, **_k: None)  # not the settings file
+    other = "save_profile_to_android_event" if also_import else "import_profile_into_tasker_event"
     async with _open(_android_page) as user:
-        _press(user, label)
+        _import_box(user).value = also_import
+        _press(user, "Save To Android")
         ((_name, profile, name_fields, device_fields, _android, _parent),) = _calls(event)
+        assert _calls(other) == []
         assert profile.profile_element.findtext("nme") == "Morning"
         assert name_fields["name"].value == "Morning"
         assert {"ip_address", "ip_port"} <= set(device_fields)

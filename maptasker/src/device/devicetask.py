@@ -515,6 +515,8 @@ def poll_for_result(
     read_path: str,
     attempts: int,
     subject: str,
+    *,
+    scaled_as: str = "",
 ) -> tuple[str, str]:
     """Wait for a helper Task's file to appear, whole.  Returns (text, error_message).
 
@@ -522,6 +524,9 @@ def poll_for_result(
         read_path: the file to wait for, spelled the way the 'file' route wants it.
         attempts: how many polls before giving up -- each one RESULT_POLL_SECONDS apart.
         subject: what the file holds, for the error messages ("application list").
+        scaled_as: for a helper whose time grows with the phone's configuration, its name for devicewait: `attempts`
+            is then the least it is given, more when this phone's size or its last run says so (devicewait.poll_attempts),
+            and how long it took is remembered for the next.
 
     'Whole' is the reason this polls on content rather than on existence: the Task writes
     the file a line at a time, so it exists and is readable long before it is finished, and
@@ -531,16 +536,23 @@ def poll_for_result(
     """
 
     last_error = f"The Android device did not produce {'an' if subject[0] in 'aeiou' else 'a'} {subject}."
+    started = time.monotonic()
+    if scaled_as:
+        attempts = devicewait.poll_attempts(ip_address, ip_port, scaled_as, attempts, RESULT_POLL_SECONDS)
     for _ in spaced_attempts(attempts, RESULT_POLL_SECONDS):
         return_code, response = http_request(ip_address, ip_port, read_path, "file", "?download=1")
         if return_code == 0:
             text = response.decode("utf-8", errors="replace") if isinstance(response, bytes) else str(response)
             if any(line.strip() == PAYLOAD_TERMINATOR for line in text.splitlines()):
+                if scaled_as:
+                    devicewait.record_poll(ip_address, ip_port, scaled_as, time.monotonic() - started)
                 return text, ""
             last_error = f"The Android device's {subject} never finished being written."
         elif return_code != 6:  # 6 is 'not there yet', which is the normal case while waiting.
             last_error = str(response)
 
+    if scaled_as:
+        devicewait.record_poll(ip_address, ip_port, scaled_as, time.monotonic() - started, timed_out=True)
     return "", last_error
 
 
@@ -619,6 +631,15 @@ _OBJECT_LISTS = (
 )
 # Four 'Test Tasker' calls and four joins: still quick, so the file list's short budget.
 _OBJECT_LIST_POLL_ATTEMPTS = 15
+# What devicewait calls this helper, and how long a phone is polled for it: the least, scaled up for a large one.
+OBJECT_LIST_HELPER = "object-list"
+
+
+def object_list_poll_seconds(ip_address: str, ip_port: str) -> float:
+    """How long fetch_tasker_object_names would poll for its answer on this phone."""
+    return devicewait.poll_seconds(
+        ip_address, ip_port, OBJECT_LIST_HELPER, _OBJECT_LIST_POLL_ATTEMPTS, RESULT_POLL_SECONDS
+    )
 
 
 def build_object_list_task(task_name: str = OBJECT_LIST_TASK_NAME, *, state: RunState) -> EditableTask | str:
@@ -774,6 +795,7 @@ def _ask_for_object_names(ip_address: str, ip_port: str, state: RunState) -> tup
         _OBJECT_LIST_READ_PATH,
         _OBJECT_LIST_POLL_ATTEMPTS,
         "object list",
+        scaled_as=OBJECT_LIST_HELPER,
     )
     if error:
         return 8, error, {}

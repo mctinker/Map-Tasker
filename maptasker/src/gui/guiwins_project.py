@@ -12,7 +12,7 @@ from nicegui import ui
 from maptasker.src.core import objprops, tndesc
 from maptasker.src.core.maputil2 import translate_string
 from maptasker.src.edit import projedit
-from maptasker.src.gui.guiwins import android_device_fields
+from maptasker.src.gui.guiwins import android_device_fields, use_save_or_import
 from maptasker.src.gui.guiwins_editor import (
     PROJECT_REDACT_FIELD,
     PendingChangesBanner,
@@ -276,8 +276,9 @@ def _build_project_save_buttons(
         ui.tooltip(
             translate_string(
                 "This will write the Project, and everything in it -- every Profile and Task -- as a "
-                "standalone file onto your Android device, under /Tasker/projects -- it does not import "
-                "it into Tasker's live configuration.\n\n"
+                "standalone file onto your Android device, under /Tasker/projects, and -- unless you untick "
+                "'Also import into Tasker' in the next window -- opens Android's 'Open with...' chooser so "
+                "you can import it into Tasker.\n\n"
                 "The 'Http Server Example' and 'Tasker HTTP API' Tasker Projects must both be installed and active on the Android "
                 "device, with the server running.\n\n"
                 "The Android device must be on the same network, and the IP Address and Port must "
@@ -359,9 +360,10 @@ def build_save_project_to_android_dialog(
     same convention as save_project_event's local export; a not-yet-applied Rename
     edit doesn't carry through) -- as a standalone .prj.xml file onto the device's
     storage under /Tasker/projects, via the Tasker HTTP Server Example's /upload
-    endpoint -- see projedit.save_project_to_android. This does not import it into
-    Tasker's live configuration. On success both this prompt and the parent (Edit
-    Project) dialog are closed.
+    endpoint -- see projedit.save_project_to_android. Unless "Also import into Tasker"
+    is unticked, it then goes on to Tasker's own import screen (see
+    import_project_into_tasker_event). On success both this prompt and the parent
+    (Edit Project) dialog are closed.
 
     field_refs is the parent dialog's, carried through only so the save handler can
     check it for editable fields this by-name upload would drop -- see
@@ -369,56 +371,56 @@ def build_save_project_to_android_dialog(
     """
     with ui.dialog().props("persistent") as android_dialog, ui.card().classes("min-w-[350px] p-6"):
         ui.label(translate_string("Save Project To Android Device")).classes("text-lg font-bold text-blue-600")
-        android_field_refs = android_device_fields(self)
+        android_field_refs = android_device_fields(
+            self,
+            import_tooltip=translate_string(
+                "This copies the Project -- and every Profile and Task in it -- to the device and "
+                "opens Android's 'Open with...' chooser for it.  Pick Tasker, and its own import "
+                "screen comes up; you then tap Import to finish, and nothing is imported until you "
+                "do.\n\n"
+                "The Project is copied to /Tasker/projects under its own name first and offered "
+                "from there, so it stays behind under a name you can find -- import it by hand "
+                "from Tasker if the import screen does not come up.  You will be asked before it "
+                "replaces a file already at that path.\n\n"
+                "Untick it to write the file to /Tasker/projects and nothing more.\n\n"
+                "The 'Http Server Example' and 'Tasker HTTP API' Tasker Projects must both be installed and running, and "
+                "Tasker must be 6.2 or higher.\n\n"
+                "The device will ask you to authorize MapTasker the first time.",
+            ),
+        )
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
             ui.button(translate_string("Cancel"), on_click=android_dialog.close).props("outline")
+            # One button; the "Also import into Tasker" box says how far it goes.  See
+            # guiwins.build_save_to_android_dialog.
             save_to_android = ui.button(
-                translate_string("Save As File"),
-                on_click=lambda: self.event_handlers.android.save_project_to_android_event(
-                    edited_project,
-                    field_refs,
+                translate_string("Save To Android"),
+                on_click=use_save_or_import(
                     android_field_refs,
-                    android_dialog,
-                    parent_dialog,
+                    lambda: self.event_handlers.android.save_project_to_android_event(
+                        edited_project,
+                        field_refs,
+                        android_field_refs,
+                        android_dialog,
+                        parent_dialog,
+                    ),
+                    lambda: self.event_handlers.android.import_project_into_tasker_event(
+                        edited_project,
+                        field_refs,
+                        android_field_refs,
+                        android_dialog,
+                        parent_dialog,
+                    ),
                 ),
-            ).props("outline")
+            ).classes("bg-blue-600")
             with save_to_android:
                 ui.tooltip(
                     translate_string(
-                        "This will write the Project, and everything in it, as a standalone file onto the "
-                        "Android device, under /Tasker/projects.\n\n"
+                        "This writes the Project, and everything in it, as a standalone file onto the "
+                        "Android device, under /Tasker/projects, and -- unless 'Also import into Tasker' is unticked -- "
+                        "opens Android's 'Open with...' chooser so you can import it into Tasker.\n\n"
                         "The IP Address and Port must match the Android device's Tasker server settings.\n\n"
                         "Watch the Android device while this runs: Tasker asks you to authorize the "
                         "connection several times for one save, and a prompt left untapped fails it.",
-                    ),
-                ).style("white-space: pre-wrap")
-            # The Profile dialog's pair, for a Project -- see
-            # guiwins_profedit.build_save_profile_to_android_dialog for why these are two buttons and not one
-            # with a checkbox.
-            import_into_tasker = ui.button(
-                translate_string("Import Into Tasker"),
-                on_click=lambda: self.event_handlers.android.import_project_into_tasker_event(
-                    edited_project,
-                    field_refs,
-                    android_field_refs,
-                    android_dialog,
-                    parent_dialog,
-                ),
-            ).classes("bg-blue-600")
-            with import_into_tasker:
-                ui.tooltip(
-                    translate_string(
-                        "This copies the Project -- and every Profile and Task in it -- to the device and "
-                        "opens Android's 'Open with...' chooser for it.  Pick Tasker, and its own import "
-                        "screen comes up; you then tap Import to finish, and nothing is imported until you "
-                        "do.\n\n"
-                        "The Project is copied to /Tasker/projects under its own name first and offered "
-                        "from there, so it stays behind under a name you can find -- import it by hand "
-                        "from Tasker if the import screen does not come up.  You will be asked before it "
-                        "replaces a file already at that path.\n\n"
-                        "The 'Http Server Example' and 'Tasker HTTP API' Tasker Projects must both be installed and running, and "
-                        "Tasker must be 6.2 or higher.\n\n"
-                        "The device will ask you to authorize MapTasker the first time.",
                     ),
                 ).style("white-space: pre-wrap")
 

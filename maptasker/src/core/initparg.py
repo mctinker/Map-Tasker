@@ -92,6 +92,7 @@ class ArgumentFields:
     android_last_port: str = ""  # Port last entered in any Android dialog
     android_check_ids: bool = False  # Save To Android: check IDs against a fresh device backup first
     android_verify: bool = False  # Save To Android: read the XML back before sending it
+    android_import: bool = True  # Save To Android: also import what was written into Tasker
     fetched_backup_from_android: bool = False  # XML came off an Android device
     local_xml_directory: str = ""  # Where the last local XML file came from ("" = home)
 

@@ -36,7 +36,9 @@ def _scene(name: str = "Dialog") -> SimpleNamespace:
 @pytest.fixture
 def stubs(monkeypatch: pytest.MonkeyPatch) -> SimpleNamespace:
     """The designer, the preview hand-off and the rest of what the body reaches for, replaced."""
-    record = SimpleNamespace(body=[], closed=[], reverted=[], snapshots=[], revert_result=True)
+    record = SimpleNamespace(
+        body=[], closed=[], reverted=[], snapshots=[], revert_result=True, import_box=SimpleNamespace(value=True)
+    )
 
     class _Designer:
         preview_tooltip = "Draws from the size typed below"
@@ -62,7 +64,9 @@ def stubs(monkeypatch: pytest.MonkeyPatch) -> SimpleNamespace:
         "revert_session",
         lambda scene, snapshot, layout: record.reverted.append((snapshot, layout)) or record.revert_result,
     )
-    monkeypatch.setattr(guiwins_scene, "android_device_fields", lambda window: {"ip": "1.2.3.4"})
+    monkeypatch.setattr(
+        guiwins_scene, "android_device_fields", lambda window, **_kw: {"ip": "1.2.3.4", "import_too": record.import_box}
+    )
     return record
 
 
@@ -275,12 +279,16 @@ async def test_the_android_dialog_hands_both_forms_and_both_dialogs_to_either_sa
 
     async with open_page(page) as user:
         assert "Save Scene To Android Device" in label_texts(user)
-        await click(user, "Save As File")
-        await click(user, "Import Into Tasker")
+        # One button: the file and the import while "Also import into Tasker" is ticked, the file alone when it is not.
+        stubs.import_box.value = True
+        await click(user, "Save To Android")
+        stubs.import_box.value = False
+        await click(user, "Save To Android")
         for method in (handlers.android.save_scene_to_android_event, handlers.android.import_scene_into_tasker_event):
             method.assert_called_once()
             edited, form, android_form, android_dialog, parent_dialog = method.call_args.args
-            assert (edited, form, android_form, parent_dialog) == (scene, refs, {"ip": "1.2.3.4"}, parent)
+            assert (edited, form, parent_dialog) == (scene, refs, parent)
+            assert android_form == {"ip": "1.2.3.4", "import_too": stubs.import_box}
             assert isinstance(android_dialog, ui.dialog), "the prompt itself is handed over so the handler can close it"
         await click(user, "Cancel")
         assert not dialogs(user)[0].value

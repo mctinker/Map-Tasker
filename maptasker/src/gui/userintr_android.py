@@ -29,7 +29,7 @@ from maptasker.src.core.maputil2 import (
     translate_string,
 )
 from maptasker.src.core.maputils import clear_tasker_data
-from maptasker.src.device import devicehelpers, deviceoffer, deviceserver, devicetask, deviceverify
+from maptasker.src.device import devicecheck, devicehelpers, deviceoffer, deviceserver, devicetask, deviceverify
 from maptasker.src.edit import (
     profedit,
     projedit,
@@ -545,6 +545,7 @@ class AndroidEventHandlers(HandlerGroup):
                 ),
                 consequence=API_IMPORT_CONSEQUENCE,
                 report=confirm,
+                new_id=self._task_renumberer(edited_task) if is_new_task else None,
             ),
             android_field_refs,
             android_dialog,
@@ -716,10 +717,17 @@ class AndroidEventHandlers(HandlerGroup):
                 after_saved=lambda: self.hub.editors.keep_task_in_loaded_config(
                     edited_task, task_name, is_new_task, on_created
                 ),
+                new_id=self._task_renumberer(edited_task) if is_new_task else None,
             ),
             android_field_refs,
             android_dialog,
             parent_dialog,
+        )
+
+    def _task_renumberer(self, edited_task: taskedit_model.EditableTask) -> Callable[[set[str], int], str]:
+        """FileSave.new_id for a Task: renumber it if it was made here, give "" if it is one the file already holds."""
+        return lambda clashing_ids, highest_id: taskedit.renumber_new_task(
+            edited_task, clashing_ids, highest_id, state=self.state
         )
 
     async def _reach_device(
@@ -789,14 +797,40 @@ class AndroidEventHandlers(HandlerGroup):
         async def upload() -> None:
             await self._upload_file_to_device(spec, ip_address, ip_port, already_there, android_dialog, parent_dialog)
 
+        async def new_id_and_again() -> None:
+            await self._send_again_under_a_new_id(spec, tasker_lines, android_field_refs, android_dialog, parent_dialog)
+
+        # Offered only when the object can be renumbered and the device has its ID on something else.
+        offer_new_id = spec.new_id is not None and bool(getattr(tasker_lines, "clashes", None))
         if exists is not False or tasker_lines:
-            build_overwrite_confirm_dialog(
-                f"'{spec.device_path}' on the Android device",
-                upload,
-                **overwrite_prompt_options(exists, tasker_lines),
-            )
+            options = overwrite_prompt_options(exists, tasker_lines)
+            if offer_new_id:
+                options["on_new_id"] = new_id_and_again
+            build_overwrite_confirm_dialog(f"'{spec.device_path}' on the Android device", upload, **options)
             return
         await upload()
+
+    async def _send_again_under_a_new_id(
+        self,
+        spec: FileSave,
+        tasker_lines: list[str],
+        android_field_refs: dict[str, Any],
+        android_dialog: ui.dialog,
+        parent_dialog: ui.dialog,
+    ) -> None:
+        """The "Use a new ID" button: renumber the object past every ID the device has, and run the save again.
+
+        The whole save runs again rather than only the upload, so the ID check is made once more against the new
+        ID -- the device's backup is the only thing that knows it is free -- and Verify sees what is now going up.
+        """
+        clashes: list[devicecheck.IdFinding] = getattr(tasker_lines, "clashes", [])
+        highest_id: int = getattr(tasker_lines, "highest_id", 0)
+        new_id = spec.new_id({finding.object_id for finding in clashes}, highest_id) if spec.new_id else ""
+        if not new_id:
+            ui.notify("This one cannot be given a new ID here.", type="warning")
+            return
+        ui.notify(f"The {spec.subject} now has ID {new_id}. Sending it again.", type="info")
+        await self._save_file_to_device(spec, android_field_refs, android_dialog, parent_dialog)
 
     async def _upload_file_to_device(
         self,

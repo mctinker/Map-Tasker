@@ -450,8 +450,31 @@ def remember_android_panel_option(gui: MyGui, name: str, value: object) -> None:
     save_restore_args(gui.state.program_arguments, gui.state.colors_to_use, to_save=True, state=gui.state)
 
 
-def android_device_fields(gui: MyGui) -> dict[str, Any]:
-    """Where the device is, and whether to check the XML before sending it there.
+def _import_too_checkbox(gui: MyGui, import_tooltip: str) -> ui.checkbox:
+    """The "Also import into Tasker" box, remembered like the panel's other two and ticked until it is unticked."""
+    import_too = (
+        ui.checkbox(
+            translate_string("Also import into Tasker"),
+            value=bool(getattr(gui, "android_import", True)),
+            on_change=lambda event: remember_android_panel_option(gui, "android_import", event.value),
+        )
+        .props("dense")
+        .classes("mt-2")
+    )
+    if import_tooltip:
+        with import_too:
+            ui.tooltip(import_tooltip).style("white-space: pre-wrap")
+    return import_too
+
+
+def android_device_fields(gui: MyGui, import_tooltip: str = "") -> dict[str, Any]:
+    """Where the device is, whether to import what is saved there, and whether to check the XML first.
+
+    `import_tooltip` is what the "Also import into Tasker" box says about this kind of object, already
+    translated: a Task imports with no tap on the device where a Profile, Project or Scene has to be
+    finished on Tasker's own import screen, and the box is the place to say which.  Ticked, the panel's
+    one button writes the file to the Tasker folder AND imports it (use_save_or_import); unticked, it
+    writes the file only.  The box is remembered like the other two, and defaults ON.
 
     The address and port default to the last ones entered, the same way the Get XML and
     Fetch Applications dialogs default, and are kept as soon as either field is left -- the
@@ -474,6 +497,7 @@ def android_device_fields(gui: MyGui) -> dict[str, Any]:
     ip_port = ui.input(translate_string("Port"), value=default_port).classes("w-full")
     fields: dict[str, ui.element] = {"ip_address": ip_address, "ip_port": ip_port}
     remember_android_address_fields(gui, ip_address, ip_port)
+    fields["import_too"] = _import_too_checkbox(gui, import_tooltip)
     verify = (
         ui.checkbox(
             translate_string("Verify"),
@@ -481,7 +505,7 @@ def android_device_fields(gui: MyGui) -> dict[str, Any]:
             on_change=lambda event: remember_android_panel_option(gui, "android_verify", event.value),
         )
         .props("dense")
-        .classes("mt-2")
+        .classes("mt-1")
     )
     with verify:
         ui.tooltip(
@@ -530,6 +554,26 @@ def android_device_fields(gui: MyGui) -> dict[str, Any]:
         ).style("white-space: pre-wrap")
     fields["check_ids"] = check_ids
     return fields
+
+
+def use_save_or_import(
+    android_field_refs: dict[str, Any],
+    save_file: Callable[[], Any],
+    import_into_tasker: Callable[[], Any],
+) -> Callable[[], object]:
+    """The click handler of a Save To Android panel's one button: the file alone, or the file and the import.
+
+    Importing into Tasker writes the same file to the same place first (the Task, Profile, Project and
+    Scene import handlers all do), so "save and import" is the import handler and "save only" is the file
+    handler; the "Also import into Tasker" box says which.  Read when the button is pressed, not when the
+    panel is built, so a box ticked or unticked after it opened is honoured.
+    """
+
+    def choose() -> object:
+        box = android_field_refs.get("import_too")
+        return (import_into_tasker if box is None or box.value else save_file)()
+
+    return choose
 
 
 def build_round_trip_report_dialog(report: roundtrip.RoundTripReport) -> None:
@@ -588,59 +632,60 @@ def build_save_to_android_dialog(
     """
     with ui.dialog().props("persistent") as android_dialog, ui.card().classes("min-w-[350px] p-6"):
         ui.label(translate_string("Save Task To Android Device")).classes("text-lg font-bold text-blue-600")
-        android_field_refs = android_device_fields(self)
+        android_field_refs = android_device_fields(
+            self,
+            import_tooltip=translate_string(
+                "This puts the Task straight into Tasker's live configuration on the Android "
+                "device.  Unlike a Profile, a Project or a Scene, no import screen and no tap "
+                "on the device are needed -- Tasker's api/import takes a Task directly.\n\n"
+                "The Task is copied to /Tasker/tasks on the device first and imported from "
+                "there, so the copy stays behind as a record of exactly what was imported.  "
+                "You will be asked before it replaces a file already at that path.\n\n"
+                "If Tasker does not report the Task after two attempts, that copy is handed to "
+                "Android's 'Open with...' chooser instead, so you can import it by picking "
+                "Tasker.\n\n"
+                "Untick it to write the file to /Tasker/tasks and nothing more.\n\n"
+                "The 'Http Server Example' and 'Tasker HTTP API' Tasker Projects must both be installed and running, and "
+                "Tasker must be 6.2 or higher.\n\n"
+                "The device will ask you to authorize MapTasker the first time.",
+            ),
+        )
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
             ui.button(translate_string("Cancel"), on_click=android_dialog.close).props("outline")
+            # One button, and the "Also import into Tasker" box says how far it goes.  They were two
+            # buttons (a file write and an import); an import writes the same file first, so the pair
+            # was the same save with and without a last step.
             save_to_android = ui.button(
-                translate_string("Save As File"),
-                on_click=lambda: self.event_handlers.android.save_task_to_android_file_event(
-                    edited_task,
-                    field_refs,
+                translate_string("Save To Android"),
+                on_click=use_save_or_import(
                     android_field_refs,
-                    android_dialog,
-                    parent_dialog,
-                    on_created=on_created,
+                    lambda: self.event_handlers.android.save_task_to_android_file_event(
+                        edited_task,
+                        field_refs,
+                        android_field_refs,
+                        android_dialog,
+                        parent_dialog,
+                        on_created=on_created,
+                    ),
+                    lambda: self.event_handlers.android.save_task_to_android_event(
+                        edited_task,
+                        field_refs,
+                        android_field_refs,
+                        android_dialog,
+                        parent_dialog,
+                        on_created=on_created,
+                    ),
                 ),
-            ).props("outline")
+            ).classes("bg-blue-600")
             with save_to_android:
                 ui.tooltip(
                     translate_string(
-                        "This will write the Task as a standalone file onto the Android device, "
-                        "under /Tasker/tasks.\n\n"
+                        "This writes the Task as a standalone file onto the Android device, "
+                        "under /Tasker/tasks, and -- unless 'Also import into Tasker' is unticked -- imports it "
+                        "into Tasker.\n\n"
                         "The IP Address and Port must match the Android device's Tasker server settings.\n\n"
                         "Watch the Android device while this runs: Tasker asks you to authorize the "
                         "connection several times for one save, and a prompt left untapped fails it.",
-                    ),
-                ).style("white-space: pre-wrap")
-            # The other half of the same dialog, and a genuinely different outcome -- see
-            # guiwins_profedit.build_save_profile_to_android_dialog for why these are two buttons and not a
-            # checkbox.  A Task's import half is the one that needs no tap on the device.
-            import_into_tasker = ui.button(
-                translate_string("Import Into Tasker"),
-                on_click=lambda: self.event_handlers.android.save_task_to_android_event(
-                    edited_task,
-                    field_refs,
-                    android_field_refs,
-                    android_dialog,
-                    parent_dialog,
-                    on_created=on_created,
-                ),
-            ).classes("bg-blue-600")
-            with import_into_tasker:
-                ui.tooltip(
-                    translate_string(
-                        "This puts the Task straight into Tasker's live configuration on the Android "
-                        "device.  Unlike a Profile, a Project or a Scene, no import screen and no tap "
-                        "on the device are needed -- Tasker's api/import takes a Task directly.\n\n"
-                        "The Task is copied to /Tasker/tasks on the device first and imported from "
-                        "there, so the copy stays behind as a record of exactly what was imported.  "
-                        "You will be asked before it replaces a file already at that path.\n\n"
-                        "If Tasker does not report the Task after two attempts, that copy is handed to "
-                        "Android's 'Open with...' chooser instead, so you can import it by picking "
-                        "Tasker.\n\n"
-                        "The 'Http Server Example' and 'Tasker HTTP API' Tasker Projects must both be installed and running, and "
-                        "Tasker must be 6.2 or higher.\n\n"
-                        "The device will ask you to authorize MapTasker the first time.",
                     ),
                 ).style("white-space: pre-wrap")
 
@@ -860,6 +905,7 @@ def _initialize_feature_flags(self: MyGui) -> None:
     # each ARGUMENT_NAMES entry straight off the GUI, and a missing one would stop the save.
     self.android_verify = False
     self.android_check_ids = False
+    self.android_import = True
 
 
 def _initialize_data_structures(self: MyGui) -> None:

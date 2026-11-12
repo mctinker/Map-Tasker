@@ -270,3 +270,70 @@ def test_waiting_for_an_import_stops_at_the_time_it_was_meant_to_take_however_lo
     assert code == 8
     assert "has not reported" in message
     assert len(asked) <= 3, "sixty asks of fifty seconds each would be fifty minutes"
+
+
+# ##################################################################################
+# Helper Task polls: the count was set on an idle phone, and grows with the configuration
+# ##################################################################################
+HELPER = "object-list"
+
+
+def test_a_phone_nothing_is_known_about_is_polled_for_the_fixed_budget() -> None:
+    assert devicewait.poll_seconds(*PHONE, HELPER, 15, 2.0) == 30
+    assert devicewait.poll_attempts(*PHONE, HELPER, 15, 2.0) == 15
+
+
+def test_a_phone_past_the_reference_size_is_polled_for_longer_in_proportion() -> None:
+    for objects, count in (("profiles", 237), ("scenes", 62), ("tasks", 534)):
+        devicewait.note_size(*PHONE, objects, count)  # 833 objects against a reference of 300
+
+    seconds = devicewait.poll_seconds(*PHONE, HELPER, 15, 2.0)
+
+    assert seconds == pytest.approx(30 * 833 / devicewait.HELPER_REFERENCE_OBJECTS)
+    assert devicewait.poll_attempts(*PHONE, HELPER, 15, 2.0) > 15
+
+
+def test_a_small_phone_is_never_polled_for_less_than_the_budget() -> None:
+    for objects in ("profiles", "scenes", "tasks"):
+        devicewait.note_size(*PHONE, objects, 3)
+
+    assert devicewait.poll_seconds(*PHONE, HELPER, 15, 2.0) == 30
+
+
+def test_a_helper_that_took_a_long_time_is_given_a_multiple_of_it_next_time() -> None:
+    devicewait.record_poll(*PHONE, HELPER, 40.0)
+
+    assert devicewait.poll_seconds(*PHONE, HELPER, 15, 2.0) == pytest.approx(120)
+
+
+def test_a_helper_that_was_given_up_on_is_given_twice_as_long_and_a_different_helper_is_not_affected() -> None:
+    devicewait.record_poll(*PHONE, HELPER, 45.0, timed_out=True)
+
+    assert devicewait.poll_seconds(*PHONE, HELPER, 15, 2.0) == 90
+    assert devicewait.poll_seconds(*PHONE, "backup", 30, 2.0) == 60
+
+
+def test_a_poll_is_never_stretched_past_the_cap_unless_its_own_budget_is_longer() -> None:
+    devicewait.record_poll(*PHONE, HELPER, 500.0)
+
+    assert devicewait.poll_seconds(*PHONE, HELPER, 15, 2.0) == devicewait.MAX_WAIT_SECONDS
+    assert devicewait.poll_seconds(*PHONE, HELPER, 150, 2.0) == 300  # MANUAL_IMPORT-sized budgets keep their own
+
+
+def test_a_poll_with_no_wait_between_polls_is_not_scaled() -> None:
+    devicewait.record_poll(*PHONE, HELPER, 40.0)
+
+    assert devicewait.poll_attempts(*PHONE, HELPER, 15, 0) == 15
+
+
+def test_only_a_long_wait_is_worth_telling_the_person_about() -> None:
+    assert devicewait.worth_telling(9.9) is None
+    assert devicewait.worth_telling(10) == 10
+
+
+def test_a_request_is_announced_only_when_it_is_longer_than_usual_for_its_kind() -> None:
+    assert devicewait.longer_than_usual(*PHONE, "api/profiles") is None  # the base thirty is only a ceiling
+    for objects, count in (("profiles", 237), ("scenes", 62), ("tasks", 534)):
+        devicewait.note_size(*PHONE, objects, count)
+
+    assert (devicewait.longer_than_usual(*PHONE, "api/profiles") or 0) > 30

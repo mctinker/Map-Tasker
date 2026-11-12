@@ -278,6 +278,7 @@ def build_overwrite_confirm_dialog(
     unknown: bool = False,
     file_absent: bool = False,
     tasker_lines: Sequence[str] = (),
+    on_new_id: Callable[[], object] | None = None,
 ) -> None:
     """Confirms overwriting something that is already there, before anything is
     written. Backs every Save/Export path that would otherwise clobber a file
@@ -296,6 +297,10 @@ def build_overwrite_confirm_dialog(
     hands its requests to a worker thread and has to wait for them. Cancel
     closes this dialog and leaves the parent Edit/Add dialog open, so nothing
     in progress is lost -- same convention as build_delete_project_dialog.
+
+    on_new_id, when given, adds a "Use a new ID" button between Cancel and Overwrite: the ID check
+    found that the device has this object's ID on something else, and this gives the object another
+    and sends it again.  Like on_confirm it may be a coroutine function.
 
     unknown=True switches the wording for the case where existence could not be
     determined at all (maputil2.read_android_file returning None -- device
@@ -321,6 +326,16 @@ def build_overwrite_confirm_dialog(
             ui.label(line).classes("mt-2 break-words")
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
             ui.button(translate_string("Cancel"), on_click=confirm_dialog.close).props("outline")
+
+            if on_new_id is not None:
+
+                async def _new_id() -> None:
+                    confirm_dialog.close()
+                    result = on_new_id()
+                    if inspect.isawaitable(result):
+                        await result
+
+                ui.button(translate_string("Use a new ID"), on_click=_new_id).props("outline")
 
             async def _confirm() -> None:
                 # Close first: on_confirm may open its own dialog (or close the

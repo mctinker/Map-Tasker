@@ -19,7 +19,7 @@ from maptasker.src.core import objprops
 from maptasker.src.core.mapjump import PROFILE
 from maptasker.src.core.maputil2 import translate_string
 from maptasker.src.edit import profedit
-from maptasker.src.gui.guiwins import android_device_fields
+from maptasker.src.gui.guiwins import android_device_fields, use_save_or_import
 from maptasker.src.gui.guiwins_editor import (
     PendingChangesBanner,
     build_properties_button,
@@ -748,7 +748,8 @@ def _build_edit_profile_buttons(
             ui.tooltip(
                 translate_string(
                     "This will write the Profile as a standalone file onto your Android device, "
-                    "under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\n"
+                    "under /Tasker/profiles, and -- unless you untick 'Also import into Tasker' in the next window -- "
+                    "opens Android's 'Open with...' chooser so you can import it into Tasker.\n\n"
                     "The 'Http Server Example' and 'Tasker HTTP API' Tasker Projects must both be installed and active on the Android "
                     "device, with the server running (see the README's Direct XML Retrieval notes).\n\n"
                     "The Android device must be on the same network, and the IP Address and Port must "
@@ -798,63 +799,61 @@ def build_save_profile_to_android_dialog(
     current Profile (name as it stands in the parent dialog's fields) as a
     standalone .prf.xml file onto the device's storage under /Tasker/profiles,
     via the Tasker HTTP Server Example's /upload endpoint -- see
-    profedit.save_profile_to_android. This does not import it into Tasker's
-    live configuration. On success both this prompt and the parent (Edit/Add
-    Profile) dialog are closed.
+    profedit.save_profile_to_android. Unless "Also import into Tasker" is unticked,
+    it then goes on to Tasker's own import screen (see import_profile_into_tasker_event).
+    On success both this prompt and the parent (Edit/Add Profile) dialog are closed.
     """
     with ui.dialog().props("persistent") as android_dialog, ui.card().classes("min-w-[350px] p-6"):
         ui.label(translate_string("Save Profile To Android Device")).classes("text-lg font-bold text-blue-600")
-        android_field_refs = android_device_fields(self)
+        android_field_refs = android_device_fields(
+            self,
+            import_tooltip=translate_string(
+                "This copies the Profile to the device and opens Android's 'Open with...' "
+                "chooser for it.  Pick Tasker, and its own import screen comes up; you then tap "
+                "Import to finish -- nothing is imported until you do.\n\n"
+                "The Profile is copied to /Tasker/profiles under its own name first and offered "
+                "from there, so it stays behind under a name you can find -- import it by hand "
+                "from Tasker if the import screen does not come up.  You will be asked before it "
+                "replaces a file already at that path.\n\n"
+                "Untick it to write the file to /Tasker/profiles and nothing more.\n\n"
+                "The 'Http Server Example' and 'Tasker HTTP API' Tasker Projects must both be installed and running, and "
+                "Tasker must be 6.2 or higher.\n\n"
+                "The device will ask you to authorize MapTasker the first time.",
+            ),
+        )
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
             ui.button(translate_string("Cancel"), on_click=android_dialog.close).props("outline")
+            # One button; the "Also import into Tasker" box says how far it goes.  See
+            # guiwins.build_save_to_android_dialog.
             save_to_android = ui.button(
-                translate_string("Save As File"),
-                on_click=lambda: self.event_handlers.android.save_profile_to_android_event(
-                    edited_profile,
-                    field_refs,
+                translate_string("Save To Android"),
+                on_click=use_save_or_import(
                     android_field_refs,
-                    android_dialog,
-                    parent_dialog,
+                    lambda: self.event_handlers.android.save_profile_to_android_event(
+                        edited_profile,
+                        field_refs,
+                        android_field_refs,
+                        android_dialog,
+                        parent_dialog,
+                    ),
+                    lambda: self.event_handlers.android.import_profile_into_tasker_event(
+                        edited_profile,
+                        field_refs,
+                        android_field_refs,
+                        android_dialog,
+                        parent_dialog,
+                    ),
                 ),
-            ).props("outline")
+            ).classes("bg-blue-600")
             with save_to_android:
                 ui.tooltip(
                     translate_string(
-                        "This will write the Profile as a standalone file onto the Android device, "
-                        "under /Tasker/profiles.\n\n"
+                        "This writes the Profile as a standalone file onto the Android device, "
+                        "under /Tasker/profiles, and -- unless 'Also import into Tasker' is unticked -- opens Android's "
+                        "'Open with...' chooser so you can import it into Tasker.\n\n"
                         "The IP Address and Port must match the Android device's Tasker server settings.\n\n"
                         "Watch the Android device while this runs: Tasker asks you to authorize the "
                         "connection several times for one save, and a prompt left untapped fails it.",
-                    ),
-                ).style("white-space: pre-wrap")
-            # The other half of the same dialog, and a genuinely different outcome: 'Save'
-            # leaves a file the user can do something with, this one puts the Profile in
-            # front of Tasker to be imported.  Two buttons rather than a checkbox because
-            # what they produce, what they can fail at and what the user has to do next all
-            # differ -- a ticked box would hide all three.
-            import_into_tasker = ui.button(
-                translate_string("Import Into Tasker"),
-                on_click=lambda: self.event_handlers.android.import_profile_into_tasker_event(
-                    edited_profile,
-                    field_refs,
-                    android_field_refs,
-                    android_dialog,
-                    parent_dialog,
-                ),
-            ).classes("bg-blue-600")
-            with import_into_tasker:
-                ui.tooltip(
-                    translate_string(
-                        "This copies the Profile to the device and opens Android's 'Open with...' "
-                        "chooser for it.  Pick Tasker, and its own import screen comes up; you then tap "
-                        "Import to finish -- nothing is imported until you do.\n\n"
-                        "The Profile is copied to /Tasker/profiles under its own name first and offered "
-                        "from there, so it stays behind under a name you can find -- import it by hand "
-                        "from Tasker if the import screen does not come up.  You will be asked before it "
-                        "replaces a file already at that path.\n\n"
-                        "The 'Http Server Example' and 'Tasker HTTP API' Tasker Projects must both be installed and running, and "
-                        "Tasker must be 6.2 or higher.\n\n"
-                        "The device will ask you to authorize MapTasker the first time.",
                     ),
                 ).style("white-space: pre-wrap")
 
@@ -992,7 +991,8 @@ def _build_add_profile_buttons(
             ui.tooltip(
                 translate_string(
                     "This will write the Profile as a standalone file onto your Android device, "
-                    "under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\n"
+                    "under /Tasker/profiles, and -- unless you untick 'Also import into Tasker' in the next window -- "
+                    "opens Android's 'Open with...' chooser so you can import it into Tasker.\n\n"
                     "The 'Http Server Example' (http://spoo.me/http_svr_example) and 'Tasker HTTP API' (https://shorturl.at/hlTj0) Tasker Projects must both be installed and active on the Android "
                     "device, with the server running (see the README's Direct XML Retrieval notes).\n\n"
                     "The Android device must be on the same network, and the IP Address and Port must "

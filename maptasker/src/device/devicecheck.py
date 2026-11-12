@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 import defusedxml.ElementTree as DefusedET
 from defusedxml import DefusedXmlException
 
+from maptasker.src.core import devicewait
 from maptasker.src.core.maputil2 import (
     auth_key_for,
     held_auth_key,
@@ -20,6 +21,7 @@ from maptasker.src.core.maputil2 import (
 from maptasker.src.core.sysconst import logger
 from maptasker.src.device.devicetask import (
     PROFILES_ENDPOINT,
+    RESULT_POLL_SECONDS,
     SCENES_ENDPOINT,
     build_reporting_task,
     fetch_tasker_object_names,
@@ -136,6 +138,9 @@ class TaskerCheck:
     sent: dict[str, list[str]]
     present: dict[str, list[str]]
     unchecked: dict[str, str]
+    # The highest Task or Profile ID the device has, when its backup was read (0 when it was not): where a
+    # new ID for an object whose own is taken has to start.
+    highest_id: int = 0
 
 
 def check_tasker_for_existing(
@@ -252,6 +257,15 @@ _ID_CHECK_PAYLOAD_HEADER = "MAPTASKER-BACKUP 1"
 _DATA_BACKUP_ACTION = "322t"  # arg0 Path, arg1 Google Drive Account, arg2 Include User Vars/Prefs
 # A whole configuration written to storage takes longer than one 'Test Tasker' call.
 _ID_CHECK_POLL_ATTEMPTS = 30
+# What devicewait calls this helper: the backup is the whole configuration, so a bigger phone takes longer over it.
+ID_CHECK_HELPER = "backup"
+
+
+def id_check_poll_seconds(ip_address: str, ip_port: str) -> float:
+    """How long fetch_device_backup would poll for the phone's backup on this phone."""
+    return devicewait.poll_seconds(ip_address, ip_port, ID_CHECK_HELPER, _ID_CHECK_POLL_ATTEMPTS, RESULT_POLL_SECONDS)
+
+
 # Tasks and Profiles draw their ids from one counter (see taskedit.next_unique_task_or_profile_id),
 # so they are one space; a Project's id is a UUID of its own.
 _TASK_PROFILE_IDS = "Task/Profile"
@@ -319,7 +333,9 @@ def fetch_device_backup(ip_address: str, ip_port: str, state: RunState) -> tuple
     if return_code != 0:
         return return_code, message, b""
 
-    text, error = poll_for_result(ip_address, ip_port, _ID_CHECK_RESULT_READ_PATH, _ID_CHECK_POLL_ATTEMPTS, "backup")
+    text, error = poll_for_result(
+        ip_address, ip_port, _ID_CHECK_RESULT_READ_PATH, _ID_CHECK_POLL_ATTEMPTS, "backup", scaled_as=ID_CHECK_HELPER
+    )
     if error:
         return 8, error, b""
     if not text.lstrip().startswith(_ID_CHECK_PAYLOAD_HEADER):
@@ -355,6 +371,14 @@ class IdFinding:
     def is_clash(self) -> bool:
         """The device has this very id on something else, rather than this object under another id."""
         return self.device_id == self.object_id
+
+
+def highest_id_in(root: Element) -> int:
+    """The highest Task or Profile ID in a backup -- Projects have UUIDs, not numbers -- or 0 if there is none."""
+    return max(
+        (int(object_id) for kind, object_id, _name in objects_in(root) if kind != "Project" and object_id.isdigit()),
+        default=0,
+    )
 
 
 def compare_ids(
@@ -418,10 +442,15 @@ def check_against_device_backup(
     if device is None or device.tag != "TaskerData":
         return None, [], "The backup the Android device made could not be read."
 
+    # What the phone has, which is what its lists and its helper Tasks are given time for (devicewait).
+    held = [kind for kind, _object_id, _name in objects_in(device)]
+    for kind, objects in (("Profile", "profiles"), ("Scene", "scenes"), ("Task", "tasks")):
+        devicewait.note_size(ip_address, ip_port, objects, held.count(kind))
+
     sent = _names_by_kind(export)
     have = {kind: set(names) for kind, names in _names_by_kind(device).items()}
     present = {kind: [name for name in names if name in have[kind]] for kind, names in sent.items() if names}
-    return TaskerCheck(sent, present, {}), compare_ids(export, device), ""
+    return TaskerCheck(sent, present, {}, highest_id_in(device)), compare_ids(export, device), ""
 
 
 def _object_label(kind: str, name: str) -> str:
