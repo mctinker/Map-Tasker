@@ -88,7 +88,7 @@ jobs:
 
       - name: Upload coverage and test reports
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           # Artifact names must be unique within a run, and all three systems run 3.13.
           name: reports-${{ matrix.os == 'windows-latest' && 'windows-' || matrix.os == 'macos-latest' && 'macos-' || '' }}py${{ matrix.python-version }}
@@ -232,7 +232,7 @@ jobs:
         run: python scripts/package_smoke.py --dist dist
 
       - name: Upload distribution
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: dist
           path: dist/
