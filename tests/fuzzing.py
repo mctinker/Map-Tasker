@@ -16,6 +16,7 @@ from typing import Any
 
 from hypothesis import HealthCheck, settings
 from hypothesis import strategies as st
+from maptasker.src.core.settingsmigrate import SETTINGS_VERSION, VERSION_KEY
 
 SCALE = float(os.environ.get("MAPTASKER_FUZZ_SCALE", "1"))
 
@@ -135,3 +136,24 @@ def json_documents(base: Any) -> st.SearchStrategy[str]:
         JSON_VALUES.map(json_text),
         spoiled(json.dumps(base).encode("utf-8")).map(lambda data: data.decode("utf-8", errors="replace")),
     )
+
+
+# ##################################################################################
+# Settings files of every age
+# ##################################################################################
+_HISTORIC_VALUES: dict[str, Any] = {
+    "language": st.sampled_from(["Tamali", "Tamil", "English", "Deutsch"]),
+    "ai_name": st.sampled_from(["DeepSeek", "OpenAI", "Gemini", ""]),
+    "ai_model": st.sampled_from(["gemini-3.1-flash_lite", "gemini-3.1-flash-lite", "deepseek-chat", "gpt-5.5", ""]),
+}
+
+
+@st.composite
+def files_of_any_age(draw: st.DrawFn) -> dict[str, Any]:
+    """A settings document with historical values wherever they were ever kept, and any version (or none)."""
+    arguments: dict[str, Any] = {name: draw(values) for name, values in _HISTORIC_VALUES.items() if draw(st.booleans())}
+    document: dict[str, Any] = {"program_arguments": arguments}
+    version = draw(st.one_of(st.none(), st.integers(min_value=0, max_value=SETTINGS_VERSION)))
+    if version is not None:
+        document[VERSION_KEY] = version
+    return document

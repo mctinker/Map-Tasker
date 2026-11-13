@@ -35,7 +35,7 @@ from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.mapgen import taskerd
 from maptasker.src.mapops import mapdraft
 
-from tests.fuzzing import JSON_VALUES, fuzz, json_documents, reshaped, spoiled
+from tests.fuzzing import JSON_VALUES, files_of_any_age, fuzz, json_documents, reshaped, spoiled
 from tests.test_fuzz_backup import _SYNTHETIC, DOCUMENTED_EXIT_CODES, a_scratch_run, prime_a_run
 
 
@@ -59,10 +59,21 @@ _SETTINGS_FILE = _a_real_settings_file()
 
 @st.composite
 def settings_files(draw: st.DrawFn) -> bytes:
-    """A settings file: the real one with bytes spoiled, or with a value of the wrong kind where a value goes."""
-    if draw(st.booleans()):
+    """A settings file: the real one with bytes spoiled, with a value of the wrong kind where a value goes, or as an
+    older version wrote it (its historical values back in, and a version that is missing or from earlier on)."""
+    kind = draw(st.sampled_from(["bytes", "reshaped", "older"]))
+    if kind == "bytes":
         return draw(spoiled(_SETTINGS_FILE))
     import tomllib
+
+    if kind == "older":
+        old = draw(files_of_any_age())
+        document = tomllib.loads(_SETTINGS_FILE.decode("utf-8"))
+        document["program_arguments"].update(old["program_arguments"])
+        document.pop("settings_version", None)
+        if "settings_version" in old:
+            document["settings_version"] = old["settings_version"]
+        return tomli_w.dumps(document).encode("utf-8")
 
     document = reshaped(tomllib.loads(_SETTINGS_FILE.decode("utf-8")))
     try:

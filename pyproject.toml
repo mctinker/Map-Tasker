@@ -622,6 +622,7 @@ strict = [
     "maptasker/src/core/runcfg.py",
     "maptasker/src/core/scenelayout.py",
     "maptasker/src/core/servicec.py",
+    "maptasker/src/core/settingsmigrate.py",
     "maptasker/src/core/share.py",
     "maptasker/src/core/shelsort.py",
     "maptasker/src/core/sysconst.py",

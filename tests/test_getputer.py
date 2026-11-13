@@ -14,7 +14,7 @@ import pickle
 from pathlib import Path
 
 import pytest
-from maptasker.src.core import getputer
+from maptasker.src.core import getputer, settingsmigrate
 from maptasker.src.core.colrmode import color_overrides, effective_colors, set_color_mode
 from maptasker.src.core.initparg import ProgramArguments, initialize_runtime_arguments
 from maptasker.src.core.primitem import PrimeItems
@@ -110,7 +110,7 @@ def test_a_settings_file_with_no_debug_setting_still_comes_back(
 def test_a_saved_value_of_the_wrong_kind_is_dropped_and_the_rest_kept(name: str, value: object) -> None:
     arguments = {"underline": True, name: value}
 
-    dropped = getputer.drop_values_of_the_wrong_kind(arguments)
+    dropped = settingsmigrate.drop_values_of_the_wrong_kind(arguments)
 
     assert dropped == [name]
     assert arguments == {"underline": True}
@@ -120,32 +120,8 @@ def test_a_whole_number_written_as_text_is_kept() -> None:
     """Older versions saved display_detail_level as "5"."""
     arguments = {"display_detail_level": "5", "indent": -1, "some_future_setting": object()}
 
-    assert getputer.drop_values_of_the_wrong_kind(arguments) == []
+    assert settingsmigrate.drop_values_of_the_wrong_kind(arguments) == []
     assert arguments["display_detail_level"] == "5"
-
-
-def test_a_language_saved_under_the_old_tamil_spelling_is_carried_over(program_arguments: ProgramArguments) -> None:
-    """Tamil was listed as 'Tamali', and the language is saved by its name.  A settings file from
-    before the fix has to come back as Tamil, not as a name nothing recognizes."""
-    program_arguments.language = "Tamali"
-    getputer.save_restore_args(program_arguments, set_color_mode("Dark"), to_save=True, state=PrimeItems)
-
-    restored_arguments, _ = getputer.save_restore_args({}, {}, to_save=False, state=PrimeItems)
-
-    assert restored_arguments["language"] == "Tamil"
-    assert restored_arguments["language"] in PrimeItems.languages
-
-
-def test_a_gemini_model_saved_under_the_wrong_spelling_is_carried_over(program_arguments: ProgramArguments) -> None:
-    """'gemini-3.1-flash_lite' was offered for a while; Google's name has a hyphen, and answers the
-    underscore with 404 NOT_FOUND.  A settings file saved with it has to come back as the real name."""
-    program_arguments.ai_model = "gemini-3.1-flash_lite"
-    getputer.save_restore_args(program_arguments, set_color_mode("Dark"), to_save=True, state=PrimeItems)
-
-    restored_arguments, _ = getputer.save_restore_args({}, {}, to_save=False, state=PrimeItems)
-
-    assert restored_arguments["ai_model"] == "gemini-3.1-flash-lite"
-    assert restored_arguments["ai_model"] in GEMINI_MODELS
 
 
 def test_a_model_that_was_never_misspelled_is_left_alone(program_arguments: ProgramArguments) -> None:

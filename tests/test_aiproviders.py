@@ -14,7 +14,7 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from maptasker.src.core import aiutils, getputer, sysconst
+from maptasker.src.core import aiutils, settingsmigrate, sysconst
 from maptasker.src.core.primitem import RunState
 from maptasker.src.gui import userintr_ai
 from maptasker.src.gui.userintr import MapTaskerEventHandlers, MyGui
@@ -294,7 +294,7 @@ def test_an_unexpected_answer_to_the_list_is_reported_rather_than_raised(server:
 def test_a_saved_deepseek_selection_is_cleared(saved: dict) -> None:
     arguments = {**saved, "ai_apikey": "Hidden", "debug": False}
 
-    assert getputer.drop_unsupported_ai_selection(arguments) is True
+    assert settingsmigrate.drop_unsupported_ai_selection(arguments) is True
 
     assert (arguments["ai_name"], arguments["ai_model"]) == ("", "")
     assert arguments["debug"] is False, "nothing else is touched"
@@ -314,12 +314,12 @@ def test_a_saved_deepseek_selection_is_cleared(saved: dict) -> None:
 def test_a_selection_that_is_still_supported_is_left_alone(saved: dict) -> None:
     arguments = dict(saved)
 
-    assert getputer.drop_unsupported_ai_selection(arguments) is False
+    assert settingsmigrate.drop_unsupported_ai_selection(arguments) is False
     assert arguments == saved
 
 
 def test_a_missing_or_blank_model_is_not_mistaken_for_a_retired_one() -> None:
-    assert getputer.drop_unsupported_ai_selection({"ai_name": "OpenAI", "ai_model": None}) is False
+    assert settingsmigrate.drop_unsupported_ai_selection({"ai_name": "OpenAI", "ai_model": None}) is False
 
 
 # ##################################################################################

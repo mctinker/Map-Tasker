@@ -13,7 +13,7 @@ import tempfile
 import tomllib
 from datetime import timedelta
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 import tomli_w
 
@@ -28,86 +28,17 @@ from maptasker.src.core.colrmode import color_overrides, effective_colors
 from maptasker.src.core.initparg import ProgramArguments, initialize_runtime_arguments
 from maptasker.src.core.maputil2 import log_startup_values, translate_string
 from maptasker.src.core.maputils import reset_named_objects
+from maptasker.src.core.settingsmigrate import SETTINGS_VERSION, VERSION_KEY, Settings, migrate, repair
 from maptasker.src.core.sysconst import (
     ARGUMENT_NAMES,
     ARGUMENTS_FILE,
     LEGACY_SYSTEM_SETTINGS_FILE,
     NOW_TIME,
-    RENAMED_AI_MODELS,
-    RETIRED_AI_MODEL_PREFIXES,
-    RETIRED_AI_NAMES,
     TRANSIENT_ARGUMENTS,
     logger,
 )
 
-# A settings table as TOML gives it back (or as the GUI hands it over): names to values of any kind.
-Settings = dict[str, Any]
-
 twenty_four_hours_ago = NOW_TIME - timedelta(hours=25)
-
-
-# A saved choice of AI service that MapTasker no longer supports
-def drop_unsupported_ai_selection(program_arguments: Settings) -> bool:
-    """Clear the saved AI service and model if they are ones MapTasker can no longer run.
-
-    A settings file saved while one was selected would otherwise bring it back on the Analyze tab,
-    where nothing could be done with it: the model is in no list, and no key is kept for it.
-    Cleared, the tab comes up as it does when no model has ever been chosen.
-
-    Args:
-        program_arguments (dict): the [program_arguments] table just read, changed in place.
-
-    Returns:
-        bool: True if a selection was cleared.
-    """
-    model = str(program_arguments.get("ai_model") or "").lower()
-    if program_arguments.get("ai_name") not in RETIRED_AI_NAMES and not model.startswith(RETIRED_AI_MODEL_PREFIXES):
-        return False
-    logger.info(
-        f"The saved AI selection ({program_arguments.get('ai_name')!r}, {program_arguments.get('ai_model')!r}) is "
-        "no longer supported, so it has been cleared.",
-    )
-    program_arguments["ai_name"] = ""
-    program_arguments["ai_model"] = ""
-    return True
-
-
-def drop_values_of_the_wrong_kind(program_arguments: Settings) -> list[str]:
-    """Take out of the [program_arguments] table just read any value that is not the kind its setting holds.
-
-    A hand-edited or damaged file ("indent = 'wide'", "bold = 'yes'") hands the window a value that its
-    controls and every later int() cannot use, and the window then fails to open.  Dropped, the setting
-    stays at the run's own value, and the rest of the file is restored as written.
-
-    A whole number may be written as text (an older version saved some of them that way), and is kept.
-
-    Args:
-        program_arguments (dict): the table, changed in place.
-
-    Returns:
-        list[str]: the names that were dropped.
-    """
-    defaults = initialize_runtime_arguments()
-    dropped: list[str] = []
-    for name in list(program_arguments):
-        if name not in defaults:
-            continue  # An unknown setting: restore() says so, and ignores it.
-        default, value = defaults[name], program_arguments[name]
-        if isinstance(default, bool):
-            fits = isinstance(value, bool)
-        elif isinstance(default, int):
-            fits = (isinstance(value, int) and not isinstance(value, bool)) or (
-                isinstance(value, str) and value.strip().lstrip("-").isdigit()
-            )
-        elif isinstance(default, str):
-            fits = isinstance(value, str)
-        else:
-            fits = True
-        if not fits:
-            logger.warning(f"Ignoring the saved setting {name} = {value!r}: it should be {type(default).__name__}.")
-            del program_arguments[name]
-            dropped.append(name)
-    return dropped
 
 
 # Write a settings file in one indivisible step
@@ -270,6 +201,7 @@ def save_arguments(
     # reader (or crash) that landed between them.
     settings = {
         **guidance,
+        VERSION_KEY: SETTINGS_VERSION,  # which shape this file is, for the next version to read (settingsmigrate)
         "program_arguments": dict(sorted(user_args.items())),  # Sort the program args first.
         # The colours that differ from the appearance mode's palette -- see colrmode.  Every save comes through
         # here, whatever it was handed: the whole palette, the colours the user changed, or none.
@@ -307,6 +239,8 @@ def read_toml_file(new_file: str, state: RunState) -> tuple[Settings, Settings]:
         tomllib.TOMLDecodeError: If the TOML file is corrupted or does not exist.
 
     Side Effects:
+        - A file from an older version is carried over to this version's shape first (see settingsmigrate), and a value
+          of the wrong kind is dropped whatever the file's age.  The file itself is not changed until the next save.
         - If the TOML file does not contain a "last_run" key, the last run date is set to yesterday (25 hours+).
         - The colors returned are the ones in force: the palette of the saved appearance mode with the colors the file
           holds laid over it (see colrmode).  A file with no [colors_to_use], or an empty one, is simply the palette.
@@ -321,27 +255,23 @@ def read_toml_file(new_file: str, state: RunState) -> tuple[Settings, Settings]:
         try:
             settings = tomllib.load(f)
 
+            # An older file is carried over to this version's shape (see settingsmigrate), then anything wrong with
+            # it whatever its age -- a value of the wrong kind -- is dropped.
+            migrate(settings)
+            repair(settings)
+
             # Get program arguments
-            try:
-                program_arguments = settings["program_arguments"]
-                # Tamil was listed as 'Tamali', and the language is saved by its name: carry an
-                # older settings file over rather than quietly falling back to English.
-                if program_arguments.get("language") == "Tamali":
-                    program_arguments["language"] = "Tamil"
-                # A model saved under a spelling that was listed wrongly (Google answers such a
-                # name with "404 NOT_FOUND"): carry it over to the real name.
-                if program_arguments.get("ai_model") in RENAMED_AI_MODELS:
-                    program_arguments["ai_model"] = RENAMED_AI_MODELS[program_arguments["ai_model"]]
-                drop_unsupported_ai_selection(program_arguments)
-                drop_values_of_the_wrong_kind(program_arguments)
+            saved_table = settings.get("program_arguments")
+            if isinstance(saved_table, dict):
+                program_arguments = cast("Settings", saved_table)
                 # Start log. file if debug is on.
                 if program_arguments.get("debug"):
                     log_startup_values(state=state)
-            except KeyError:
-                # A settings file with no [program_arguments] table at all.  Saves are
-                # atomic now, so this is either a hand-edited file or one left half-written
-                # by a version from before that -- worth saying so rather than quietly
-                # coming up with defaults and then saving them back over the file.
+            else:
+                # A settings file with no [program_arguments] table at all (or something that is not a table).  Saves
+                # are atomic now, so this is either a hand-edited file or one left half-written by a version from
+                # before that -- worth saying so rather than quietly coming up with defaults and then saving them
+                # back over the file.
                 logger.error(f"No [program_arguments] found in {new_file}.  Falling back to default settings.")
                 program_arguments = initialize_runtime_arguments().as_dict()
             # The colours in force: the saved appearance mode's palette with the colours saved for it laid over it.
