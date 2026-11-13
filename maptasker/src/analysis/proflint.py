@@ -471,6 +471,15 @@ def setting_conflicts(first: dict[Subject, str], second: dict[Subject, str]) -> 
     )
 
 
+def _id_order(profile_id: str) -> tuple[int, int, str]:
+    """How to order Profile ids: the numbers by value, then any that are not numbers.
+
+    A Profile whose <id> is empty is filed under a name made up for it (see taskerd.build_tasker_tables), and that
+    name has to sort somewhere rather than stop the check.
+    """
+    return (0, int(profile_id), "") if profile_id.isdigit() else (1, 0, profile_id)
+
+
 def _check_profile_conflicts(problems: list[Problem], state: RunState) -> None:
     """Report Profiles that watch the same trigger, and say when their Tasks disagree.
 
@@ -509,7 +518,7 @@ def _check_profile_conflicts(problems: list[Problem], state: RunState) -> None:
             if (entry := _text(profiles[profile_id]["xml"], "mid0")) in all_tasks
         }
         found = False
-        for first, second in combinations(sorted(members, key=int), 2):
+        for first, second in combinations(sorted(members, key=_id_order), 2):
             for subject, mine, theirs in setting_conflicts(settings.get(first, {}), settings.get(second, {})):
                 found = True
                 problems.append(
@@ -524,7 +533,7 @@ def _check_profile_conflicts(problems: list[Problem], state: RunState) -> None:
                     ),
                 )
         if not found:
-            leader, *rest = sorted(members, key=int)
+            leader, *rest = sorted(members, key=_id_order)
             others = ", ".join(_profile_target(item, profiles[item], profile_owners).label for item in rest)
             problems.append(
                 Problem(

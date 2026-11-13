@@ -365,6 +365,13 @@ def _empty_task_id(root: ET.Element) -> None:
     _task(root, "102").find("id").text = None  # type: ignore[union-attr]
 
 
+def _two_profiles_on_one_trigger_one_with_no_id(root: ET.Element) -> None:
+    """The second is filed under a name made up for it, and the conflict check used to sort the ids as numbers."""
+    duplicate = copy.deepcopy(_profile(root))
+    duplicate.find("id").text = None  # type: ignore[union-attr]
+    root.append(duplicate)
+
+
 def _no_version(root: ET.Element) -> None:
     del root.attrib["tv"]
 
@@ -401,6 +408,7 @@ REGRESSIONS: dict[str, Callable[[ET.Element], None]] = {
     "a Profile a Project lists is missing": _drop_profile,
     "a Scene a Project lists is missing": _drop_scene,
     "a Profile has an empty id": _empty_id,
+    "two Profiles share a trigger and one has no id": _two_profiles_on_one_trigger_one_with_no_id,
     "a Task has an empty id": _empty_task_id,
     "the root has no Tasker version": _no_version,
     "the root is bare": _bare_root,

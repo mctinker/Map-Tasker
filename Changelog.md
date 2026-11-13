@@ -31,6 +31,7 @@ All notable changes to this project will be documented in this file!
 
 ### Fixed
 
+- Fixed: Health Check no longer stops with an error on a backup holding two Profiles with the same trigger when one of them has no ID.
 - Fixed: A Map, Diagram or other view opened in its own window now follows the app's Light or Dark mode. It followed the computer's setting instead, so with the app in light mode on a dark computer the window around the Map, its toolbar and its default text were dark.
 - Fixed: Switching between dark and light mode no longer repaints a Map that is already on screen, and the Background color you assigned now survives the switch. Before, the Map turned white or dark grey and the assigned color was reset to the new mode's own.
 - Fixed: The boxes around TaskerNet descriptions and Task labels in the Map are now a slightly darker tone of the Background color you assigned. They had a color of their own, which looked like a different background.
