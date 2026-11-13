@@ -20,6 +20,7 @@ ASSETS_DIR = assettext.ASSETS_DIR
 ASSETS_URL = "/maptasker_assets"
 STYLESHEET = "css/maptasker.css"
 CANVAS_SCRIPT = "js/scene_canvas.js"
+FUZZY_SCRIPT = "js/fuzzy_match.js"
 
 
 @functools.cache
@@ -46,7 +47,13 @@ def url(relative: str) -> str:
 def head_html() -> str:
     """The <link> and <script> tags every page needs in its <head>.
 
+    The second script ranks the Font pulldown's matches (see fuzzyselect), which is on the main page only, and is
+    small enough to link everywhere rather than work out which page wants it.
+
     The script is a plain blocking one, deliberately: the canvas calls sent over the websocket
     (see guiwins_canvas) run only after the page has loaded, and must find window.mtCanvas there.
     """
-    return f'<link rel="stylesheet" href="{url(STYLESHEET)}">\n<script src="{url(CANVAS_SCRIPT)}"></script>'
+    return (
+        f'<link rel="stylesheet" href="{url(STYLESHEET)}">\n<script src="{url(CANVAS_SCRIPT)}"></script>\n'
+        f'<script src="{url(FUZZY_SCRIPT)}"></script>'
+    )

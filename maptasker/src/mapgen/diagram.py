@@ -522,7 +522,7 @@ def network_map(network: dict[str, Any], config: RunConfig, state: RunState) -> 
     add_output_line(" ", state=state)
     add_output_line(
         translate_string(
-            "Display with a monospaced font (e.g. Courier New) for accurate column alignment. And turn off line wrap.",
+            "Display with a monospaced font (e.g. Menlo - monospaced) for accurate column alignment. And turn off line wrap.",
         ),
         state=state,
     )

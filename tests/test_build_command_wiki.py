@@ -137,3 +137,22 @@ def test_what_every_button_opens_is_the_same_whatever_the_hash_seed(seeds: tuple
 
     assert answers[0] == answers[1]
     assert "build_add_project_dialog" in answers[0]
+
+
+def test_a_fuzzy_select_is_documented_as_the_pulldown_it_is(tool: ModuleType, tmp_path: Path) -> None:
+    """The Font pulldown became a FuzzySelect, and the page lost its entry until the tool knew one is a ui.select."""
+    source = (
+        "from nicegui import ui\n\n\n"
+        "def create_font_section(self):\n"
+        "    self.font_optionmenu = FuzzySelect(options={}, value='a', on_change=self.font_event, with_input=True)\n"
+        "    with self.font_optionmenu:\n"
+        "        ui.tooltip('Pick a font.')\n"
+    )
+    (tmp_path / "guiwins_tabs.py").write_text(source, encoding="utf-8")
+
+    model = tool.CommandModel(tmp_path, set(tool.ALL_KINDS))
+
+    (widget,) = [w for function in model.funcs.values() for w in function.widgets]
+    assert widget.kind == "select"
+    assert widget.label == "Font Optionmenu"
+    assert widget.tooltip == "Pick a font."

@@ -664,6 +664,7 @@ strict = [
     "maptasker/src/edit/taskedit_model.py",
     "maptasker/src/edit/taskedit_save.py",
     "maptasker/src/gui/__init__.py",
+    "maptasker/src/gui/fuzzyselect.py",
     "maptasker/src/gui/getfile.py",
     "maptasker/src/gui/guistate.py",
     "maptasker/src/gui/guiutil2.py",

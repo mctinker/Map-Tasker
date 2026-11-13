@@ -339,6 +339,13 @@ DISABLED = " [&#9940;&nbsp;DISABLED]"  # &#9940 = "⛔"
 # embedded in TaskerNet descriptions and Task action labels (format.py).
 HOTLINK_STYLE = "color: #3399ff; text-decoration: underline;"
 
+# The words in the Diagram's header hint ("Display with a monospaced font (e.g. Menlo - monospaced) ...") that the Diagram
+# view turns into a link, and where the link goes: a direct download of Menlo-Regular.ttf.  It is a copy somebody else
+# keeps, since Apple does not offer the font on its own and MapTasker does not ship it.  Change the address here if it
+# moves.
+DIAGRAM_FONT_LINK_TEXT = "Menlo - monospaced"
+DIAGRAM_FONT_URL = "https://github.com/hbin/top-programming-fonts/raw/master/Menlo-Regular.ttf"
+
 # What the last Missing Resources check found on each device, kept between runs so the Health Check can
 # report it without going to the device -- see resstore.py.  Same place and same rules as the app list.
 RESOURCES_CACHE_FILE = "MapTasker_Resources.json"

@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, Any
 from nicegui import ui
 
 from maptasker.src.core.maputil2 import translate_string
+from maptasker.src.core.sysconst import DIAGRAM_FONT_LINK_TEXT, DIAGRAM_FONT_URL, HOTLINK_STYLE
 from maptasker.src.mapgen import diagintr, mapexport
 from maptasker.src.mapgen.diagutil import icon_spans
 
@@ -47,6 +48,28 @@ def _escape_diagram_text(text: str) -> str:
         cursor = end
     pieces.append(_escape_html_text(text[cursor:]))
     return "".join(pieces)
+
+
+# The lines at the top of the Diagram, where the header hint is.  Only these are looked at for the font link, so a
+# Task or Profile named like it further down is never turned into one.
+HEADER_LINES = 8
+
+
+def _linked_font_hint(line_num: int, line: str) -> str | None:
+    """The header hint with its font name as a link to the download, or None when this line is not that hint.
+
+    The hint is plain text in the Diagram's file, like everything else in it, so it is made a link here, in the view,
+    and only on a header line with nothing else drawn on it.  It opens in a new tab: following it in place would
+    navigate away from MapTasker itself.
+    """
+    if line_num >= HEADER_LINES or DIAGRAM_FONT_LINK_TEXT not in line:
+        return None
+    before, _, after = line.partition(DIAGRAM_FONT_LINK_TEXT)
+    anchor = (
+        f'<a href="{escape(DIAGRAM_FONT_URL, quote=True)}" style="{HOTLINK_STYLE}" '
+        f'target="_blank" rel="noopener noreferrer">{_escape_html_text(DIAGRAM_FONT_LINK_TEXT)}</a>'
+    )
+    return f"{_escape_diagram_text(before)}{anchor}{_escape_diagram_text(after)}"
 
 
 def diagram_connectors_by_line(state: RunState) -> dict[int, list[tuple[int, int, int]]]:
@@ -271,7 +294,12 @@ def wrap_diagram_line(
     """
     pieces: list[str] = []
     cursor = 0
-    for start, end, opening in _diagram_spans(line_num, line, connectors_by_line, nodes_by_line):
+    spans = _diagram_spans(line_num, line, connectors_by_line, nodes_by_line)
+    linked = None if spans else _linked_font_hint(line_num, line)
+    if linked is not None:
+        cursor = len(line)
+        pieces.append(linked)
+    for start, end, opening in spans:
         begin = max(start, cursor)
         if begin >= end:
             continue

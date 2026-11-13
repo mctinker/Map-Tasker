@@ -17,6 +17,7 @@ from maptasker.src.core.config import EDIT_SCENE
 from maptasker.src.core.maputil2 import suppress_logged, translate_string
 from maptasker.src.core.outdir import default_output_directory
 from maptasker.src.core.sysconst import NOTIFY_TIMEOUT_DEFAULT, VIEW_LIMIT_DEFAULT, logger
+from maptasker.src.gui.fuzzyselect import FuzzySelect
 from maptasker.src.gui.guiutil2 import get_font_choices, sort_languages_with_priority
 from maptasker.src.gui.guiutils import (
     display_model_pulldown,
@@ -700,16 +701,20 @@ def create_font_section(self: MyGui) -> None:
     current_font = self.font if self.font in font_items else self.default_font
 
     # ui.select manages choices natively
-    self.font_optionmenu = ui.select(
+    # Typing in it ranks the fonts by fuzzy match, best first ('ari' puts Arial ahead of the looser matches).
+    self.font_optionmenu = FuzzySelect(
         options=font_items,
         value=current_font,
         on_change=self.event_handlers.settings.font_event,
+        with_input=True,
     ).classes("w-64")
     with self.font_optionmenu:
         ui.tooltip(
             translate_string(
                 "This is a list of all of the fonts available on your system, monospaced ones first "
                 "and marked as such.\n\n"
+                "Type to find a font: what starts with your text is listed first, then the looser matches, "
+                "so 'ari' shows Arial and the fonts like it.\n\n"
                 "The font selected will be used in all output.\n\n"
                 "'Courier' or 'Courier New' is highly recommended for Diagrams to ensure proper connector "
                 "alignment. A font that is not monospaced will not hold the Diagram's connectors or the "

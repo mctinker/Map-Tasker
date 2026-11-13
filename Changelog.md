@@ -22,6 +22,10 @@ All notable changes to this project will be documented in this file!
 
 ### Changed
 
+- Changed: The hint at the top of the Diagram now suggests Menlo as the monospaced font, and its name is a link that downloads the font for Windows and Linux. MapTasker does not ship the font, because it is Apple's.
+
+- Changed: The __Font To Use In Output__ pulldown now lets you type to find a font, and lists the closest matches first, so typing 'ari' shows Arial and its relatives ahead of fonts that merely contain those letters. A small slip such as 'ariel', or a file name such as 'Menlo-Regular.ttf', still finds the font.
+
 - Changed: The Colors tab category 'TaskerNet Information' is now called 'TaskerNet Descriptions', which is what it colors.
 - Changed: __Save To Android__ in the Task, Profile, Project and Scene editors is now one button that saves the file to the Tasker folder and also imports it into Tasker. Untick 'Also import into Tasker' in that window to write the file only; the choice is remembered.
 - Changed: The 'Check IDs' warning now has a 'Use a new ID' button when the phone already uses a new Task's ID, which gives the Task a free one and sends it again. It is offered only for a Task made in MapTasker, never for one already in your file.

@@ -82,6 +82,9 @@ OPTION_KINDS = {
 }
 ALL_KINDS = {**COMMAND_KINDS, **OPTION_KINDS}
 
+# A widget of ours that is a ui.<kind> underneath, called by its own name: FuzzySelect is a ui.select.
+OWN_WIDGET_KINDS = {"FuzzySelect": "select"}
+
 # Functions that wrap a literal in the running language.  A label written as
 # translate_string("Exit") documents as "Exit".
 TRANSLATORS = {"translate_string", "gettext", "_"}
@@ -267,7 +270,9 @@ def expr_key(node: ast.AST) -> str | None:
 
 
 def ui_kind(node: ast.AST, kinds: set[str]) -> str | None:
-    """The widget kind of a ``ui.<kind>(...)`` call, if it is one we document."""
+    """The widget kind of a ``ui.<kind>(...)`` call, or of a call to one of our own kinds of it, if we document it."""
+    if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and OWN_WIDGET_KINDS.get(node.func.id) in kinds:
+        return OWN_WIDGET_KINDS[node.func.id]
     if (
         isinstance(node, ast.Call)
         and isinstance(node.func, ast.Attribute)

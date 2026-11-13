@@ -241,7 +241,7 @@ Select the language to be used for the output. The default is English.
 
 Change the monospace font used for the output.
 
-**Hover text:** This is a list of all of the fonts available on your system, monospaced ones first and marked as such. The font selected will be used in all output. 'Courier' or 'Courier New' is highly recommended for Diagrams to ensure proper connector alignment.
+**Hover text:** This is a list of all of the fonts available on your system, monospaced ones first and marked as such. Type to find a font: what starts with your text is listed first, then the looser matches, so 'ari' shows Arial and the fonts like it. The font selected will be used in all output. 'Courier' or 'Courier New' is highly recommended for Diagrams to ensure proper connector alignment.
 
 **Caveats:**
 

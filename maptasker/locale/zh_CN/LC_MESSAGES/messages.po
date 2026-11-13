@@ -3729,3 +3729,7 @@ msgid "This writes the Task as a standalone file onto your Android device under 
 msgstr "这会将任务作为一个独立的文件，保存到您的 Android 设备的 /Tasker/tasks 目录下，除非您在下一个窗口中取消勾选“同时导入到 Tasker”，否则它会直接导入到 Tasker 的实时配置中。\n\n“Http Server 示例”和“Tasker HTTP API”这两个 Tasker 项目必须都已安装并处于活动状态，服务器必须正在运行（请参考 README 中的“直接 XML 检索”说明），并且 Tasker 必须是 6.2 或更高版本。\n\nAndroid 设备必须连接到同一网络，并且 IP 地址和端口必须与 Tasker 服务器的设置相匹配。\n\n在运行期间，请密切关注 Android 设备：Tasker 会要求您多次授权连接才能保存，如果未点击提示，则会失败。\n\n为了在 Tasker UI 中看到导入的任务，您必须关闭并重新启动 Tasker。"
 msgid "Use a new ID"
 msgstr "使用新的ID"
+msgid "This is a list of all of the fonts available on your system, monospaced ones first and marked as such.\n\nType to find a font: what starts with your text is listed first, then the looser matches, so 'ari' shows Arial and the fonts like it.\n\nThe font selected will be used in all output.\n\n'Courier' or 'Courier New' is highly recommended for Diagrams to ensure proper connector alignment. A font that is not monospaced will not hold the Diagram's connectors or the output's indentation in line."
+msgstr "这是您系统中所有字体列表，首先按等宽字体排列，并已标记。\n\n输入字体名称以查找字体：首先会显示以您输入的文本开头的字体，然后是更宽松匹配的字体，例如，输入“ari”会显示 Arial 字体以及类似的字体。\n\n所选字体将在所有输出中使用。\n\n建议使用“Courier”或“Courier New”字体，尤其是在制作图表时，以确保连接器的正确对齐。非等宽字体无法正确地保持图表的连接器或输出的对齐。"
+msgid "Display with a monospaced font (e.g. Menlo - monospaced) for accurate column alignment. And turn off line wrap."
+msgstr "请使用等宽字体（例如 Menlo - monospaced）显示，以便各列准确对齐。并关闭自动换行。"
