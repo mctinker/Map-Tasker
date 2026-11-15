@@ -14,6 +14,7 @@ from maptasker.src.edit.sceneedit_v2tree import v2_child_slots, v2_flatten, v2_n
 
 if TYPE_CHECKING:
     from maptasker.src.core.primitem import RunState
+    from maptasker.src.core.scenelayout import V2Layout, V2Node
 
 
 # --------------------------------------------------------------------------------------
@@ -282,7 +283,7 @@ V2_NEW_NODE_DEFAULTS: dict[str, dict[str, Any]] = {
 V2_ELEMENT_ACTION_CODES = ("481", "483", "485")
 
 
-def v2_container_slots(node: dict[str, Any]) -> tuple[str, ...]:
+def v2_container_slots(node: V2Node) -> tuple[str, ...]:
     """Which slots this node can take children in.
 
     The declared slots for its type (V2_CONTAINER_SLOTS), plus any slot the node actually
@@ -295,12 +296,12 @@ def v2_container_slots(node: dict[str, Any]) -> tuple[str, ...]:
     return declared + present
 
 
-def v2_all_ids(layout: dict[str, Any]) -> set[str]:
+def v2_all_ids(layout: V2Layout) -> set[str]:
     """Every component id currently in the tree -- what uniqueness is checked against."""
     return {row.node["id"] for row in v2_flatten(layout) if isinstance(row.node.get("id"), str)}
 
 
-def v2_next_id(layout: dict[str, Any], node_type: str) -> str:
+def v2_next_id(layout: V2Layout, node_type: str) -> str:
     """A free id for a new component of this type: "Text1", "Text2", ...
 
     Serial per type, matching how Tasker's own Screen Builder names them (the 'V2' Scene
@@ -315,7 +316,7 @@ def v2_next_id(layout: dict[str, Any], node_type: str) -> str:
     return f"{node_type}{index}"
 
 
-def v2_new_node(layout: dict[str, Any], node_type: str) -> dict[str, Any]:
+def v2_new_node(layout: V2Layout, node_type: str) -> dict[str, Any]:
     """Build a component ready to insert: type, a free id, and its starting properties.
 
     Key order matters (see this module's designer notes) -- type then id then the rest,
@@ -326,7 +327,7 @@ def v2_new_node(layout: dict[str, Any], node_type: str) -> dict[str, Any]:
     return node
 
 
-def _v2_parent_and_slot(layout: dict[str, Any], path: tuple[Any, ...]) -> tuple[dict[str, Any] | None, str, int]:
+def _v2_parent_and_slot(layout: V2Layout, path: tuple[Any, ...]) -> tuple[dict[str, Any] | None, str, int]:
     """The parent node, slot key and index a path's node sits at -- () for the root
     returns (None, "", -1), since the root has no parent and cannot be moved or deleted.
     """
@@ -336,9 +337,7 @@ def _v2_parent_and_slot(layout: dict[str, Any], path: tuple[Any, ...]) -> tuple[
     return parent, path[-2], path[-1]
 
 
-def v2_insert_node(
-    layout: dict[str, Any], path: tuple[Any, ...], node: dict[str, Any], slot: str = ""
-) -> tuple[Any, ...] | None:
+def v2_insert_node(layout: V2Layout, path: tuple[Any, ...], node: V2Node, slot: str = "") -> tuple[Any, ...] | None:
     """Insert a component relative to the node at `path`, and return the new node's path.
 
     Placement is one rule, chosen so a single "Add" button behaves predictably:
@@ -377,7 +376,7 @@ def v2_insert_node(
     return (*path[:-1], index + 1)
 
 
-def v2_insert_destination(layout: dict[str, Any], path: tuple[Any, ...]) -> tuple[str, str]:
+def v2_insert_destination(layout: V2Layout, path: tuple[Any, ...]) -> tuple[str, str]:
     """Where v2_insert_node would put a new component right now, as ("inside"/"after", id).
 
     The same two-case rule v2_insert_node implements, answered *before* the click rather
@@ -394,7 +393,7 @@ def v2_insert_destination(layout: dict[str, Any], path: tuple[Any, ...]) -> tupl
     return ("inside" if v2_container_slots(target) else "after"), name
 
 
-def _v2_insert_parent_type(layout: dict[str, Any], path: tuple[Any, ...]) -> str:
+def _v2_insert_parent_type(layout: V2Layout, path: tuple[Any, ...]) -> str:
     """The type of the component a new node added at `path` would end up *in* -- the target
     itself when it can hold children, otherwise the target's own parent.  Mirrors
     v2_insert_node's two cases, which is what makes v2_can_add agree with what a click does.
@@ -408,7 +407,7 @@ def _v2_insert_parent_type(layout: dict[str, Any], path: tuple[Any, ...]) -> str
     return str((parent or {}).get("type", ""))
 
 
-def v2_can_add(layout: dict[str, Any], path: tuple[Any, ...], node_type: str) -> str:
+def v2_can_add(layout: V2Layout, path: tuple[Any, ...], node_type: str) -> str:
     """ "" if this element can be added at this selection, otherwise the reason it can't.
 
     Only V2_PARENT_ONLY is consulted: everything else goes anywhere a container will take
@@ -426,7 +425,7 @@ def v2_can_add(layout: dict[str, Any], path: tuple[Any, ...], node_type: str) ->
     return f"Only goes inside a {labels}. Select one first."
 
 
-def v2_palette_for(layout: dict[str, Any], path: tuple[Any, ...]) -> list[tuple[str, list[tuple[V2PaletteEntry, str]]]]:
+def v2_palette_for(layout: V2Layout, path: tuple[Any, ...]) -> list[tuple[str, list[tuple[V2PaletteEntry, str]]]]:
     """The whole palette as the Add Element dialog needs it: groups in V2_PALETTE_GROUPS
     order, each holding its entries paired with "" or the reason that entry can't be added
     at this selection.
@@ -445,7 +444,7 @@ def v2_palette_for(layout: dict[str, Any], path: tuple[Any, ...]) -> list[tuple[
     ]
 
 
-def v2_delete_node(layout: dict[str, Any], path: tuple[Any, ...]) -> list[str]:
+def v2_delete_node(layout: V2Layout, path: tuple[Any, ...]) -> list[str]:
     """Delete a component and everything under it.  Returns [] on success, else errors
     (mirroring delete_scene's convention) and changes nothing.
 
@@ -461,7 +460,7 @@ def v2_delete_node(layout: dict[str, Any], path: tuple[Any, ...]) -> list[str]:
     return []
 
 
-def _v2_splice_run(layout: dict[str, Any], path: tuple[Any, ...], count: int, insert_at: int) -> tuple[Any, ...] | None:
+def _v2_splice_run(layout: V2Layout, path: tuple[Any, ...], count: int, insert_at: int) -> tuple[Any, ...] | None:
     """Lift `count` consecutive siblings starting at `path` out of their slot and put them
     back at `insert_at`, and return the run's new first path.
 
@@ -490,7 +489,7 @@ def _v2_splice_run(layout: dict[str, Any], path: tuple[Any, ...], count: int, in
     return (*path[:-1], insert_at)
 
 
-def v2_move_run(layout: dict[str, Any], path: tuple[Any, ...], count: int, offset: int) -> tuple[Any, ...] | None:
+def v2_move_run(layout: V2Layout, path: tuple[Any, ...], count: int, offset: int) -> tuple[Any, ...] | None:
     """Move a run of `count` adjacent siblings `offset` places up (negative) or down.
 
     The run-sized Up/Down: offset is in sibling positions, so +1 steps the whole run past
@@ -500,7 +499,7 @@ def v2_move_run(layout: dict[str, Any], path: tuple[Any, ...], count: int, offse
     return _v2_splice_run(layout, path, count, _v2_parent_and_slot(layout, path)[2] + offset)
 
 
-def v2_drop_run(layout: dict[str, Any], path: tuple[Any, ...], count: int, before: int) -> tuple[Any, ...] | None:
+def v2_drop_run(layout: V2Layout, path: tuple[Any, ...], count: int, before: int) -> tuple[Any, ...] | None:
     """Move a run of `count` adjacent siblings so it sits before sibling `before`.
 
     What a drag drops: `before` is a *gap* in the slot as the user sees it right now -- 0 is
@@ -517,7 +516,7 @@ def v2_drop_run(layout: dict[str, Any], path: tuple[Any, ...], count: int, befor
 
 
 def v2_selection_run(
-    layout: dict[str, Any], anchor: tuple[Any, ...], other: tuple[Any, ...]
+    layout: V2Layout, anchor: tuple[Any, ...], other: tuple[Any, ...]
 ) -> tuple[tuple[Any, ...], int] | None:
     """The run of adjacent siblings spanned by two selected paths, as (first path, count).
 
@@ -548,7 +547,7 @@ def v2_run_paths(path: tuple[Any, ...], count: int) -> tuple[tuple[Any, ...], ..
     return tuple((*path[:-1], path[-1] + step) for step in range(max(1, count)))
 
 
-def v2_run_is_valid(layout: dict[str, Any], path: tuple[Any, ...], count: int) -> bool:
+def v2_run_is_valid(layout: V2Layout, path: tuple[Any, ...], count: int) -> bool:
     """Does this run still address `count` whole siblings?  Checked before every use of a
     remembered selection, because the tree it was taken from can have been re-rendered,
     undone or edited from the other view since.
@@ -560,7 +559,7 @@ def v2_run_is_valid(layout: dict[str, Any], path: tuple[Any, ...], count: int) -
     return siblings is not None and start + count <= len(siblings)
 
 
-def v2_outdent_node(layout: dict[str, Any], path: tuple[Any, ...]) -> tuple[Any, ...] | None:
+def v2_outdent_node(layout: V2Layout, path: tuple[Any, ...]) -> tuple[Any, ...] | None:
     """Move a component out of its parent, to sit just after it in the grandparent.
     Returns the new path, or None if there's no grandparent to move into.
 
@@ -579,7 +578,7 @@ def v2_outdent_node(layout: dict[str, Any], path: tuple[Any, ...]) -> tuple[Any,
     return (*path[:-4], grandparent_slot, parent_index + 1)
 
 
-def v2_indent_node(layout: dict[str, Any], path: tuple[Any, ...]) -> tuple[Any, ...] | None:
+def v2_indent_node(layout: V2Layout, path: tuple[Any, ...]) -> tuple[Any, ...] | None:
     """Move a component into the container immediately above it among its siblings.
     Returns the new path, or None if there is no previous sibling or it can't take children.
     """
@@ -601,7 +600,7 @@ def v2_indent_node(layout: dict[str, Any], path: tuple[Any, ...]) -> tuple[Any, 
     return (*path[:-1], index - 1, target_slot, len(children) - 1)
 
 
-def v2_duplicate_node(layout: dict[str, Any], path: tuple[Any, ...]) -> tuple[Any, ...] | None:
+def v2_duplicate_node(layout: V2Layout, path: tuple[Any, ...]) -> tuple[Any, ...] | None:
     """Copy a component and everything under it in beside it, with fresh ids throughout.
 
     Every id in the copied subtree is renumbered, not just the top one -- two components
@@ -631,7 +630,7 @@ def v2_duplicate_node(layout: dict[str, Any], path: tuple[Any, ...]) -> tuple[An
     return (*path[:-1], index + 1)
 
 
-def v2_rename_id(layout: dict[str, Any], path: tuple[Any, ...], new_id: str) -> list[str]:
+def v2_rename_id(layout: V2Layout, path: tuple[Any, ...], new_id: str) -> list[str]:
     """Rename a component's id, if the new one is free.  Returns [] on success, else errors.
 
     Does NOT rewrite anything that referred to the old id -- see

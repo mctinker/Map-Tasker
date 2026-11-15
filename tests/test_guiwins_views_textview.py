@@ -17,6 +17,7 @@ from typing import TYPE_CHECKING, Any
 
 import pytest
 from maptasker.src.core import mapjump
+from maptasker.src.core.diagmodel import empty_model
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.core.sysconst import DIAGRAM_FILE
 from maptasker.src.gui import guiwins_mapstream, guiwins_textview, guiwins_views
@@ -28,7 +29,7 @@ from nicegui import core, ui
 from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
 
-from tests.doubles import fake_window, required
+from tests.doubles import diagram_node, fake_window, required
 from tests.nicegui_harness import all_elements, idle
 from tests.test_mapfind import _FIXTURE_XML, _load
 
@@ -437,7 +438,8 @@ async def test_a_diagram_with_connectors_wires_their_highlighting_and_says_so(mo
 async def test_a_diagram_with_names_to_click_wires_the_interaction_and_says_how_to_use_it(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    model = {"nodes": [{"col": 0, "len": 4, "anchor": "a", "index": 0, "kind": "task"}], "folds": {}}
+    model = empty_model()
+    model["nodes"].append(diagram_node())
     monkeypatch.setattr(diagintr, "model", lambda state: model)
     monkeypatch.setattr(diagintr, "nodes_by_line", lambda m: {2: m["nodes"]})
     monkeypatch.setattr(diagintr, "folds_by_line", lambda m: {})

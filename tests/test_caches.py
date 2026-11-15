@@ -86,7 +86,7 @@ def test_loading_another_configuration_empties_every_cache(reset: object) -> Non
     mapcache._remembered.value = ("config", "settings", "MapTasker.html", (1, 2), 3)
     bildhtml._map_just_written.value = "MapTasker.html"
     scenes._carrying_scene_colour.value = True
-    stale_rows = taskedit_addable._addable_actions.get("old generation", lambda: ["stale"])
+    stale_rows = taskedit_addable._addable_actions.get("old generation", list)
     stale_conditions = profedit._addable_condition_codes.get("old generation", dict)
 
     reset()

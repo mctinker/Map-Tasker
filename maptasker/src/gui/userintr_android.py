@@ -83,6 +83,8 @@ from maptasker.src.gui.userintr_group import HandlerGroup
 if TYPE_CHECKING:
     from collections.abc import Callable
 
+    from maptasker.src.gui.guiwins import AndroidFields
+
 
 # NO 'await run.io_bound(...)' HERE IS CHECKED FOR None.  Since nicegui 4.0 a wait that is cancelled
 # or cut off by the app shutting down raises asyncio.CancelledError instead of answering None (see
@@ -495,7 +497,7 @@ class AndroidEventHandlers(HandlerGroup):
         self,
         edited_task: taskedit_model.EditableTask,
         field_refs: dict[str, Any],
-        android_field_refs: dict[str, Any],
+        android_field_refs: AndroidFields,
         android_dialog: ui.dialog,
         parent_dialog: ui.dialog,
         on_created: Callable[[str], None] | None = None,
@@ -681,7 +683,7 @@ class AndroidEventHandlers(HandlerGroup):
         self,
         edited_task: taskedit_model.EditableTask,
         field_refs: dict[str, Any],
-        android_field_refs: dict[str, Any],
+        android_field_refs: AndroidFields,
         android_dialog: ui.dialog,
         parent_dialog: ui.dialog,
         on_created: Callable[[str], None] | None = None,
@@ -732,7 +734,7 @@ class AndroidEventHandlers(HandlerGroup):
 
     async def _reach_device(
         self,
-        android_field_refs: dict[str, Any],
+        android_field_refs: AndroidFields,
         verify: Callable[[], roundtrip.RoundTripReport],
     ) -> tuple[str, str] | None:
         """The steps every Save To Android and Import Into Tasker button takes before it touches the device.
@@ -762,7 +764,7 @@ class AndroidEventHandlers(HandlerGroup):
     async def _save_file_to_device(
         self,
         spec: FileSave,
-        android_field_refs: dict[str, Any],
+        android_field_refs: AndroidFields,
         android_dialog: ui.dialog,
         parent_dialog: ui.dialog,
     ) -> None:
@@ -814,7 +816,7 @@ class AndroidEventHandlers(HandlerGroup):
         self,
         spec: FileSave,
         tasker_lines: list[str],
-        android_field_refs: dict[str, Any],
+        android_field_refs: AndroidFields,
         android_dialog: ui.dialog,
         parent_dialog: ui.dialog,
     ) -> None:
@@ -895,7 +897,7 @@ class AndroidEventHandlers(HandlerGroup):
         self,
         edited_scene: sceneedit.EditableScene,
         field_refs: dict[str, Any],
-        android_field_refs: dict[str, Any],
+        android_field_refs: AndroidFields,
         android_dialog: ui.dialog,
         parent_dialog: ui.dialog,
     ) -> None:
@@ -951,7 +953,7 @@ class AndroidEventHandlers(HandlerGroup):
         self,
         edited_profile: profedit.EditableProfile,
         field_refs: dict[str, Any],
-        android_field_refs: dict[str, Any],
+        android_field_refs: AndroidFields,
         android_dialog: ui.dialog,
         parent_dialog: ui.dialog,
     ) -> None:
@@ -1068,7 +1070,7 @@ class AndroidEventHandlers(HandlerGroup):
         self,
         edited_profile: profedit.EditableProfile,
         field_refs: dict[str, Any],
-        android_field_refs: dict[str, Any],
+        android_field_refs: AndroidFields,
         android_dialog: ui.dialog,
         parent_dialog: ui.dialog,
     ) -> None:
@@ -1216,7 +1218,7 @@ class AndroidEventHandlers(HandlerGroup):
         self,
         edited_scene: sceneedit.EditableScene,
         field_refs: dict[str, Any],
-        android_field_refs: dict[str, Any],
+        android_field_refs: AndroidFields,
         android_dialog: ui.dialog,
         parent_dialog: ui.dialog,
     ) -> None:
@@ -1306,7 +1308,7 @@ class AndroidEventHandlers(HandlerGroup):
         self,
         edited_project: projedit.EditableProject,
         field_refs: dict[str, Any],
-        android_field_refs: dict[str, Any],
+        android_field_refs: AndroidFields,
         android_dialog: ui.dialog,
         parent_dialog: ui.dialog,
     ) -> None:
@@ -1376,7 +1378,7 @@ class AndroidEventHandlers(HandlerGroup):
         self,
         edited_project: projedit.EditableProject,
         field_refs: dict[str, Any],
-        android_field_refs: dict[str, Any],
+        android_field_refs: AndroidFields,
         android_dialog: ui.dialog,
         parent_dialog: ui.dialog,
     ) -> None:

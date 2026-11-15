@@ -6,7 +6,7 @@ See classify_action_addability for the exact rule; a third-party plugin action w
 from __future__ import annotations
 
 import re
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, TypedDict
 
 from maptasker.src.core import appinv, caches
 from maptasker.src.core.actionc import action_codes
@@ -374,10 +374,21 @@ def classify_action_addability(action_key: str, state: RunState) -> tuple[bool, 
 
 # Rebuilt when the app inventory's generation moves (see list_addable_actions), and cleared
 # with every other cache when a configuration is loaded (see caches).
-_addable_actions: caches.KeyedCache[list[dict[str, Any]]] = caches.KeyedCache("taskedit.addable_actions")
+class ActionRow(TypedDict):
+    """One entry of the list of Task actions, as the Add Action picker and the AI draft read it."""
+
+    action_key: str  # "104t"
+    code: str  # the same without its "t"
+    name: str
+    category_name: str
+    addable: bool  # whether an action of this kind can be built from scratch
+    reason: str  # why not, when it cannot
 
 
-def list_addable_actions(state: RunState) -> list[dict[str, Any]]:
+_addable_actions: caches.KeyedCache[list[ActionRow]] = caches.KeyedCache("taskedit.addable_actions")
+
+
+def list_addable_actions(state: RunState) -> list[ActionRow]:
     """All real numeric Task-action entries with their addability, memoized.
 
     Most of the underlying data (actionc.py, arg_specs.json, category_descriptions.json)
@@ -390,9 +401,9 @@ def list_addable_actions(state: RunState) -> list[dict[str, Any]]:
     return _addable_actions.get(appinv.generation(state=state), lambda: _build_addable_actions(state))
 
 
-def _build_addable_actions(state: RunState) -> list[dict[str, Any]]:
+def _build_addable_actions(state: RunState) -> list[ActionRow]:
     """Every real numeric Task-action entry with its addability, sorted by name (see list_addable_actions)."""
-    rows: list[dict[str, Any]] = []
+    rows: list[ActionRow] = []
     for key, action_code in action_codes.items():
         if not (key.endswith("t") and key[:-1].isdigit()):
             continue  # Not a real numeric Task-action code (e.g. Scene-widget entries).
@@ -449,7 +460,7 @@ def _match_rank(name: str, query: str) -> int:
     return _WHOLE_WORD if matched else _ANYWHERE
 
 
-def search_addable_actions(query: str = "", category_name: str = "All", *, state: RunState) -> list[dict[str, Any]]:
+def search_addable_actions(query: str = "", category_name: str = "All", *, state: RunState) -> list[ActionRow]:
     """Filter the memoized action list by name substring and/or exact category name.
 
     Ranked rather than alphabetical whenever there is something to rank against -- see

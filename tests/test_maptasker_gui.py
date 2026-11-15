@@ -1,4 +1,4 @@
-from tests.doubles import required
+from tests.doubles import fake_android_fields, required
 from tests.editor_modules import patch_editors
 
 """MapTasker GUI Event Handlers Unit Tests
@@ -1168,7 +1168,7 @@ def profile_dialog_refs():
     'target_project_name' key -- that key's presence is what marks a brand-new one)."""
     return (
         {"name": _FakeField("Watched")},
-        {"ip_address": _FakeField("192.168.0.210"), "ip_port": _FakeField("1821")},
+        fake_android_fields(ip_address=_FakeField("192.168.0.210"), ip_port=_FakeField("1821")),
     )
 
 
@@ -2040,7 +2040,7 @@ def task_dialog_refs():
     """The two field_refs dicts the Task handlers are given."""
     return (
         {"name": _FakeField("Opener"), "priority": _FakeField("100")},
-        {"ip_address": _FakeField("192.168.0.210"), "ip_port": _FakeField("1821")},
+        fake_android_fields(ip_address=_FakeField("192.168.0.210"), ip_port=_FakeField("1821")),
     )
 
 
@@ -2235,7 +2235,7 @@ def test_the_one_save_button_imports_when_the_box_is_ticked_and_writes_the_file_
     box = SimpleNamespace(value=True)
     pressed: list[str] = []
     choose = guiwins.use_save_or_import(
-        {"import_too": box}, lambda: pressed.append("file"), lambda: pressed.append("import")
+        fake_android_fields(import_too=box), lambda: pressed.append("file"), lambda: pressed.append("import")
     )
 
     choose()
@@ -2251,7 +2251,9 @@ def test_a_panel_with_no_import_box_still_imports_as_it_always_did() -> None:
     """The box is what turns the import off; a panel that has none keeps the default of doing both."""
     pressed: list[str] = []
 
-    guiwins.use_save_or_import({}, lambda: pressed.append("file"), lambda: pressed.append("import"))()
+    guiwins.use_save_or_import(
+        fake_android_fields(), lambda: pressed.append("file"), lambda: pressed.append("import")
+    )()
 
     assert pressed == ["import"]
 

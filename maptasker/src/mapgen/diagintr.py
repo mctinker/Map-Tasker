@@ -33,9 +33,17 @@ collapsing hides whole lines rather than reflowing anything.
 from __future__ import annotations
 
 import json
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING
 
 from maptasker.src.core import assettext, mapjump, objnotes
+from maptasker.src.core.diagmodel import (
+    CallEdge,
+    DiagramEdge,
+    DiagramModel,
+    DiagramNode,
+    DiagramRegion,
+    empty_model,
+)
 from maptasker.src.core.mapjump import PROJECT, TASK, Target
 
 if TYPE_CHECKING:
@@ -65,7 +73,9 @@ _TASK_PREFIX = 3
 # ##################################################################################
 # The model, built once as the diagram is written.
 # ##################################################################################
-def _regions(anchors: dict[str, Any], targets: dict[str, Any], line_count: int, tail: int) -> list[dict[str, Any]]:
+def _regions(
+    anchors: dict[str, tuple[int, int, int]], targets: dict[str, Target], line_count: int, tail: int
+) -> list[DiagramRegion]:
     """Each Project's stretch of the diagram, top border to the line before the next one.
 
     A Project is the only object the diagram gives a contiguous run of lines to.  Profiles
@@ -84,7 +94,7 @@ def _regions(anchors: dict[str, Any], targets: dict[str, Any], line_count: int, 
         for anchor, placement in anchors.items()
         if targets.get(anchor) is not None and targets[anchor].kind == PROJECT
     )
-    regions: list[dict[str, Any]] = []
+    regions: list[DiagramRegion] = []
     for index, (line, anchor) in enumerate(starts):
         # The name is on the middle line of the three the box is drawn as, so the region
         # opens one line above it, on the box's top border.
@@ -107,7 +117,7 @@ def _regions(anchors: dict[str, Any], targets: dict[str, Any], line_count: int, 
     return regions
 
 
-def _project_at(regions: list[dict[str, Any]], line: int) -> str:
+def _project_at(regions: list[DiagramRegion], line: int) -> str:
     """The name of the Project whose region holds this line, or "" for none.
 
     Linear because a configuration has Projects in the dozens, not the thousands, and this
@@ -137,10 +147,10 @@ def _char_span(line: str, column: int, length: int) -> tuple[int, int]:
 def _nodes(
     lines: list[str],
     placements: list[tuple[str, int, int, int]],
-    targets: dict[str, Any],
-    regions: list[dict[str, Any]],
+    targets: dict[str, Target],
+    regions: list[DiagramRegion],
     notes: objnotes.NoteBook | None = None,
-) -> list[dict[str, Any]]:
+) -> list[DiagramNode]:
     """Every DRAWING of every object, as a span the browser can wrap and a token to jump with.
 
     One per drawing and not one per object, which is the difference between "the first
@@ -164,7 +174,7 @@ def _nodes(
     An object the user has put a note or tags on carries them ("note", "tags"), and one without carries neither key:
     most of a large Diagram's objects have no note, and the model is sent to the browser whole.
     """
-    nodes: list[dict[str, Any]] = []
+    nodes: list[DiagramNode] = []
     for anchor, line, column, length in placements:
         target = targets.get(anchor)
         if target is None or length <= 0 or line >= len(lines):
@@ -178,7 +188,7 @@ def _nodes(
         if span_length <= 0:
             continue
         project = target.key if target.kind == PROJECT else _project_at(regions, line)
-        node: dict[str, Any] = {
+        node: DiagramNode = {
             "anchor": anchor,
             "kind": target.kind,
             "name": target.name,
@@ -186,6 +196,7 @@ def _nodes(
             "col": span_column,
             "len": span_length,
             "project": project,
+            "index": -1,  # numbered below, once the nodes are in reading order
             "token": Target(
                 kind=target.kind,
                 key=target.key,
@@ -207,7 +218,7 @@ def _nodes(
     return nodes
 
 
-def drawn_tags(nodes: list[dict[str, Any]]) -> dict[str, int]:
+def drawn_tags(nodes: list[DiagramNode]) -> dict[str, int]:
     """Each tag carried by an object the Diagram draws, with how many objects carry it, the most used first.
 
     Counted from the drawn nodes rather than from the notes: a tag on an object the Diagram does not draw (one in a
@@ -221,7 +232,7 @@ def drawn_tags(nodes: list[dict[str, Any]]) -> dict[str, int]:
     return dict(sorted(counts.items(), key=lambda item: (-item[1], item[0])))
 
 
-def _task_on_row(by_row: dict[int, list[dict[str, Any]]], row: int, name: str) -> str:
+def _task_on_row(by_row: dict[int, list[DiagramNode]], row: int, name: str) -> str:
     """The anchor of the Task drawn on this row, by name where the row holds several.
 
     Several Tasks share a row whenever their Profiles are drawn side by side, so the row
@@ -242,8 +253,8 @@ def _task_on_row(by_row: dict[int, list[dict[str, Any]]], row: int, name: str) -
 
 
 def _edges(
-    nodes: list[dict[str, Any]], call_edges: dict[str, Any], connector_calls: dict[str, Any]
-) -> list[dict[str, Any]]:
+    nodes: list[DiagramNode], call_edges: dict[int, CallEdge], connector_calls: dict[int, list[int]]
+) -> list[DiagramEdge]:
     """Every call, as the two Tasks it joins and the connectors drawn for it.
 
     This is the whole of the call graph the Diagram draws, in the Diagram's own terms: not
@@ -253,20 +264,20 @@ def _edges(
     A call whose Tasks cannot both be identified is dropped.  It would otherwise be an edge
     into nothing, and a chain walked through it would light up an arbitrary Task.
     """
-    by_row: dict[int, list[dict[str, Any]]] = {}
+    by_row: dict[int, list[DiagramNode]] = {}
     for node in nodes:
         if node["kind"] == TASK:
             by_row.setdefault(node["line"], []).append(node)
 
-    groups_by_call: dict[str, Any] = {}
+    groups_by_call: dict[int, list[int]] = {}
     for group_id, calls in connector_calls.items():
         for call_index in calls:
             groups_by_call.setdefault(call_index, []).append(group_id)
 
-    edges: list[dict[str, Any]] = []
+    edges: list[DiagramEdge] = []
     for index, edge in call_edges.items():
-        caller = _task_on_row(by_row, edge["caller_row"], edge.get("caller_name", ""))
-        called = _task_on_row(by_row, edge["called_row"], edge.get("called_name", ""))
+        caller = _task_on_row(by_row, edge["caller_row"], edge["caller_name"])
+        called = _task_on_row(by_row, edge["called_row"], edge["called_name"])
         if not caller or not called:
             continue
         edges.append(
@@ -279,7 +290,7 @@ def _edges(
     return edges
 
 
-def build_model(lines: list[str], state: RunState) -> dict[str, Any]:
+def build_model(lines: list[str], state: RunState) -> DiagramModel:
     """Assemble the interaction model from what the finished diagram recorded.
 
     Called at the very end of diagram.network_map, once every position is final: the
@@ -287,8 +298,8 @@ def build_model(lines: list[str], state: RunState) -> dict[str, Any]:
     grown from their seeds.  Anything earlier would be measuring a diagram that is still
     moving.
     """
-    anchors = getattr(state, "diagram_anchors", {}) or {}
-    targets = getattr(state, "diagram_object_targets", {}) or {}
+    anchors: dict[str, tuple[int, int, int]] = getattr(state, "diagram_anchors", {}) or {}
+    targets: dict[str, Target] = getattr(state, "diagram_object_targets", {}) or {}
     # The "diagram was cut short" message is written past the last drawn line; it belongs to
     # no Project, and folding the last one should not take it away.
     tail = 2 if getattr(state, "diagram_limit_msg", "") else 0
@@ -312,7 +323,7 @@ def build_model(lines: list[str], state: RunState) -> dict[str, Any]:
 # ##################################################################################
 # The model, read back by the view.
 # ##################################################################################
-def model(state: RunState) -> dict[str, Any]:
+def model(state: RunState) -> DiagramModel:
     """The model the last-built Diagram recorded, or an empty one.
 
     Empty is ordinary rather than an error: a Diagram file left on disk by an older run of
@@ -322,46 +333,44 @@ def model(state: RunState) -> dict[str, Any]:
     in -- this is what the renderer slices Python strings by.  The browser never measures a
     column itself: it finds a node by the element the renderer wrapped it in.
     """
-    stored: object = getattr(state, "diagram_model", None)
-    if isinstance(stored, dict):
-        stored_model = cast("dict[str, Any]", stored)
-        if stored_model.get("nodes"):
-            return stored_model
-    return {"nodes": [], "tags": {}, "regions": [], "edges": []}
+    stored: DiagramModel | None = getattr(state, "diagram_model", None)
+    if stored and stored.get("nodes"):
+        return stored
+    return empty_model()
 
 
-def connector_tasks(the_model: dict[str, Any]) -> dict[str, list[str]]:
+def connector_tasks(the_model: DiagramModel) -> dict[str, list[str]]:
     """Each connector's id -> the anchors of the Tasks it joins, for the jump buttons.
 
     Which Task a connector's end belongs to is not something its cells say; the calls do.
     Keyed by the id as text because that is what the browser reads off the page.
     """
     found: dict[str, set[str]] = {}
-    for edge in the_model.get("edges", []):
+    for edge in the_model["edges"]:
         for group in edge["groups"]:
             found.setdefault(str(group), set()).update((edge["caller"], edge["called"]))
     return {group: sorted(anchors) for group, anchors in found.items()}
 
 
-def nodes_by_line(the_model: dict[str, Any]) -> dict[int, list[dict[str, Any]]]:
+def nodes_by_line(the_model: DiagramModel) -> dict[int, list[DiagramNode]]:
     """The model's nodes grouped by the line they were drawn on, for the renderer."""
-    by_line: dict[int, list[dict[str, Any]]] = {}
-    for node in the_model.get("nodes", []):
+    by_line: dict[int, list[DiagramNode]] = {}
+    for node in the_model["nodes"]:
         by_line.setdefault(node["line"], []).append(node)
     return by_line
 
 
-def folds_by_line(the_model: dict[str, Any]) -> dict[int, str]:
+def folds_by_line(the_model: DiagramModel) -> dict[int, str]:
     """Which lines carry a Project's fold control: {line: region anchor}.
 
     The Project's name line, which is the one line of the box that says which Project this
     is -- and the one still on screen when it is folded, since a fold only takes what is
     under the box (see _regions).
     """
-    return {region["line"]: region["anchor"] for region in the_model.get("regions", [])}
+    return {region["line"]: region["anchor"] for region in the_model["regions"]}
 
 
-def model_json(the_model: dict[str, Any]) -> str:
+def model_json(the_model: DiagramModel) -> str:
     """The model as the browser receives it, with the class names it acts through."""
     return json.dumps(
         {
@@ -407,7 +416,7 @@ def model_json(the_model: dict[str, Any]) -> str:
 _INTERACTION_SCRIPT = "js/diagram_interaction.js"
 
 
-def interaction_js(container_id: str, status_id: str, the_model: dict[str, Any]) -> str:
+def interaction_js(container_id: str, status_id: str, the_model: DiagramModel) -> str:
     """The script that makes one rendered Diagram interactive."""
     return assettext.render(
         _INTERACTION_SCRIPT,

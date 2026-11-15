@@ -36,6 +36,19 @@ if TYPE_CHECKING:
     from collections.abc import Callable
     from xml.etree.ElementTree import Element
 
+# A Version 2 component, and the whole layout whose "root" holds the tree of them.  Both are JSON objects, and
+# deliberately NOT a TypedDict: a component carries whatever properties its type has, and Tasker adds components and
+# properties from release to release.  What this code does not know it must keep (an untouched Scene has to re-encode
+# to the bytes it came from), and a container it has never heard of nests by the rule "any list of components is a
+# slot" (see sceneview_v2._v2_slots), which a fixed set of keys cannot say.  The names are for the reader: which of
+# the dictionaries in a signature is a component, and which is the layout.
+V2Node = dict[str, Any]
+V2Layout = dict[str, Any]
+# One entry of a component's "modifiers" list (padding, background, size ...) and one of an event handler's actions.  Open
+# for the same reason: Tasker adds modifiers and actions, and what is not recognised is kept and ignored, not refused.
+V2Modifier = dict[str, Any]
+V2Action = dict[str, Any]
+
 # The layout JSON's top-level key holding the component tree.  (Its sibling, the Scene's
 # name, is V2_NAME_KEY below: only a rename ever touches it.)
 V2_ROOT_KEY = "root"

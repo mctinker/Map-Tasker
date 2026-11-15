@@ -18,9 +18,10 @@ from maptasker.src.core.initparg import ProgramArguments
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.device import devicefiles, devicetask
 from maptasker.src.gui import guiutils_android, userintr_android, userintr_loading
+from maptasker.src.gui.guiwins import AndroidFields
 from nicegui import ui
 
-from tests.doubles import required
+from tests.doubles import fake_android_fields, required
 from tests.faketasker import FakeTasker
 from tests.nicegui_harness import click, found, idle, open_page, settled
 
@@ -478,12 +479,12 @@ def _file_save(phone: FakeTasker, saved: list[str], **overrides: Any):
     return userintr_android.FileSave(**{**spec, **overrides})
 
 
-def _refs(phone: FakeTasker) -> dict[str, Any]:
-    return {
-        "ip_address": SimpleNamespace(value=phone.address),
-        "ip_port": SimpleNamespace(value=phone.port),
-        "verify": SimpleNamespace(value=False),
-    }
+def _refs(phone: FakeTasker) -> AndroidFields:
+    return fake_android_fields(
+        ip_address=SimpleNamespace(value=phone.address),
+        ip_port=SimpleNamespace(value=phone.port),
+        verify=SimpleNamespace(value=False),
+    )
 
 
 @pytest.mark.asyncio

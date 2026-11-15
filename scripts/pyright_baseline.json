@@ -22,7 +22,6 @@
     "reportAttributeAccessIssue": 1
   },
   "tests/test_caches.py": {
-    "reportArgumentType": 1,
     "reportCallIssue": 1
   },
   "tests/test_clip.py": {
@@ -150,10 +149,6 @@
   },
   "tests/test_mapit_disconnect.py": {
     "reportArgumentType": 1
-  },
-  "tests/test_maprefac.py": {
-    "reportArgumentType": 1,
-    "reportAttributeAccessIssue": 2
   },
   "tests/test_mapswap.py": {
     "reportArgumentType": 1

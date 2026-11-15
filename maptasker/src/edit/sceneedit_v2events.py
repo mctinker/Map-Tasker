@@ -4,10 +4,13 @@ The schemas for each, and adding, deleting and moving them on a node."""
 
 from __future__ import annotations
 
-from typing import Any, cast
+from typing import TYPE_CHECKING, Any, cast
 
 from maptasker.src.core.maputil2 import as_json_list, as_json_object
 from maptasker.src.edit.sceneedit_v2 import V2_STATE_FIELDS, V2Prop
+
+if TYPE_CHECKING:
+    from maptasker.src.core.scenelayout import V2Node
 
 # --------------------------------------------------------------------------------------
 # Version 2 designer, phase 3: the three things hanging off a component that phases 1 and 2
@@ -186,13 +189,13 @@ def v2_schema_props(
     return props
 
 
-def v2_modifiers(node: dict[str, Any]) -> list[dict[str, Any]]:
+def v2_modifiers(node: V2Node) -> list[dict[str, Any]]:
     """This component's modifier list -- always a real list, so callers can index it."""
     modifiers = as_json_list(node.get("modifiers"))
     return cast("list[dict[str, Any]]", modifiers) if modifiers is not None else []
 
 
-def v2_add_modifier(node: dict[str, Any], modifier_type: str) -> int:
+def v2_add_modifier(node: V2Node, modifier_type: str) -> int:
     """Append a modifier and return its index.  Appends rather than inserts because a
     modifier's position is its place in the composition order, and the end is the only
     position that means "on top of what is already there".
@@ -202,7 +205,7 @@ def v2_add_modifier(node: dict[str, Any], modifier_type: str) -> int:
     return len(modifiers) - 1
 
 
-def v2_delete_modifier(node: dict[str, Any], index: int) -> None:
+def v2_delete_modifier(node: V2Node, index: int) -> None:
     """Remove a modifier, and the whole "modifiers" key with it when the last one goes --
     Tasker writes no empty modifiers list on any component in this repo's backup, and an
     empty one is a difference from what it would have written.
@@ -214,7 +217,7 @@ def v2_delete_modifier(node: dict[str, Any], index: int) -> None:
         del node["modifiers"]
 
 
-def v2_move_modifier(node: dict[str, Any], index: int, offset: int) -> int | None:
+def v2_move_modifier(node: V2Node, index: int, offset: int) -> int | None:
     """Reorder a modifier; returns its new index, or None if it can't move that way."""
     modifiers = v2_modifiers(node)
     new_index = index + offset
@@ -224,14 +227,14 @@ def v2_move_modifier(node: dict[str, Any], index: int, offset: int) -> int | Non
     return new_index
 
 
-def v2_handlers(node: dict[str, Any]) -> list[dict[str, Any]]:
+def v2_handlers(node: V2Node) -> list[dict[str, Any]]:
     """This component's event handlers -- always a real list."""
     held = as_json_object(node.get("eventHandlers")) or {}
     handlers = as_json_list(held.get("handlers"))
     return cast("list[dict[str, Any]]", handlers) if handlers is not None else []
 
 
-def v2_add_handler(node: dict[str, Any], event_type: str) -> int:
+def v2_add_handler(node: V2Node, event_type: str) -> int:
     """Add an event handler firing on one event, with no actions yet, and return its index.
 
     A handler with no actions is legal and is the only sensible starting point -- the user
@@ -243,7 +246,7 @@ def v2_add_handler(node: dict[str, Any], event_type: str) -> int:
     return len(handlers) - 1
 
 
-def v2_delete_handler(node: dict[str, Any], index: int) -> None:
+def v2_delete_handler(node: V2Node, index: int) -> None:
     """Remove an event handler, and the whole "eventHandlers" object with it when the last
     one goes -- same reasoning as v2_delete_modifier.  A stopPropagation flag set alongside
     the handlers goes with them, since it only means anything in their company.
@@ -284,7 +287,7 @@ def v2_move_action(handler: dict[str, Any], index: int, offset: int) -> int | No
     return new_index
 
 
-def v2_binding_slot(node: dict[str, Any]) -> tuple[str, str] | None:
+def v2_binding_slot(node: V2Node) -> tuple[str, str] | None:
     """The (state key, binding key) this component writes its value out through, or None
     if it has no output.
 
@@ -304,7 +307,7 @@ def v2_binding_slot(node: dict[str, Any]) -> tuple[str, str] | None:
     return None
 
 
-def v2_get_binding(node: dict[str, Any], slot: tuple[str, str]) -> str:
+def v2_get_binding(node: V2Node, slot: tuple[str, str]) -> str:
     """The variable this component currently writes to, as a comma-separated string.
 
     The stored form is a list -- Tasker allows more than one target -- but one is the
@@ -320,7 +323,7 @@ def v2_get_binding(node: dict[str, Any], slot: tuple[str, str]) -> str:
     return "" if values is None else str(values)
 
 
-def v2_set_binding(node: dict[str, Any], slot: tuple[str, str], text: str) -> None:
+def v2_set_binding(node: V2Node, slot: tuple[str, str], text: str) -> None:
     """Point this component's output at one or more variables, creating the state object
     if it isn't there.
 

@@ -5,7 +5,7 @@ which coerce what was typed to the type the property already holds."""
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from maptasker.src.core.maputil2 import as_json_object
 from maptasker.src.edit.sceneedit_v2 import (
@@ -21,6 +21,9 @@ from maptasker.src.edit.sceneedit_v2 import (
 )
 from maptasker.src.edit.sceneedit_v2state import v2_state_field
 from maptasker.src.edit.sceneedit_v2tree import v2_editable_props
+
+if TYPE_CHECKING:
+    from maptasker.src.core.scenelayout import V2Node
 
 
 def v2_set_state(field: V2StateField, node: V2Props, state: str, value: str = "") -> None:
@@ -213,7 +216,7 @@ class V2NestedProps:
 
     __slots__ = ("_container", "_node")
 
-    def __init__(self, node: dict[str, Any], container: str) -> None:
+    def __init__(self, node: V2Node, container: str) -> None:
         """Hold the node and the name of the container on it that this view reads and writes."""
         self._node = node
         self._container = container
@@ -278,14 +281,14 @@ class V2NestedProps:
 V2Props = dict[str, Any] | V2NestedProps
 
 
-def v2_prop_dict(node: dict[str, Any], prop: V2Prop) -> V2Props:
+def v2_prop_dict(node: V2Node, prop: V2Prop) -> V2Props:
     """What to read and write this property on: the node itself, or the nested object it
     lives in.  The one call the inspector needs to make to stop caring where a property sits.
     """
     return V2NestedProps(node, prop.container) if prop.container else node
 
 
-def _v2_other_props(node: dict[str, Any], claimed: tuple[tuple[str, tuple[V2Prop, ...]], ...]) -> list[V2Prop]:
+def _v2_other_props(node: V2Node, claimed: tuple[tuple[str, tuple[V2Prop, ...]], ...]) -> list[V2Prop]:
     """Scalar keys the categories don't account for -- on the node and inside the containers
     they name -- as plain fields, so nothing a Scene holds is invisible.
     """
@@ -310,7 +313,7 @@ def _v2_other_props(node: dict[str, Any], claimed: tuple[tuple[str, tuple[V2Prop
     return others
 
 
-def v2_property_groups(node: dict[str, Any]) -> list[tuple[str, list[V2Prop]]]:
+def v2_property_groups(node: V2Node) -> list[tuple[str, list[V2Prop]]]:
     """This component's editable properties, as the named sections the inspector draws.
 
     A type with a category table (Text, and so far only Text) gets its sections in the table's

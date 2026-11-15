@@ -36,7 +36,7 @@ import json
 import re
 import time
 from collections import deque
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any, TypedDict, cast
 
 from nicegui import ui
 
@@ -468,7 +468,26 @@ def _import_too_checkbox(gui: MyGui, import_tooltip: str) -> ui.checkbox:
     return import_too
 
 
-def android_device_fields(gui: MyGui, import_tooltip: str = "") -> dict[str, Any]:
+class _DeviceAddress(TypedDict):
+    """The two fields every Save To Android panel has."""
+
+    ip_address: ui.input
+    ip_port: ui.input
+
+
+class AndroidFields(_DeviceAddress, total=False):
+    """The widgets of a Save To Android panel's device section, by what each is for (see android_device_fields).
+
+    The address and port are always there.  The three checkboxes are read back with .get, since what answers for a
+    panel that was never given one is "unticked".
+    """
+
+    import_too: ui.checkbox
+    verify: ui.checkbox
+    check_ids: ui.checkbox
+
+
+def android_device_fields(gui: MyGui, import_tooltip: str = "") -> AndroidFields:
     """Where the device is, whether to import what is saved there, and whether to check the XML first.
 
     `import_tooltip` is what the "Also import into Tasker" box says about this kind of object, already
@@ -496,7 +515,7 @@ def android_device_fields(gui: MyGui, import_tooltip: str = "") -> dict[str, Any
 
     ip_address = ui.input(translate_string("Android IP Address"), value=default_ip).classes("w-full")
     ip_port = ui.input(translate_string("Port"), value=default_port).classes("w-full")
-    fields: dict[str, ui.element] = {"ip_address": ip_address, "ip_port": ip_port}
+    fields: AndroidFields = {"ip_address": ip_address, "ip_port": ip_port}
     remember_android_address_fields(gui, ip_address, ip_port)
     fields["import_too"] = _import_too_checkbox(gui, import_tooltip)
     verify = (
@@ -558,7 +577,7 @@ def android_device_fields(gui: MyGui, import_tooltip: str = "") -> dict[str, Any
 
 
 def use_save_or_import(
-    android_field_refs: dict[str, Any],
+    android_field_refs: AndroidFields,
     save_file: Callable[[], Any],
     import_into_tasker: Callable[[], Any],
 ) -> Callable[[], object]:

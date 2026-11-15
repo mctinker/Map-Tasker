@@ -71,6 +71,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, cast
 
 from maptasker.src.core import caches
+from maptasker.src.core.diagmodel import empty_model
 from maptasker.src.core.initparg import ArgumentFields, ProgramArguments
 from maptasker.src.core.sysconst import (
     ANTHROPIC_MODELS,
@@ -86,6 +87,8 @@ if TYPE_CHECKING:
     from typing import TextIO
     from xml.etree.ElementTree import Element, ElementTree
 
+    from maptasker.src.core.diagmodel import CallEdge, DiagramModel
+    from maptasker.src.core.mapjump import Target
     from maptasker.src.core.runcfg import RunConfig
     from maptasker.src.edit.sessundo import Checkpoint
     from maptasker.src.mapgen.lineout import LineOut
@@ -360,7 +363,7 @@ class RunState:
         # positions because a position is remapped four times before the diagram is written and
         # an identity never is -- see diagrecord.record_at_row.  Read once, when the interactive Diagram
         # view's model is assembled, and emptied straight afterwards.
-        self.diagram_object_targets: dict[str, Any] = {}
+        self.diagram_object_targets: dict[str, Target] = {}
         # Every drawing of every object, not just the first: [(anchor, row, drawn text)] while
         # the diagram is being built, and [(anchor, line, column, length)] once it is written.
         # diagram_anchors above answers "where does a jump to this object land"; this answers
@@ -371,14 +374,14 @@ class RunState:
         # caller_name, called_name, project}}, in the rendered file's line numbering by the time
         # the diagram is finished.  The call index is what each connector seed carries, which is
         # how a run of box-drawing characters is traced back to the two Tasks it joins.
-        self.diagram_call_edges: dict[int, dict[str, Any]] = {}
+        self.diagram_call_edges: dict[int, CallEdge] = {}
         # Which calls each finished connector belongs to: {connector group id: [call index, ...]}.
         # Filled by diagarrows.compute_diagram_connector_groups, as the other half of the same fact.
         self.diagram_connector_calls: dict[int, list[int]] = {}
         # The whole of what the interactive Diagram view acts on -- nodes, foldable Project
         # regions and call edges, all in the rendered file's coordinates.  Assembled by
         # diagintr.build_model once the diagram is written; read by the view when it renders.
-        self.diagram_model: dict[str, Any] = {}
+        self.diagram_model: DiagramModel = empty_model()
         # The Diagram's Profile and Scene boxes and Task lines that have been drawn but not yet
         # flushed to a row of netmap_output: what each box/Task IS, held until the row it will
         # land on is known (see diagrecord.note_box and flush_boxes).  Emptied with the rest of

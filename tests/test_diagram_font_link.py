@@ -13,6 +13,8 @@ from maptasker.src.core.sysconst import DIAGRAM_FONT_LINK_TEXT, DIAGRAM_FONT_URL
 from maptasker.src.gui.guiwins_diagram import HEADER_LINES, wrap_diagram_line
 from maptasker.src.mapgen import diagram
 
+from tests.doubles import diagram_node
+
 HINT = "Display with a monospaced font (e.g. Menlo - monospaced) for accurate column alignment. And turn off line wrap."
 
 
@@ -42,7 +44,7 @@ def test_a_line_below_the_header_with_the_same_words_is_not_made_a_link() -> Non
 
 
 def test_a_header_line_with_a_name_or_connector_drawn_on_it_is_not_made_a_link() -> None:
-    node = {"col": 0, "len": 5, "anchor": "t1", "index": 0, "kind": "task"}
+    node = diagram_node("t1", length=5)
 
     assert "<a " not in wrap_diagram_line(2, HINT, {}, {2: [node]}, {})
     assert "<a " not in wrap_diagram_line(2, HINT, {2: [(0, 3, 1)]}, {}, {})

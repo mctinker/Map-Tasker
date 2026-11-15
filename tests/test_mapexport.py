@@ -20,11 +20,13 @@ import zlib
 
 import pytest
 from maptasker.src.core import mapfonts
+from maptasker.src.core.diagmodel import DiagramModel, empty_model
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.core.sysconst import DIAGRAM_FILE
 from maptasker.src.mapgen import mapexport, mappdf
+from maptasker.src.mapgen.mapexport import ExportMeta
 
-from tests.doubles import required
+from tests.doubles import diagram_edge, diagram_node, diagram_region, required
 
 # One Project, holding a Profile with a Task, a Task in no Profile, and a Scene -- with the
 # directory before it and the totals after, which belong to no Project.
@@ -89,19 +91,23 @@ _DIAGRAM_LINES = [
     "            └─ Caller [Calls ──▶ Callee]",
     "            └─ Callee [Called by ◄── Caller]",
 ]
-_DIAGRAM_MODEL = {
-    "regions": [{"anchor": "p", "name": "Test", "line": 2, "start": 1, "fold": 4, "end": 5}],
+_DIAGRAM_MODEL: DiagramModel = {
+    "regions": [diagram_region()],
     "nodes": [
-        {"anchor": "p", "kind": "project", "name": "Test", "line": 2, "col": 16, "len": 4, "project": "Test"},
-        {"anchor": "t1", "kind": "task", "name": "Caller", "line": 4, "col": 15, "len": 6, "project": "Test"},
-        {"anchor": "t2", "kind": "task", "name": "Callee", "line": 5, "col": 15, "len": 6, "project": "Test"},
+        diagram_node("p", "project", "Test", line=2, col=16, project="Test"),
+        diagram_node("t1", "task", "Caller", line=4, col=15, length=6, project="Test", index=1),
+        diagram_node("t2", "task", "Callee", line=5, col=15, length=6, project="Test", index=2),
     ],
-    "edges": [{"caller": "t1", "called": "t2", "groups": [0]}, {"caller": "t1", "called": "t2", "groups": [1]}],
+    "tags": {},
+    "edges": [diagram_edge("t1", "t2", [0]), diagram_edge("t1", "t2", [1])],
 }
 
 
+_NO_META: ExportMeta = {"format": "", "format_version": 0, "generator": "", "exported": "", "source": ""}
+
+
 @pytest.fixture
-def meta() -> dict:
+def meta() -> ExportMeta:
     """The metadata an export of the Map carries."""
     return mapexport.metadata(mapexport.MAP, state=PrimeItems)
 
@@ -227,14 +233,14 @@ def test_a_carriage_return_inside_text_breaks_the_line() -> None:
 def test_the_tree_can_be_built_again() -> None:
     """Building the tree leaves the entries alone, so a second export of them is not doubled."""
     blocks = mapexport.map_blocks(_MAP_HTML)
-    first = mapexport.map_json(blocks, {})
-    assert mapexport.map_json(blocks, {}) == first
+    first = mapexport.map_json(blocks, _NO_META)
+    assert mapexport.map_json(blocks, _NO_META) == first
 
 
 # ##################################################################################
 # The Map, written out
 # ##################################################################################
-def test_map_markdown(meta: dict) -> None:
+def test_map_markdown(meta: ExportMeta) -> None:
     """A heading per object, the actions in one code block, the directory as a table."""
     markdown = mapexport.map_markdown(mapexport.map_blocks(_MAP_HTML), meta)
     assert markdown.startswith("# MapTasker Map\n")
@@ -255,7 +261,7 @@ def test_map_markdown(meta: dict) -> None:
     assert "(State: Battery Level From=80  \nTo=80 )" in markdown
 
 
-def test_map_json(meta: dict) -> None:
+def test_map_json(meta: ExportMeta) -> None:
     """The same tree, with names, action numbers and lines a script can use."""
     document = json.loads(mapexport.map_json(mapexport.map_blocks(_MAP_HTML), meta))
     assert document["format"] == "maptasker-map"
@@ -270,7 +276,7 @@ def test_map_json(meta: dict) -> None:
     assert actions[1]["lines"] == ["02:     Say  Text=Full", "            Engine=default"]
 
 
-def test_map_pdf_bookmarks_every_object(meta: dict, no_system_fonts: None) -> None:
+def test_map_pdf_bookmarks_every_object(meta: ExportMeta, no_system_fonts: None) -> None:
     """One bookmark per Project, Profile, Task, Scene and section, nested as the Map is."""
     pdf = mapexport.map_pdf(mapexport.map_blocks(_MAP_HTML), meta, state=PrimeItems)
     objects = _objects(pdf)
@@ -287,7 +293,7 @@ def test_map_pdf_bookmarks_every_object(meta: dict, no_system_fonts: None) -> No
     ]
 
 
-def test_a_table_is_lined_up_only_when_it_fits_the_page(meta: dict, no_system_fonts: None) -> None:
+def test_a_table_is_lined_up_only_when_it_fits_the_page(meta: ExportMeta, no_system_fonts: None) -> None:
     """Padding that the page then wraps is worse than none, so a wide table goes unpadded."""
     content = _content(_objects(mapexport.map_pdf(mapexport.map_blocks(_MAP_HTML), meta, state=PrimeItems)))
     assert b"(    Name   | Value) Tj" in content
@@ -308,7 +314,7 @@ def test_the_source_is_named_without_its_folder(monkeypatch: pytest.MonkeyPatch)
 # ##################################################################################
 # The Diagram, written out
 # ##################################################################################
-def test_diagram_markdown_keeps_the_drawing_exact(meta: dict) -> None:
+def test_diagram_markdown_keeps_the_drawing_exact(meta: ExportMeta) -> None:
     """The drawing goes in a code block untouched; its calls are listed once each."""
     markdown = mapexport.diagram_markdown(_DIAGRAM_LINES, _DIAGRAM_MODEL, meta)
     assert "\n```text\n" + "\n".join(_DIAGRAM_LINES) + "\n```\n" in markdown
@@ -316,14 +322,14 @@ def test_diagram_markdown_keeps_the_drawing_exact(meta: dict) -> None:
     assert markdown.count("Caller → Callee") == 1
 
 
-def test_a_fence_in_the_drawing_cannot_close_the_code_block(meta: dict) -> None:
+def test_a_fence_in_the_drawing_cannot_close_the_code_block(meta: ExportMeta) -> None:
     """A Task named with backticks would otherwise end the code block partway down."""
     lines = ["```Odd Task```", "plain"]
-    markdown = mapexport.diagram_markdown(lines, {}, meta)
+    markdown = mapexport.diagram_markdown(lines, empty_model(), meta)
     assert "\n````text\n```Odd Task```\nplain\n````\n" in markdown
 
 
-def test_diagram_json(meta: dict) -> None:
+def test_diagram_json(meta: ExportMeta) -> None:
     """Projects, objects and calls by name, in the lines' own coordinates."""
     document = json.loads(mapexport.diagram_json(_DIAGRAM_LINES, _DIAGRAM_MODEL, meta))
     assert document["lines"] == _DIAGRAM_LINES
@@ -336,7 +342,7 @@ def test_diagram_json(meta: dict) -> None:
     assert line[caller["column"] : caller["column"] + caller["length"]] == "Caller"
 
 
-def test_diagram_pdf_is_as_wide_as_the_drawing(meta: dict, no_system_fonts: None) -> None:
+def test_diagram_pdf_is_as_wide_as_the_drawing(meta: ExportMeta, no_system_fonts: None) -> None:
     """No line of a Diagram is broken, so the page widens to hold the longest one."""
     lines = [*_DIAGRAM_LINES, "─" * 400]
     objects = _objects(mapexport.diagram_pdf(lines, _DIAGRAM_MODEL, meta, state=PrimeItems))

@@ -32,6 +32,7 @@ if TYPE_CHECKING:
     from maptasker.src.edit import (
         roundtrip,
     )
+    from maptasker.src.gui.guiwins import AndroidFields
     from maptasker.src.gui.userintr import MyGui
     from maptasker.src.gui.userintr_group import HandlerGroup
 
@@ -160,7 +161,7 @@ class FileSave:
     new_id: Callable[[set[str], int], str] | None = None
 
 
-def check_ids_ticked(android_field_refs: dict[str, Any]) -> bool:
+def check_ids_ticked(android_field_refs: AndroidFields) -> bool:
     """The Save To Android panel's "Check IDs" box -- see guiwins.android_device_fields."""
     checkbox = android_field_refs.get("check_ids")
     return bool(checkbox is not None and checkbox.value)
@@ -178,7 +179,7 @@ def overwrite_prompt_options(exists: bool | None, tasker_lines: list[str]) -> di
 
 
 def round_trip_verified(
-    android_field_refs: dict[str, Any],
+    android_field_refs: AndroidFields,
     verifier: Callable[[], roundtrip.RoundTripReport],
 ) -> bool:
     """The Save To Android panel's "Verify" checkbox, answered.  False stops the save.

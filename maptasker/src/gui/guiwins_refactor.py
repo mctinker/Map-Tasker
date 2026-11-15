@@ -42,7 +42,7 @@
 #
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, TypedDict, cast
 
 from nicegui import ui
 
@@ -174,6 +174,62 @@ def build_refactor_dialog(
     return _RefactorDialog(title, make_jump, rebuild_view, save_configuration, state).build()
 
 
+class RefactorWidgets:
+    """Every control of the dialog's mode rows, by what it is for.
+
+    Built row by row (see _build_mode_rows), so the controls are declared here and set there; only the three
+    tables below exist from the start.  Named attributes rather than a dictionary of strings, so that a misspelled
+    control is an error and not a KeyError the first time somebody picks that mode.
+    """
+
+    # Each mode's row, so that switching modes shows one and hides the others.
+    rows: dict[str, ui.element]
+    # What each dependent pulldown was last filled from -- see _stale.
+    filled: dict[str, object]
+    # The runs the last search found, by key, and the shortest run length it was asked for (None before a search).
+    similar_found: dict[str, maprefac_similar.SharedRun]
+    similar_searched: int | None
+
+    extract_task: ui.select
+    extract_from: ui.select
+    extract_to: ui.select
+    extract_name: ui.input
+    extract_scope_note: ui.label
+    inline_task: ui.select
+    inline_call: ui.select
+    move_kind: ui.toggle
+    move_object: ui.select
+    move_project: ui.select
+    duplicate_kind: ui.toggle
+    duplicate_object: ui.select
+    duplicate_name: ui.input
+    variable_operation: ui.toggle
+    variable: ui.select
+    variable_new_name: ui.input
+    similar_min: ui.select
+    similar_find: ui.button
+    similar_run: ui.select
+    similar_name: ui.input
+    similar_note: ui.label
+    similar_hint: ui.label
+    split_picks: ui.select
+    split_name: ui.input
+
+    def __init__(self) -> None:
+        """Start with the tables empty; the controls are set as the rows are built."""
+        self.rows = {}
+        self.filled = {}
+        self.similar_found = {}
+        self.similar_searched = None
+
+
+class _Held(TypedDict):
+    """The plan on screen and the field values it was built from; both None when there is no preview."""
+
+    plan: maprefac_model.Plan | None
+    inputs: tuple[Any, ...] | None
+
+
 class _RefactorDialog:
     """The Refactor dialog: its widgets, the plan on screen, and the handlers that work on them.
 
@@ -207,11 +263,11 @@ class _RefactorDialog:
         # a Plan cannot be remembered on the view the way a Find query can -- it holds live
         # elements, and holding them across a reopen is the stale-handle case
         # maprefac.apply's attachment check exists to catch.
-        self.held: dict[str, Any] = {"plan": None, "inputs": None}
+        self.held: _Held = {"plan": None, "inputs": None}
         self.dialog: ui.dialog
         self.mode: ui.toggle
         self.blurb: ui.label
-        self.widgets: dict[str, Any]
+        self.widgets: RefactorWidgets
         self.summary: ui.label
         self.preview_area: ui.scroll_area
         self.apply_button: ui.button
@@ -338,30 +394,30 @@ class _RefactorDialog:
         # The pulldowns whose CONTENTS depend on another pulldown, rather than merely
         # invalidating with it: which actions there are to extract, and which of them are
         # calls, are facts about the Task chosen above.
-        widgets["extract_task"].on_value_change(lambda: (_fill_actions(widgets, state=state), invalidate()))
-        widgets["inline_task"].on_value_change(lambda: (_fill_calls(widgets, state=state), invalidate()))
-        widgets["move_kind"].on_value_change(lambda: (_fill_move_objects(widgets, state=state), invalidate()))
-        widgets["duplicate_kind"].on_value_change(lambda: (_fill_duplicate_objects(widgets, state=state), invalidate()))
-        widgets["variable_operation"].on_value_change(lambda: (_fill_variables(widgets, state=state), invalidate()))
-        widgets["variable"].on_value_change(lambda: (_suggest_name(widgets), invalidate()))
-        widgets["similar_min"].on_value_change(lambda: (_forget_similar(widgets), invalidate()))
-        widgets["similar_find"].on_click(lambda: (_find_similar(widgets, state=state), invalidate()))
-        widgets["similar_run"].on_value_change(lambda: (_suggest_similar_name(widgets, state=state), invalidate()))
-        for key in (
-            "variable_new_name",
-            "extract_from",
-            "extract_to",
-            "extract_name",
-            "inline_call",
-            "move_object",
-            "move_project",
-            "duplicate_object",
-            "duplicate_name",
-            "similar_name",
-            "split_picks",
-            "split_name",
+        widgets.extract_task.on_value_change(lambda: (_fill_actions(widgets, state=state), invalidate()))
+        widgets.inline_task.on_value_change(lambda: (_fill_calls(widgets, state=state), invalidate()))
+        widgets.move_kind.on_value_change(lambda: (_fill_move_objects(widgets, state=state), invalidate()))
+        widgets.duplicate_kind.on_value_change(lambda: (_fill_duplicate_objects(widgets, state=state), invalidate()))
+        widgets.variable_operation.on_value_change(lambda: (_fill_variables(widgets, state=state), invalidate()))
+        widgets.variable.on_value_change(lambda: (_suggest_name(widgets), invalidate()))
+        widgets.similar_min.on_value_change(lambda: (_forget_similar(widgets), invalidate()))
+        widgets.similar_find.on_click(lambda: (_find_similar(widgets, state=state), invalidate()))
+        widgets.similar_run.on_value_change(lambda: (_suggest_similar_name(widgets, state=state), invalidate()))
+        for control in (
+            widgets.variable_new_name,
+            widgets.extract_from,
+            widgets.extract_to,
+            widgets.extract_name,
+            widgets.inline_call,
+            widgets.move_object,
+            widgets.move_project,
+            widgets.duplicate_object,
+            widgets.duplicate_name,
+            widgets.similar_name,
+            widgets.split_picks,
+            widgets.split_name,
         ):
-            widgets[key].on_value_change(invalidate)
+            control.on_value_change(invalidate)
 
     def current_inputs(self) -> tuple[Any, ...]:
         """Every field that feeds a plan, as one comparable value.
@@ -373,26 +429,26 @@ class _RefactorDialog:
         widgets = self.widgets
         return (
             self.mode.value,
-            widgets["extract_task"].value,
-            widgets["extract_from"].value,
-            widgets["extract_to"].value,
-            (widgets["extract_name"].value or "").strip(),
-            widgets["inline_task"].value,
-            widgets["inline_call"].value,
-            widgets["move_kind"].value,
-            widgets["move_object"].value,
-            widgets["move_project"].value,
-            widgets["duplicate_kind"].value,
-            widgets["duplicate_object"].value,
-            (widgets["duplicate_name"].value or "").strip(),
-            widgets["variable_operation"].value,
-            widgets["variable"].value,
-            (widgets["variable_new_name"].value or "").strip(),
-            widgets["similar_min"].value,
-            widgets["similar_run"].value,
-            (widgets["similar_name"].value or "").strip(),
-            tuple(sorted(widgets["split_picks"].value or [])),
-            (widgets["split_name"].value or "").strip(),
+            widgets.extract_task.value,
+            widgets.extract_from.value,
+            widgets.extract_to.value,
+            (widgets.extract_name.value or "").strip(),
+            widgets.inline_task.value,
+            widgets.inline_call.value,
+            widgets.move_kind.value,
+            widgets.move_object.value,
+            widgets.move_project.value,
+            widgets.duplicate_kind.value,
+            widgets.duplicate_object.value,
+            (widgets.duplicate_name.value or "").strip(),
+            widgets.variable_operation.value,
+            widgets.variable.value,
+            (widgets.variable_new_name.value or "").strip(),
+            widgets.similar_min.value,
+            widgets.similar_run.value,
+            (widgets.similar_name.value or "").strip(),
+            tuple(sorted(widgets.split_picks.value or [])),
+            (widgets.split_name.value or "").strip(),
         )
 
     def invalidate(self) -> None:
@@ -496,7 +552,7 @@ class _RefactorDialog:
         # and a Project duplicated is not in the Project list.  _stale's record is
         # cleared first, because this is the one refill that must happen even though
         # nothing the user chose has changed: what changed is the configuration.
-        self.widgets["filled"].clear()
+        self.widgets.filled.clear()
         fill_options(self.widgets, state=self.state)
         if self.mode.value == VARIABLE:
             _fill_variables(self.widgets, state=self.state)
@@ -513,7 +569,7 @@ class _RefactorDialog:
         preview are holding belongs to a tree nothing renders from any more.
         """
         if await self.save_configuration():
-            self.widgets["filled"].clear()
+            self.widgets.filled.clear()
             fill_options(self.widgets, state=self.state)
             if self.mode.value == VARIABLE:
                 _fill_variables(self.widgets, state=self.state)
@@ -539,7 +595,7 @@ class _RefactorDialog:
     def mode_changed(self) -> None:
         """Show one mode's fields and hide the rest, and start it with no preview."""
         self.blurb.set_text(translate_string(_MODE_BLURBS.get(self.mode.value, "")))
-        for key, row in self.widgets["rows"].items():
+        for key, row in self.widgets.rows.items():
             row.set_visibility(key == self.mode.value)
         if self.mode.value == VARIABLE:
             # Filled when first wanted, not when the dialog opens: reading every variable in a large
@@ -581,28 +637,28 @@ def _row_classes(text: str) -> str:
     return "text-gray-700 dark:text-gray-300"
 
 
-def _build_extract_row(widgets: dict[str, Any]) -> None:
+def _build_extract_row(widgets: RefactorWidgets) -> None:
     """Extract: the Task to take actions out of, the run to move, and the new Task's name."""
-    with ui.column().classes("w-full gap-0 mt-2") as widgets["rows"][EXTRACT]:
+    with ui.column().classes("w-full gap-0 mt-2") as widgets.rows[EXTRACT]:
         with ui.row().classes("w-full items-center gap-2"):
-            widgets["extract_task"] = _select(
+            widgets.extract_task = _select(
                 translate_string("From Task"),
                 "flex-1 min-w-[240px]",
                 "The Task to take actions out of.  Only the Task the pulldowns behind this window "
                 "select is offered -- the same rule the Edit buttons follow.",
             )
-            widgets["extract_from"] = _select(
+            widgets.extract_from = _select(
                 translate_string("First action"),
                 "flex-1 min-w-[180px]",
                 "The first action of the run to move, numbered exactly as the Map numbers it.",
             )
-            widgets["extract_to"] = _select(
+            widgets.extract_to = _select(
                 translate_string("Last action"),
                 "flex-1 min-w-[180px]",
                 "The last action of the run.  Everything between the two ends moves, so the run "
                 "has to be unbroken -- and has to take whole If and For blocks with it.",
             )
-            widgets["extract_name"] = (
+            widgets.extract_name = (
                 ui.input(label=translate_string("New Task name"))
                 .classes("flex-1 min-w-[180px]")
                 .props("dense")
@@ -617,20 +673,20 @@ def _build_extract_row(widgets: dict[str, Any]) -> None:
         # pulldown looks broken rather than narrowed -- "my Task is not in here" is the
         # first thing somebody thinks, and the reason is two rooms away in the main window.
         # Same wording as the Find dialog's own scope note, because it is the same fact.
-        widgets["extract_scope_note"] = ui.label("").classes(
+        widgets.extract_scope_note = ui.label("").classes(
             "text-xs text-orange-600 dark:text-orange-400 border-l-4 border-orange-400 pl-2 py-1 mt-2",
         )
 
 
-def _build_inline_row(widgets: dict[str, Any]) -> None:
+def _build_inline_row(widgets: RefactorWidgets) -> None:
     """Inline: the Task holding the call, and which call to fold back in."""
-    with ui.row().classes("w-full items-center gap-2 mt-2") as widgets["rows"][INLINE]:
-        widgets["inline_task"] = _select(
+    with ui.row().classes("w-full items-center gap-2 mt-2") as widgets.rows[INLINE]:
+        widgets.inline_task = _select(
             translate_string("In Task"),
             "flex-1 min-w-[260px]",
             "The Task holding the call you want to fold back in.",
         )
-        widgets["inline_call"] = _select(
+        widgets.inline_call = _select(
             translate_string("Inline this call"),
             "flex-1 min-w-[300px]",
             "Which 'Perform Task' to replace with a copy of the actions of the Task it calls.  "
@@ -638,15 +694,15 @@ def _build_inline_row(widgets: dict[str, Any]) -> None:
         )
 
 
-def _build_move_row(widgets: dict[str, Any]) -> None:
+def _build_move_row(widgets: RefactorWidgets) -> None:
     """Move: a Task or a Profile, and the Project that is to own it."""
-    with ui.row().classes("w-full items-center gap-2 mt-2") as widgets["rows"][MOVE]:
-        widgets["move_kind"] = ui.toggle(
+    with ui.row().classes("w-full items-center gap-2 mt-2") as widgets.rows[MOVE]:
+        widgets.move_kind = ui.toggle(
             {key: translate_string(label) for key, label in _MOVE_KINDS.items()},
             value=TASK,
         ).props("dense")
         _tip(
-            widgets["move_kind"],
+            widgets.move_kind,
             "Whether you are moving a Task or a Profile.\n\n"
             "A Profile takes the Tasks it runs with it -- except any that a Profile staying "
             "behind also runs, which would be taken out from under it.  The preview names any "
@@ -654,12 +710,12 @@ def _build_move_row(widgets: dict[str, Any]) -> None:
             "A Scene is not offered: nothing else in this program moves a Scene between "
             "Projects, and a half-supported move is worse than none.\n\n",
         )
-        widgets["move_object"] = _select(
+        widgets.move_object = _select(
             translate_string("Move this"),
             "flex-1 min-w-[260px]",
             "The Task or Profile whose owning Project is to change.",
         )
-        widgets["move_project"] = _select(
+        widgets.move_project = _select(
             translate_string("...to this Project"),
             "flex-1 min-w-[220px]",
             "The Project that will own it afterwards.  It is removed from every Project that "
@@ -667,15 +723,15 @@ def _build_move_row(widgets: dict[str, Any]) -> None:
         )
 
 
-def _build_duplicate_row(widgets: dict[str, Any]) -> None:
+def _build_duplicate_row(widgets: RefactorWidgets) -> None:
     """Duplicate: what kind of object, which one, and what to call the copy."""
-    with ui.row().classes("w-full items-center gap-2 mt-2") as widgets["rows"][DUPLICATE]:
-        widgets["duplicate_kind"] = ui.toggle(
+    with ui.row().classes("w-full items-center gap-2 mt-2") as widgets.rows[DUPLICATE]:
+        widgets.duplicate_kind = ui.toggle(
             {key: translate_string(label) for key, label in _DUPLICATE_KINDS.items()},
             value=PROJECT,
         ).props("dense")
         _tip(
-            widgets["duplicate_kind"],
+            widgets.duplicate_kind,
             "What kind of object to copy.\n\n"
             "A Task and a Scene own nothing, so each is copied alone.  A Profile's Tasks are "
             "copied with it, and a Project's whole contents are -- otherwise the copy would "
@@ -684,12 +740,12 @@ def _build_duplicate_row(widgets: dict[str, Any]) -> None:
             "the copies rather than back at the originals.  Global variables are shared, not "
             "copied; the preview says so up front.\n\n",
         )
-        widgets["duplicate_object"] = _select(
+        widgets.duplicate_object = _select(
             translate_string("Duplicate this"),
             "flex-1 min-w-[240px]",
             "The object to copy.  The copy is filed under the same Projects as the original.",
         )
-        widgets["duplicate_name"] = (
+        widgets.duplicate_name = (
             ui.input(label=translate_string("New name (optional)"))
             .classes("flex-1 min-w-[200px]")
             .props("dense")
@@ -702,15 +758,15 @@ def _build_duplicate_row(widgets: dict[str, Any]) -> None:
         )
 
 
-def _build_variable_row(widgets: dict[str, Any]) -> None:
+def _build_variable_row(widgets: RefactorWidgets) -> None:
     """Variable: what to do, to which variable, and what to call it."""
-    with ui.row().classes("w-full items-center gap-2 mt-2") as widgets["rows"][VARIABLE]:
-        widgets["variable_operation"] = ui.toggle(
+    with ui.row().classes("w-full items-center gap-2 mt-2") as widgets.rows[VARIABLE]:
+        widgets.variable_operation = ui.toggle(
             {key: translate_string(label) for key, label in _VARIABLE_OPERATIONS.items()},
             value=maprefac_variable.RENAME,
         ).props("dense")
         _tip(
-            widgets["variable_operation"],
+            widgets.variable_operation,
             "Rename -- give the variable another name and keep its scope.\n\n"
             "Make local -- turn a global into a variable private to each Task that uses it.  Refused if a "
             "Scene or a Profile's condition reads it, if a Task reads it before setting it, or if the "
@@ -718,13 +774,13 @@ def _build_variable_row(widgets: dict[str, Any]) -> None:
             "Make global -- turn a Task's local into a global every Task and Scene shares.\n\n"
             "Tasker takes the scope from the spelling: all lower case is local, any capital is global.\n\n",
         )
-        widgets["variable"] = _select(
+        widgets.variable = _select(
             translate_string("Variable"),
             "flex-1 min-w-[300px]",
             "The variable to change.  A local belongs to one Task, so the same name can be offered once "
             "per Task -- and once more for all of them together.",
         )
-        widgets["variable_new_name"] = (
+        widgets.variable_new_name = (
             ui.input(label=translate_string("New name"))
             .classes("flex-1 min-w-[200px]")
             .props("dense")
@@ -737,11 +793,11 @@ def _build_variable_row(widgets: dict[str, Any]) -> None:
         )
 
 
-def _build_similar_row(widgets: dict[str, Any]) -> None:
+def _build_similar_row(widgets: RefactorWidgets) -> None:
     """Near-duplicates: how short a shared run may be, the button that looks, the run to merge and what to call it."""
-    with ui.column().classes("w-full gap-0 mt-2") as widgets["rows"][SIMILAR]:
+    with ui.column().classes("w-full gap-0 mt-2") as widgets.rows[SIMILAR]:
         with ui.row().classes("w-full items-center gap-2"):
-            widgets["similar_min"] = (
+            widgets.similar_min = (
                 ui.select(
                     {number: str(number) for number in maprefac_similar.MIN_RUN_CHOICES},
                     value=maprefac_similar.DEFAULT_MIN_RUN,
@@ -756,13 +812,13 @@ def _build_similar_row(widgets: dict[str, Any]) -> None:
                     ),
                 )
             )
-            widgets["similar_find"] = ui.button(translate_string("Find")).classes("bg-blue-600 text-white px-4")
-            widgets["similar_run"] = _select(
+            widgets.similar_find = ui.button(translate_string("Find")).classes("bg-blue-600 text-white px-4")
+            widgets.similar_run = _select(
                 translate_string("Shared actions"),
                 "flex-1 min-w-[300px]",
                 "The groups of shared actions found, the ones that save the most first.  Choose one, then Preview to see what would change.",
             )
-            widgets["similar_name"] = (
+            widgets.similar_name = (
                 ui.input(label=translate_string("New Task name"))
                 .classes("flex-1 min-w-[180px]")
                 .props("dense")
@@ -773,17 +829,17 @@ def _build_similar_row(widgets: dict[str, Any]) -> None:
                     ),
                 )
             )
-        widgets["similar_note"] = ui.label("").classes("text-xs text-gray-500 italic mt-2")
-        widgets["similar_hint"] = ui.label("").classes("text-xs text-orange-600 dark:text-orange-400 mt-1")
+        widgets.similar_note = ui.label("").classes("text-xs text-gray-500 italic mt-2")
+        widgets.similar_hint = ui.label("").classes("text-xs text-orange-600 dark:text-orange-400 mt-1")
 
 
-def _build_split_row(widgets: dict[str, Any]) -> None:
+def _build_split_row(widgets: RefactorWidgets) -> None:
     """Split Project: the Tasks and Profiles to take out, and what to call the Project they go into."""
     with (
-        ui.column().classes("w-full gap-0 mt-2") as widgets["rows"][SPLIT],
+        ui.column().classes("w-full gap-0 mt-2") as widgets.rows[SPLIT],
         ui.row().classes("w-full items-center gap-2"),
     ):
-        widgets["split_picks"] = (
+        widgets.split_picks = (
             ui.select({}, label=translate_string("Tasks and Profiles to split out"), multiple=True, with_input=True)
             .classes("flex-1 min-w-[360px]")
             .props("dense use-chips")
@@ -795,7 +851,7 @@ def _build_split_row(widgets: dict[str, Any]) -> None:
                 ),
             )
         )
-        widgets["split_name"] = (
+        widgets.split_name = (
             ui.input(label=translate_string("New Project name"))
             .classes("flex-1 min-w-[200px]")
             .props("dense")
@@ -808,7 +864,7 @@ def _build_split_row(widgets: dict[str, Any]) -> None:
         )
 
 
-def _build_mode_rows() -> dict[str, Any]:
+def _build_mode_rows() -> RefactorWidgets:
     """Every mode's fields, built once and shown one row at a time.
 
     All four rows exist from the start rather than being rebuilt on each mode change, so
@@ -817,7 +873,7 @@ def _build_mode_rows() -> dict[str, Any]:
     to an empty form.
     """
     # What each dependent pulldown was last filled from -- see _stale.
-    widgets: dict[str, Any] = {"rows": {}, "filled": {}, "similar_found": {}, "similar_searched": None}
+    widgets = RefactorWidgets()
 
     _build_extract_row(widgets)
     _build_inline_row(widgets)
@@ -828,6 +884,11 @@ def _build_mode_rows() -> dict[str, Any]:
     _build_split_row(widgets)
 
     return widgets
+
+
+def _set_options(pulldown: ui.select, options: dict[str, str], *, value: object = None) -> None:
+    """Replace a pulldown's choices and its selection; NiceGUI declares set_options with a bare dict."""
+    cast("Any", pulldown).set_options(options, value=value)
 
 
 def _select(label: str, classes: str, tip: str = "") -> ui.select:
@@ -848,7 +909,7 @@ def _select(label: str, classes: str, tip: str = "") -> ui.select:
     return pulldown
 
 
-def fill_options(widgets: dict[str, Any], state: RunState) -> None:
+def fill_options(widgets: RefactorWidgets, state: RunState) -> None:
     """Fill every pulldown from the loaded configuration.
 
     Public for the same reason plan_for is: which pulldown gets what, and when one is filled
@@ -881,10 +942,10 @@ def fill_options(widgets: dict[str, Any], state: RunState) -> None:
     # one Task.  It can never guess: where there is a choice to make, it makes none.
     scoped = maprefac.task_choices(maprefac_model.extract_scope(state=state), state=state)
     only_task = scoped[0][0] if len(scoped) == 1 else None
-    widgets["extract_task"].set_options(dict(scoped), value=only_task)
+    _set_options(widgets.extract_task, dict(scoped), value=only_task)
 
-    widgets["inline_task"].set_options(tasks, value=None)
-    widgets["move_project"].set_options({name: name for name in maprefac.project_choices(state=state)}, value=None)
+    _set_options(widgets.inline_task, tasks, value=None)
+    _set_options(widgets.move_project, {name: name for name in maprefac.project_choices(state=state)}, value=None)
     _fill_actions(widgets, state=state)
     _fill_calls(widgets, state=state)
     _fill_move_objects(widgets, state=state)
@@ -892,10 +953,10 @@ def fill_options(widgets: dict[str, Any], state: RunState) -> None:
     _describe_extract_scope(widgets, state=state)
     _refresh_similar(widgets, state=state)
     # What was chosen goes: after an Apply it has moved, and after a save the options are of another tree.
-    widgets["split_picks"].set_options(dict(maprefac_split.pick_choices(state=state)), value=[])
+    _set_options(widgets.split_picks, dict(maprefac_split.pick_choices(state=state)), value=[])
 
 
-def _describe_extract_scope(widgets: dict[str, Any], state: RunState) -> None:
+def _describe_extract_scope(widgets: RefactorWidgets, state: RunState) -> None:
     """Say what Extract has been narrowed to, or nothing at all when it has not been.
 
     Three states rather than two.  The empty one matters: a Scene selected puts no Tasks in
@@ -903,7 +964,7 @@ def _describe_extract_scope(widgets: dict[str, Any], state: RunState) -> None:
     explanation reads as a bug in the dialog rather than as an answer about the selection.
     """
     scope = maprefac_model.extract_scope(state=state)
-    note = widgets["extract_scope_note"]
+    note = widgets.extract_scope_note
     if scope.is_everything:
         note.set_text("")
         note.set_visibility(False)
@@ -916,7 +977,7 @@ def _describe_extract_scope(widgets: dict[str, Any], state: RunState) -> None:
     # showing" would be a claim about something that is not there.  It is the same sentence
     # the Edit buttons beside it use ("Select a single Task first (Task pulldown above)"),
     # said from the other side: here one IS selected, and this is what that means.
-    if widgets["extract_task"].options:
+    if cast("Any", widgets.extract_task).options:
         note.set_text(
             f"{translate_string('Extract works on')} {scope.phrase}, "
             f"{translate_string('selected in the pulldowns above')}. "
@@ -929,7 +990,7 @@ def _describe_extract_scope(widgets: dict[str, Any], state: RunState) -> None:
         )
 
 
-def _stale(widgets: dict[str, Any], slot: str, key: object) -> bool:
+def _stale(widgets: RefactorWidgets, slot: str, key: object) -> bool:
     """Whether a dependent pulldown needs refilling, and record that it has been.
 
     THE GUARD THAT MAKES THE DEPENDENT PULLDOWNS USABLE, and it is not an optimisation.
@@ -944,52 +1005,53 @@ def _stale(widgets: dict[str, Any], slot: str, key: object) -> bool:
     So the fill is keyed on what it was built FROM, and a value-change that did not change
     the value does nothing.
     """
-    if widgets["filled"].get(slot) == key:
+    if widgets.filled.get(slot) == key:
         return False
-    widgets["filled"][slot] = key
+    widgets.filled[slot] = key
     return True
 
 
-def _fill_actions(widgets: dict[str, Any], state: RunState) -> None:
+def _fill_actions(widgets: RefactorWidgets, state: RunState) -> None:
     """The chosen Task's actions, in both of Extract's two pulldowns."""
-    task_id = widgets["extract_task"].value or ""
+    task_id = widgets.extract_task.value or ""
     if not _stale(widgets, "actions", task_id):
         return
     choices = {str(number): label for number, label in maprefac.action_choices(task_id, state=state)}
     # A dict each, not one shared between them.  Two selects holding the same object is
     # asking for one's filtering to be visible in the other, and these two are the pair
     # most likely to be filtered at the same moment -- they are the two ends of one range.
-    widgets["extract_from"].set_options(dict(choices), value=None)
-    widgets["extract_to"].set_options(dict(choices), value=None)
+    _set_options(widgets.extract_from, dict(choices), value=None)
+    _set_options(widgets.extract_to, dict(choices), value=None)
 
 
-def _fill_calls(widgets: dict[str, Any], state: RunState) -> None:
+def _fill_calls(widgets: RefactorWidgets, state: RunState) -> None:
     """The chosen Task's Perform Task actions, and only those -- see maprefac.call_choices."""
-    task_id = widgets["inline_task"].value or ""
+    task_id = widgets.inline_task.value or ""
     if not _stale(widgets, "calls", task_id):
         return
-    widgets["inline_call"].set_options(
+    _set_options(
+        widgets.inline_call,
         {str(number): label for number, label in maprefac.call_choices(task_id, state=state)},
         value=None,
     )
 
 
-def _fill_move_objects(widgets: dict[str, Any], state: RunState) -> None:
+def _fill_move_objects(widgets: RefactorWidgets, state: RunState) -> None:
     """Tasks or Profiles, depending on which kind is being moved."""
-    kind = widgets["move_kind"].value
+    kind = widgets.move_kind.value
     if not _stale(widgets, "move", kind):
         return
     choices = maprefac.profile_choices(state=state) if kind == PROFILE else maprefac.task_choices(state=state)
-    widgets["move_object"].set_options(dict(choices), value=None)
+    _set_options(widgets.move_object, dict(choices), value=None)
 
 
-def _fill_duplicate_objects(widgets: dict[str, Any], state: RunState) -> None:
+def _fill_duplicate_objects(widgets: RefactorWidgets, state: RunState) -> None:
     """Whatever kind of object is being duplicated, keyed the way its table keys it.
 
     Projects and Scenes by name, Profiles and Tasks by id -- the same split every table in
     this program uses, and the one maprefac_duplicate.plan_duplicate's `key` expects.
     """
-    kind = widgets["duplicate_kind"].value
+    kind = widgets.duplicate_kind.value
     if not _stale(widgets, "duplicate", kind):
         return
     if kind == PROJECT:
@@ -1000,73 +1062,73 @@ def _fill_duplicate_objects(widgets: dict[str, Any], state: RunState) -> None:
         choices = dict(maprefac.profile_choices(state=state))
     else:
         choices = dict(maprefac.task_choices(state=state))
-    widgets["duplicate_object"].set_options(choices, value=None)
+    _set_options(widgets.duplicate_object, choices, value=None)
 
 
-def _fill_variables(widgets: dict[str, Any], state: RunState) -> None:
+def _fill_variables(widgets: RefactorWidgets, state: RunState) -> None:
     """The variables the chosen operation can be asked of.
 
     Rebuilt from a fresh cross-reference each time the operation changes: Make local offers only globals and
     Make global only locals, and a list built before an Apply would still offer the name just changed.
     """
-    operation = widgets["variable_operation"].value
+    operation = widgets.variable_operation.value
     if not _stale(widgets, "variables", operation):
         return
     choices = maprefac_variable.variable_choices(varxref.build_index(state=state), operation)
-    widgets["variable"].set_options(dict(choices), value=None)
+    _set_options(widgets.variable, dict(choices), value=None)
 
 
-def _find_similar(widgets: dict[str, Any], state: RunState) -> None:
+def _find_similar(widgets: RefactorWidgets, state: RunState) -> None:
     """Look for the runs of actions that Tasks share, and offer them, best first."""
-    shortest = int(widgets["similar_min"].value or maprefac_similar.DEFAULT_MIN_RUN)
+    shortest = int(widgets.similar_min.value or maprefac_similar.DEFAULT_MIN_RUN)
     runs = maprefac_similar.find_shared_runs(shortest, state=state)
-    widgets["similar_found"] = {run.key: run for run in runs}
-    widgets["similar_searched"] = shortest
-    widgets["filled"].pop("similar_name", None)
-    widgets["similar_run"].set_options(dict(maprefac_similar.run_choices(runs)), value=None)
-    widgets["similar_name"].set_value("")
-    widgets["similar_name"].set_enabled(True)
-    widgets["similar_hint"].set_text("")
-    note = widgets["similar_note"]
+    widgets.similar_found = {run.key: run for run in runs}
+    widgets.similar_searched = shortest
+    widgets.filled.pop("similar_name", None)
+    _set_options(widgets.similar_run, dict(maprefac_similar.run_choices(runs)), value=None)
+    widgets.similar_name.set_value("")
+    widgets.similar_name.set_enabled(True)
+    widgets.similar_hint.set_text("")
+    note = widgets.similar_note
     if runs:
         note.set_text(f"{translate_string('Groups of shared actions found')}: {len(runs)}")
     else:
         note.set_text(translate_string("No Tasks share that many actions in a row."))
 
 
-def _forget_similar(widgets: dict[str, Any]) -> None:
+def _forget_similar(widgets: RefactorWidgets) -> None:
     """Throw away what was found: it was found for a different smallest run."""
-    widgets["similar_found"] = {}
-    widgets["similar_searched"] = None
-    widgets["similar_run"].set_options({}, value=None)
-    widgets["similar_note"].set_text("")
-    widgets["similar_hint"].set_text("")
+    widgets.similar_found = {}
+    widgets.similar_searched = None
+    _set_options(widgets.similar_run, {}, value=None)
+    widgets.similar_note.set_text("")
+    widgets.similar_hint.set_text("")
 
 
-def _refresh_similar(widgets: dict[str, Any], state: RunState) -> None:
+def _refresh_similar(widgets: RefactorWidgets, state: RunState) -> None:
     """Look again if a search has been made: a refactor changes the Tasks, and the runs found were of the old ones."""
-    if widgets.get("similar_searched") is not None:
+    if widgets.similar_searched is not None:
         _find_similar(widgets, state=state)
 
 
-def _suggest_similar_name(widgets: dict[str, Any], state: RunState) -> None:
+def _suggest_similar_name(widgets: RefactorWidgets, state: RunState) -> None:
     """Fill in a name for the shared Task when a run is chosen, or say none is needed when a Task already is it.
 
     Gated like the other dependent boxes (see _stale): a name the user has since edited should not be written over.
     """
-    key = widgets["similar_run"].value or ""
+    key = widgets.similar_run.value or ""
     if not _stale(widgets, "similar_name", key):
         return
-    run = widgets["similar_found"].get(key)
-    name = widgets["similar_name"]
-    widgets["similar_hint"].set_text("")
+    run = widgets.similar_found.get(key)
+    name = widgets.similar_name
+    widgets.similar_hint.set_text("")
     if run is None:
         name.set_value("")
         name.set_enabled(True)
     elif run.host:
         name.set_value("")
         name.set_enabled(False)
-        widgets["similar_hint"].set_text(
+        widgets.similar_hint.set_text(
             translate_string("One of these Tasks is made of nothing else, so the others will call it."),
         )
     else:
@@ -1074,35 +1136,35 @@ def _suggest_similar_name(widgets: dict[str, Any], state: RunState) -> None:
         name.set_enabled(True)
 
 
-def _suggest_name(widgets: dict[str, Any]) -> None:
+def _suggest_name(widgets: RefactorWidgets) -> None:
     """Fill in the spelling a scope change implies, and clear the box for a rename.
 
     Gated like the dependent pulldowns (see _stale), for the same reason: a select built with_input re-emits its
     value on events that are not changes, and a name the user has since edited should not be written over by one.
     """
-    key, operation = widgets["variable"].value, widgets["variable_operation"].value
+    key, operation = widgets.variable.value, widgets.variable_operation.value
     if not _stale(widgets, "suggestion", (operation, key)):
         return
     name = maprefac_variable.split_key(key)[0] if key else ""
-    widgets["variable_new_name"].set_value(maprefac_variable.suggested_name(operation, name) if name else "")
+    widgets.variable_new_name.set_value(maprefac_variable.suggested_name(operation, name) if name else "")
 
 
-def _plan_variable(widgets: dict[str, Any], state: RunState) -> maprefac_model.Plan | None:
+def _plan_variable(widgets: RefactorWidgets, state: RunState) -> maprefac_model.Plan | None:
     """The variable plan the fields describe, or None if a rename has no name yet.
 
     A scope change needs no name typed: the box was filled in with the spelling the scope implies, and an empty
     one means that same spelling.
     """
-    key = widgets["variable"].value
-    operation = widgets["variable_operation"].value
-    new_name = (widgets["variable_new_name"].value or "").strip()
+    key = widgets.variable.value
+    operation = widgets.variable_operation.value
+    new_name = (widgets.variable_new_name.value or "").strip()
     if not key or (operation == maprefac_variable.RENAME and not new_name):
         return None
     name, owner = maprefac_variable.split_key(key)
     return maprefac_variable.plan_variable(operation, name, owner, new_name, state=state)
 
 
-def plan_for(mode_value: str, widgets: dict[str, Any], state: RunState) -> maprefac_model.Plan | None:
+def plan_for(mode_value: str, widgets: RefactorWidgets, state: RunState) -> maprefac_model.Plan | None:
     """Build the plan the fields describe, or None if they do not describe one yet.
 
     Public because it is the only part of this module that is a decision rather than a
@@ -1126,64 +1188,64 @@ def plan_for(mode_value: str, widgets: dict[str, Any], state: RunState) -> mapre
     return planner(widgets, state) if planner else None
 
 
-def _plan_split(widgets: dict[str, Any], state: RunState) -> maprefac_model.Plan | None:
+def _plan_split(widgets: RefactorWidgets, state: RunState) -> maprefac_model.Plan | None:
     """Split Project: the Tasks and Profiles chosen, and the Project they are to go into.
 
     Nothing chosen, or no name yet, is the user's turn rather than a refusal: the preview is for the question
     "what would this do", and there is nothing yet to ask it about.
     """
-    chosen: list[str] = widgets["split_picks"].value or []
+    chosen: list[str] = widgets.split_picks.value or []
     picks = [maprefac_split.split_pick(key) for key in chosen]
-    name = (widgets["split_name"].value or "").strip()
+    name = (widgets.split_name.value or "").strip()
     if not picks or not name:
         return None
     return maprefac_split.plan_split([pick for pick in picks if pick[0]], name, state=state)
 
 
-def _plan_similar(widgets: dict[str, Any], state: RunState) -> maprefac_model.Plan | None:
+def _plan_similar(widgets: RefactorWidgets, state: RunState) -> maprefac_model.Plan | None:
     """Near-duplicates: the run chosen, and what to call the Task it is moved into."""
-    run = widgets["similar_found"].get(widgets["similar_run"].value or "")
+    run = widgets.similar_found.get(widgets.similar_run.value or "")
     if run is None:
         return None
     where = run.placements[0]
     return maprefac_similar.plan_shared_run(
-        where.task_id, where.first, run.length, (widgets["similar_name"].value or "").strip(), state=state
+        where.task_id, where.first, run.length, (widgets.similar_name.value or "").strip(), state=state
     )
 
 
-def _plan_extract(widgets: dict[str, Any], state: RunState) -> maprefac_model.Plan | None:
+def _plan_extract(widgets: RefactorWidgets, state: RunState) -> maprefac_model.Plan | None:
     """Extract: the Task, the run of actions (either end first) and the new Task's name."""
-    task_id = widgets["extract_task"].value
-    first, last = widgets["extract_from"].value, widgets["extract_to"].value
+    task_id = widgets.extract_task.value
+    first, last = widgets.extract_from.value, widgets.extract_to.value
     if not task_id or first is None or last is None:
         return None
     first, last = sorted((int(first), int(last)))
     return maprefac_extract.plan_extract(
-        task_id, list(range(first, last + 1)), widgets["extract_name"].value or "", state=state
+        task_id, list(range(first, last + 1)), widgets.extract_name.value or "", state=state
     )
 
 
-def _plan_inline(widgets: dict[str, Any], state: RunState) -> maprefac_model.Plan | None:
+def _plan_inline(widgets: RefactorWidgets, state: RunState) -> maprefac_model.Plan | None:
     """Inline: the Task and which of its calls to fold back in."""
-    task_id, call = widgets["inline_task"].value, widgets["inline_call"].value
+    task_id, call = widgets.inline_task.value, widgets.inline_call.value
     if not task_id or call is None:
         return None
     return maprefac_extract.plan_inline(task_id, int(call), state=state)
 
 
-def _plan_move(widgets: dict[str, Any], state: RunState) -> maprefac_model.Plan | None:
+def _plan_move(widgets: RefactorWidgets, state: RunState) -> maprefac_model.Plan | None:
     """Move: the Task or Profile and the Project to put it in."""
-    key, project = widgets["move_object"].value, widgets["move_project"].value
+    key, project = widgets.move_object.value, widgets.move_project.value
     if not key or not project:
         return None
-    return maprefac_move.plan_move(widgets["move_kind"].value, key, project, state=state)
+    return maprefac_move.plan_move(widgets.move_kind.value, key, project, state=state)
 
 
-def _plan_duplicate(widgets: dict[str, Any], state: RunState) -> maprefac_model.Plan | None:
+def _plan_duplicate(widgets: RefactorWidgets, state: RunState) -> maprefac_model.Plan | None:
     """Duplicate: the object and, optionally, what to call the copy."""
-    key = widgets["duplicate_object"].value
+    key = widgets.duplicate_object.value
     if not key:
         return None
     return maprefac_duplicate.plan_duplicate(
-        widgets["duplicate_kind"].value, key, widgets["duplicate_name"].value or "", state=state
+        widgets.duplicate_kind.value, key, widgets.duplicate_name.value or "", state=state
     )

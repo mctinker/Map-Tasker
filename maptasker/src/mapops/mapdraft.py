@@ -79,6 +79,7 @@ if TYPE_CHECKING:
     from collections.abc import Collection, Mapping
 
     from maptasker.src.core.primitem import RunState
+    from maptasker.src.edit.taskedit_addable import ActionRow
 
 # The longest Task a draft may be.  A description that wants more than this is better
 # drafted in pieces, and a model that has run away should not fill the editor.
@@ -404,6 +405,10 @@ class FillableArg:
     is_task_name: bool = False
 
 
+# What one draft has worked out about each action's arguments so far, by action key, so that asking again is free.
+ArgCache = dict[str, list[FillableArg]]
+
+
 @dataclass(frozen=True)
 class Applied:
     """What putting a draft into an editor's Task came to."""
@@ -418,14 +423,14 @@ class Applied:
 # ##################################################################################
 # What the model is shown.
 # ##################################################################################
-def action_catalog(state: RunState) -> list[dict[str, Any]]:
+def action_catalog(state: RunState) -> list[ActionRow]:
     """The actions a draft may use: exactly the ones the Add Task picker lets the user add."""
     return [row for row in taskedit_addable.list_addable_actions(state=state) if row["addable"]]
 
 
-def _catalog_text(rows: list[dict[str, Any]]) -> str:
+def _catalog_text(rows: list[ActionRow]) -> str:
     """The catalog as the model reads it: a heading per category, then 'key name' lines."""
-    by_category: dict[str, list[dict[str, Any]]] = {}
+    by_category: dict[str, list[ActionRow]] = {}
     for row in rows:
         by_category.setdefault(row["category_name"], []).append(row)
     lines: list[str] = []
@@ -435,7 +440,7 @@ def _catalog_text(rows: list[dict[str, Any]]) -> str:
     return "\n".join(lines)
 
 
-def common_actions(state: RunState, scratch: dict[str, Any] | None = None) -> dict[str, list[FillableArg]]:
+def common_actions(state: RunState, scratch: ArgCache | None = None) -> dict[str, list[FillableArg]]:
     """The common actions this catalog has, with the arguments the first question lists for each."""
     keys = {row["action_key"] for row in action_catalog(state)}
     common: dict[str, list[FillableArg]] = {}
@@ -468,7 +473,7 @@ def _kind_for_prompt(arg: FillableArg) -> str:
     return f"choice: {' | '.join(arg.options)}" if arg.options else arg.kind
 
 
-def _candidates(description: str, rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def _candidates(description: str, rows: list[ActionRow]) -> list[ActionRow]:
     """The few actions that most plausibly do what a description says, for a model with no room for them all.
 
     Ranked by mapcards on the words of the description against each action's name and card.  The
@@ -489,7 +494,7 @@ def example_recipes(description: str, state: RunState) -> list[mapcards.Recipe]:
 def related_actions(
     description: str,
     state: RunState,
-    scratch: dict[str, Any] | None = None,
+    scratch: ArgCache | None = None,
 ) -> dict[str, list[FillableArg] | None]:
     """The actions outside the common list that best match a description, with their arguments where they fit.
 
@@ -514,7 +519,7 @@ def related_actions(
 def listed_with_arguments(
     description: str,
     state: RunState,
-    scratch: dict[str, Any] | None = None,
+    scratch: ArgCache | None = None,
 ) -> dict[str, list[FillableArg]]:
     """Every action the first question lists WITH its arguments: the common ones, and the best matches that fit."""
     listed = dict(common_actions(state, scratch))
@@ -567,7 +572,7 @@ def context_lines(description: str, state: RunState, *, share_names: bool = Fals
 def build_plan_prompt(
     description: str,
     state: RunState,
-    scratch: dict[str, Any] | None = None,
+    scratch: ArgCache | None = None,
     *,
     compact: bool = False,
     share_names: bool = False,
@@ -607,7 +612,7 @@ def build_plan_prompt(
     return system, "\n".join(parts)
 
 
-def _examples_text(description: str, state: RunState, scratch: dict[str, Any] | None) -> list[str]:
+def _examples_text(description: str, state: RunState, scratch: ArgCache | None) -> list[str]:
     """The lines of the worked examples nearest a description, or none if nothing is near."""
     recipes = example_recipes(description, state)
     if not recipes:
@@ -621,7 +626,7 @@ def _examples_text(description: str, state: RunState, scratch: dict[str, Any] | 
     return lines
 
 
-def fillable_args(action_key: str, state: RunState, scratch: dict[str, Any] | None = None) -> list[FillableArg]:
+def fillable_args(action_key: str, state: RunState, scratch: ArgCache | None = None) -> list[FillableArg]:
     """The arguments of an action that a draft can set, read off the action as the editor builds it.
 
     Built the way Add Task builds a new one, in a Task of its own that is thrown away, so the
@@ -661,7 +666,7 @@ def build_detail_prompt(
     description: str,
     plan: Plan,
     state: RunState,
-    scratch: dict[str, Any] | None = None,
+    scratch: ArgCache | None = None,
     answered: Collection[int] = (),
     *,
     share_names: bool = False,
@@ -671,7 +676,7 @@ def build_detail_prompt(
     'answered' are the steps (counted from 0) whose arguments the first question already got: the
     model has had its chance to set those, so they are not asked about again.
     """
-    steps: list[dict[str, Any]] = []
+    steps: list[dict[str, object]] = []
     for number, step in enumerate(plan.steps):
         if number in answered:
             continue
@@ -701,7 +706,7 @@ def build_detail_prompt(
     return _DETAIL_INSTRUCTIONS, "\n".join(lines)
 
 
-def _arg_for_prompt(arg: FillableArg) -> dict[str, Any]:
+def _arg_for_prompt(arg: FillableArg) -> dict[str, object]:
     """One argument as a small JSON object for the second prompt."""
     shown: dict[str, object] = {"id": arg.arg_id, "name": arg.name, "kind": arg.kind}
     if arg.options:
@@ -712,7 +717,7 @@ def _arg_for_prompt(arg: FillableArg) -> dict[str, Any]:
 # ##################################################################################
 # The replies.
 # ##################################################################################
-def _action_key(raw: str, rows: list[dict[str, Any]]) -> str:
+def _action_key(raw: str, rows: list[ActionRow]) -> str:
     """The catalog key a model's action reference means, or "" if it names none.
 
     The key itself, with or without the trailing 't'; the line it was copied from ("37t If",
@@ -845,9 +850,7 @@ def _checked_value(arg: FillableArg, raw: object, state: RunState) -> tuple[str,
     return value, ""
 
 
-def settle_plan(
-    plan: Plan, state: RunState, scratch: dict[str, Any] | None = None
-) -> tuple[list[DraftStep], list[str]]:
+def settle_plan(plan: Plan, state: RunState, scratch: ArgCache | None = None) -> tuple[list[DraftStep], list[str]]:
     """The plan's steps as drafted, with the arguments the first reply gave checked against the actions' own.
 
     Returns:
@@ -871,7 +874,7 @@ def parse_details(
     plan: Plan,
     drafted: list[DraftStep],
     state: RunState,
-    scratch: dict[str, Any] | None = None,
+    scratch: ArgCache | None = None,
 ) -> tuple[list[DraftStep], list[str]]:
     """Add the second reply's labels and argument values to the steps drafted so far, checked as the first's were.
 
@@ -981,7 +984,7 @@ class _PlanQuestion:
     system: str
     user: str
     state: RunState
-    scratch: dict[str, Any]
+    scratch: ArgCache
 
 
 async def _first_plan(question: _PlanQuestion, *, compact: bool) -> tuple[Plan, str]:
@@ -1062,7 +1065,7 @@ async def draft_task(
     compact = settings.provider == LLAMA
     share_names = share_names or compact
     timeout = LOCAL_ASK_TIMEOUT if compact else ASK_TIMEOUT
-    scratch: dict[str, Any] = {}
+    scratch: ArgCache = {}
 
     system, user = build_plan_prompt(description, state, scratch, compact=compact, share_names=share_names)
     plan_settings = dataclasses.replace(

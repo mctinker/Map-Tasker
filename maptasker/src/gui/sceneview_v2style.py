@@ -5,7 +5,7 @@ handlers, actions and bindings a component carries."""
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from maptasker.src.core.maputil2 import as_json_list, as_json_object
 from maptasker.src.core.sysconst import V2_MATERIAL_PALETTE
@@ -15,11 +15,13 @@ from maptasker.src.gui.sceneview_v2base import V2_ALIGNMENT, v2_colour
 if TYPE_CHECKING:
     from collections.abc import Callable
 
+    from maptasker.src.core.scenelayout import V2Action, V2Modifier, V2Node
+
 
 # ------------------------------------------------------------------
 # Modifiers
 # ------------------------------------------------------------------
-def v2_modifier_style(node: dict[str, Any]) -> str:
+def v2_modifier_style(node: V2Node) -> str:
     """The CSS a component's modifier chain amounts to.
 
     Compose applies modifiers in order and each wraps the last, so strictly they are nested
@@ -57,7 +59,7 @@ def v2_modifier_style(node: dict[str, Any]) -> str:
     return style
 
 
-def v2_number(source: dict[str, Any], *keys: str) -> str:
+def v2_number(source: V2Node, *keys: str) -> str:
     """The first of these keys the dict actually carries, as a CSS px length.  "" when none
     of them are there or the value is a %variable, which a length cannot be.
 
@@ -74,7 +76,7 @@ def v2_number(source: dict[str, Any], *keys: str) -> str:
     return ""
 
 
-def _v2_padding(modifier: dict[str, Any]) -> str:
+def _v2_padding(modifier: V2Modifier) -> str:
     """Padding: all / horizontal / vertical / start / end / top / bottom, applied from the
     most general to the most specific so a {horizontal, bottom} pair composes the way Compose
     composes it.
@@ -97,7 +99,7 @@ def _v2_padding(modifier: dict[str, Any]) -> str:
     return style
 
 
-def _v2_shape(modifier: dict[str, Any]) -> str:
+def _v2_shape(modifier: V2Modifier) -> str:
     """The corner rounding a Clip or a Border asks for: a Circle is a circle whatever its
     radius says, a Rounded is its radius, and a shape with neither is square.
     """
@@ -107,20 +109,20 @@ def _v2_shape(modifier: dict[str, Any]) -> str:
     return f"border-radius: {radius};" if radius else ""
 
 
-def _v2_border(modifier: dict[str, Any]) -> str:
+def _v2_border(modifier: V2Modifier) -> str:
     colour = v2_colour(modifier.get("color"), fallback=V2_MATERIAL_PALETTE["outline"])
     width = v2_number(modifier, "width") or "1px"
     return f"border: {width} solid {colour.css}; box-sizing: border-box;{_v2_shape(modifier)}"
 
 
-def _v2_background(modifier: dict[str, Any]) -> str:
+def _v2_background(modifier: V2Modifier) -> str:
     colour = v2_colour(modifier.get("color"))
     if colour.is_variable:
         return f"background: {VARIABLE_FILL};"
     return f"background: {colour.css};" if colour.known else ""
 
 
-def _v2_size(modifier: dict[str, Any]) -> str:
+def _v2_size(modifier: V2Modifier) -> str:
     """Size: an explicit width and height.  "all" is what the Scenes here carry and means
     both; width/height are what the editor's schema offers.  Either is accepted.
     """
@@ -137,7 +139,7 @@ def _v2_size(modifier: dict[str, Any]) -> str:
     return f"{style}flex: none;" if style else ""
 
 
-def _v2_size_in(modifier: dict[str, Any]) -> str:
+def _v2_size_in(modifier: V2Modifier) -> str:
     style = ""
     max_width = v2_number(modifier, "maxWidth")
     max_height = v2_number(modifier, "maxHeight")
@@ -148,7 +150,7 @@ def _v2_size_in(modifier: dict[str, Any]) -> str:
     return style
 
 
-def _v2_alpha(modifier: dict[str, Any]) -> str:
+def _v2_alpha(modifier: V2Modifier) -> str:
     value = str(modifier.get("value", "")).strip()
     try:
         return f"opacity: {max(0.0, min(1.0, float(value)))};"
@@ -179,7 +181,7 @@ _V2_FONT_WEIGHT_CSS: dict[str, int] = {
 _V2_DEFAULT_BLUR = "4px"
 
 
-def _v2_weight(modifier: dict[str, Any]) -> str:
+def _v2_weight(modifier: V2Modifier) -> str:
     """Weight: how heavy the text is drawn.
 
     A named weight off Compose's scale, or a plain 100-900 that CSS would take as one.  A
@@ -197,7 +199,7 @@ def _v2_weight(modifier: dict[str, Any]) -> str:
     return f"font-weight: {numeric};" if 100 <= numeric <= 900 else ""
 
 
-def _v2_fraction(modifier: dict[str, Any]) -> str:
+def _v2_fraction(modifier: V2Modifier) -> str:
     """How much of the available space a Fill* modifier takes, as a CSS percentage.  Absent
     means all of it, which is how most of the samples' Fills are written.
     """
@@ -208,7 +210,7 @@ def _v2_fraction(modifier: dict[str, Any]) -> str:
         return "100%"
 
 
-def _v2_shadow(modifier: dict[str, Any]) -> str:
+def _v2_shadow(modifier: V2Modifier) -> str:
     """Shadow: elevation as the distance the component is lifted off what is behind it.
 
     Compose states an elevation in dp and works the shadow out from it; CSS wants the offset
@@ -223,14 +225,14 @@ def _v2_shadow(modifier: dict[str, Any]) -> str:
     return f"box-shadow: 0 {depth / 2:g}px {depth:g}px rgba(0,0,0,0.28);{_v2_shape(modifier)}"
 
 
-def _v2_offset(modifier: dict[str, Any]) -> str:
+def _v2_offset(modifier: V2Modifier) -> str:
     """Offset: x and y, either of which can be negative and either of which can be absent."""
     x = v2_number(modifier, "x") or "0px"
     y = v2_number(modifier, "y") or "0px"
     return "" if x == "0px" and y == "0px" else f"translate({x}, {y})"
 
 
-def _v2_rotate(modifier: dict[str, Any]) -> str:
+def _v2_rotate(modifier: V2Modifier) -> str:
     degrees = str(modifier.get("degrees", "")).strip()
     try:
         return f"rotate({float(degrees):g}deg)"
@@ -238,7 +240,7 @@ def _v2_rotate(modifier: dict[str, Any]) -> str:
         return ""
 
 
-def _v2_scale(modifier: dict[str, Any]) -> str:
+def _v2_scale(modifier: V2Modifier) -> str:
     amount = str(modifier.get("all", "")).strip()
     try:
         return f"scale({float(amount):g})"
@@ -251,7 +253,7 @@ def _v2_scale(modifier: dict[str, Any]) -> str:
 # tooltip instead (see v2_tooltip): WindowDrag is behaviour rather than appearance -- a
 # picture cannot show that a window can be dragged -- and an unrecognised one is not going to
 # be invented.
-_V2_MODIFIER_CSS: dict[str, Callable[[dict[str, Any]], str]] = {
+_V2_MODIFIER_CSS: dict[str, Callable[[V2Modifier], str]] = {
     "FillWidth": lambda m: f"width: {_v2_fraction(m)};",
     "FillHeight": lambda m: f"height: {_v2_fraction(m)};",
     "FillSize": lambda m: f"width: {_v2_fraction(m)}; height: {_v2_fraction(m)};",
@@ -277,7 +279,7 @@ _V2_MODIFIER_CSS: dict[str, Callable[[dict[str, Any]], str]] = {
 # `transform` takes a *list* of functions and the styles here are concatenated: written as
 # ordinary declarations, a component carrying both a Rotate and a Scale would keep only
 # whichever came last.  Gathered instead, and emitted as one transform in modifier order.
-_V2_MODIFIER_TRANSFORM: dict[str, Callable[[dict[str, Any]], str]] = {
+_V2_MODIFIER_TRANSFORM: dict[str, Callable[[V2Modifier], str]] = {
     "Offset": _v2_offset,
     "Rotate": _v2_rotate,
     "Scale": _v2_scale,
@@ -294,7 +296,7 @@ def v2_modifier_drawn(modifier_type: str) -> bool:
 # ------------------------------------------------------------------
 # Event handlers and variable bindings
 # ------------------------------------------------------------------
-def v2_handler_lines(node: dict[str, Any]) -> list[str]:
+def v2_handler_lines(node: V2Node) -> list[str]:
     """ "click, hold -> SetVariable sd_button = Close; DismissLayout" for each handler.
 
     A V2 component's behaviour is entirely in here -- there is no clickTask child the way a
@@ -322,7 +324,7 @@ def v2_handler_lines(node: dict[str, Any]) -> list[str]:
     return lines
 
 
-def _v2_action_text(action: dict[str, Any]) -> str:
+def _v2_action_text(action: V2Action) -> str:
     """One action, in the shape sceneedit_v2events.V2_ACTION_SCHEMA says it has.  An action type this
     app has not seen is named anyway, with whatever scalar properties it carries -- better a
     slightly clumsy "DoSomething(x=1)" than silently dropping what the button does.
@@ -349,7 +351,7 @@ def _v2_action_text(action: dict[str, Any]) -> str:
     return f"{kind}({extras})" if extras else kind
 
 
-def v2_binding_lines(node: dict[str, Any]) -> list[str]:
+def v2_binding_lines(node: V2Node) -> list[str]:
     """The Tasker variables this component writes its value into.
 
     Held under a per-type state key -- textState for a TextInput, sliderValueState for a

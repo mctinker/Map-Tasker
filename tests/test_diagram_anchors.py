@@ -20,6 +20,7 @@ from typing import Any
 
 import pytest
 from maptasker.src.core import mapjump, objnotes
+from maptasker.src.core.diagmodel import DiagramModel, DiagramNode, empty_model
 from maptasker.src.core.initparg import ProgramArguments
 from maptasker.src.core.mapjump import PROFILE, PROJECT, TASK, Target, diagram_placement
 from maptasker.src.core.primitem import PrimeItems
@@ -28,7 +29,7 @@ from maptasker.src.core.sysconst import DIAGRAM_FILE
 from maptasker.src.gui import guiwins_diagram, guiwins_search, guiwins_views, userintr_views
 from maptasker.src.mapgen import diagarrows, diagintr, diagram, diagrecord, taskerd
 
-from tests.doubles import required
+from tests.doubles import diagram_node, required
 
 _PROFILE = Target(kind=PROFILE, key="10", name="Wake Up")
 _OTHER_PROFILE = Target(kind=PROFILE, key="11", name="Wind Down")
@@ -466,7 +467,7 @@ def test_neither_jump_scrolls_smoothly() -> None:
     scripts = (
         mapjump.jump_js("mt-task-20"),
         mapjump.diagram_jump_js("c1", ["║ Wake Up ║"], (5, 2, 11), "mt-profile-10"),
-        diagintr.interaction_js("c1", "c2", {"nodes": [{"anchor": "a"}], "regions": [], "edges": []}),
+        diagintr.interaction_js("c1", "c2", {**empty_model(), "nodes": [diagram_node()]}),
         guiwins_search.search_jump_js("search-hit-42"),
     )
 
@@ -524,7 +525,7 @@ _SHARED = Target(kind=TASK, key="24", name="Shared Menu")  # Drawn under two Pro
 
 
 @pytest.fixture
-def modelled(tmp_path: object) -> tuple[list[str], dict]:
+def modelled(tmp_path: object) -> tuple[list[str], DiagramModel]:
     """A three-Project diagram, as its rendered lines and the model built from them."""
     tables = _load(_MODEL_XML, {"Backup": ["Restore"], "Restore": ["Notify Team"]})
     lines = _render(
@@ -548,17 +549,17 @@ def modelled(tmp_path: object) -> tuple[list[str], dict]:
     return lines, PrimeItems.diagram_model
 
 
-def _node(model: dict, target: Target) -> dict:
+def _node(model: DiagramModel, target: Target) -> DiagramNode:
     """The model's first entry for one object -- the Diagram may have drawn it more than once."""
     return next(node for node in model["nodes"] if node["anchor"] == target.anchor)
 
 
-def _nodes_for(model: dict, target: Target) -> list[dict]:
+def _nodes_for(model: DiagramModel, target: Target) -> list[DiagramNode]:
     """Every entry the model holds for one object: one per time the Diagram drew it."""
     return [node for node in model["nodes"] if node["anchor"] == target.anchor]
 
 
-def test_every_node_covers_exactly_the_name_it_was_drawn_as(modelled: tuple[list[str], dict]) -> None:
+def test_every_node_covers_exactly_the_name_it_was_drawn_as(modelled: tuple[list[str], DiagramModel]) -> None:
     """A node is what the browser wraps, so its span has to be the name and nothing else.
 
     Counted in code points here, not UTF-16 as the anchors are: this is the column the
@@ -578,7 +579,7 @@ def test_every_node_covers_exactly_the_name_it_was_drawn_as(modelled: tuple[list
     assert drawn[_NOTIFY.anchor] == "Notify Team"
 
 
-def test_every_drawing_of_a_task_is_a_node_of_its_own(modelled: tuple[list[str], dict]) -> None:
+def test_every_drawing_of_a_task_is_a_node_of_its_own(modelled: tuple[list[str], DiagramModel]) -> None:
     """A Task run by two Profiles is drawn twice, and both drawings have to be clickable.
 
     The Diagram draws a Task once per Profile that runs it.  Only the first drawing used to
@@ -601,7 +602,7 @@ def test_every_drawing_of_a_task_is_a_node_of_its_own(modelled: tuple[list[str],
     assert PrimeItems.diagram_anchors[_SHARED.anchor][0] == drawings[0]["line"]
 
 
-def test_a_node_knows_which_project_it_was_drawn_in(modelled: tuple[list[str], dict]) -> None:
+def test_a_node_knows_which_project_it_was_drawn_in(modelled: tuple[list[str], DiagramModel]) -> None:
     """Which is what decides the Map a click on it can be answered by (mapjump.scope_for)."""
     _, model = modelled
 
@@ -611,7 +612,7 @@ def test_a_node_knows_which_project_it_was_drawn_in(modelled: tuple[list[str], d
     assert _node(model, _BACKUP)["token"] == Target(kind=TASK, key="20", name="Backup", project="Home").token()
 
 
-def test_each_project_gets_a_region_that_stops_at_the_next_one(modelled: tuple[list[str], dict]) -> None:
+def test_each_project_gets_a_region_that_stops_at_the_next_one(modelled: tuple[list[str], DiagramModel]) -> None:
     """A fold or a filter is a range of lines, and the ranges may not overlap or leave gaps."""
     lines, model = modelled
     regions = model["regions"]
@@ -626,7 +627,7 @@ def test_each_project_gets_a_region_that_stops_at_the_next_one(modelled: tuple[l
         assert earlier["end"] < later["start"]
 
 
-def test_a_fold_leaves_the_project_box_standing(modelled: tuple[list[str], dict]) -> None:
+def test_a_fold_leaves_the_project_box_standing(modelled: tuple[list[str], DiagramModel]) -> None:
     """Everything under the box goes; the box itself stays, still naming the Project.
 
     A Project folded down to a nameless rectangle would be a fold nobody could read, and --
@@ -643,7 +644,7 @@ def test_a_fold_leaves_the_project_box_standing(modelled: tuple[list[str], dict]
 
 
 def test_the_call_edges_join_the_tasks_the_arrows_were_drawn_between(
-    modelled: tuple[list[str], dict],
+    modelled: tuple[list[str], DiagramModel],
 ) -> None:
     """The call graph, in the Diagram's own terms, is what a chain highlight walks."""
     _, model = modelled
@@ -656,7 +657,7 @@ def test_the_call_edges_join_the_tasks_the_arrows_were_drawn_between(
     assert not [edge for edge in model["edges"] if _PACK.anchor in (edge["caller"], edge["called"])]
 
 
-def test_every_edge_carries_the_connector_that_was_drawn_for_it(modelled: tuple[list[str], dict]) -> None:
+def test_every_edge_carries_the_connector_that_was_drawn_for_it(modelled: tuple[list[str], DiagramModel]) -> None:
     """Without this a chain lights up its Tasks and none of the arrows between them."""
     _, model = modelled
 
@@ -667,7 +668,7 @@ def test_every_edge_carries_the_connector_that_was_drawn_for_it(modelled: tuple[
             assert group in PrimeItems.diagram_connectors
 
 
-def test_a_connector_is_matched_to_the_tasks_it_joins(modelled: tuple[list[str], dict]) -> None:
+def test_a_connector_is_matched_to_the_tasks_it_joins(modelled: tuple[list[str], DiagramModel]) -> None:
     """The jump buttons use this to find the Task at the end they are taking the user to."""
     _, model = modelled
 
@@ -676,10 +677,10 @@ def test_a_connector_is_matched_to_the_tasks_it_joins(modelled: tuple[list[str],
     for edge in model["edges"]:
         for group in edge["groups"]:
             assert {edge["caller"], edge["called"]} <= set(joined[str(group)])
-    assert diagintr.connector_tasks({"edges": []}) == {}
+    assert diagintr.connector_tasks(empty_model()) == {}
 
 
-def test_a_chain_of_calls_crosses_a_project_boundary(modelled: tuple[list[str], dict]) -> None:
+def test_a_chain_of_calls_crosses_a_project_boundary(modelled: tuple[list[str], DiagramModel]) -> None:
     """Walked here the way the browser walks it, since that is the claim being made."""
     _, model = modelled
     reachable = {_BACKUP.anchor}
@@ -694,7 +695,7 @@ def test_a_chain_of_calls_crosses_a_project_boundary(modelled: tuple[list[str], 
 # ##################################################################################
 # Rendering the model into the view.
 # ##################################################################################
-def _rendered(lines: list[str], model: dict) -> list[str]:
+def _rendered(lines: list[str], model: DiagramModel) -> list[str]:
     """Every line of the diagram as the Diagram view writes it into the page."""
     nodes, folds = diagintr.nodes_by_line(model), diagintr.folds_by_line(model)
     connectors = guiwins_diagram.diagram_connectors_by_line(state=PrimeItems)
@@ -702,7 +703,7 @@ def _rendered(lines: list[str], model: dict) -> list[str]:
 
 
 def test_every_rendered_line_is_an_element_that_keeps_its_own_newline(
-    modelled: tuple[list[str], dict],
+    modelled: tuple[list[str], DiagramModel],
 ) -> None:
     """Folding hides an element, so every line needs one -- and its newline has to go with it.
 
@@ -719,10 +720,10 @@ def test_every_rendered_line_is_an_element_that_keeps_its_own_newline(
         assert markup.endswith('<span class="mt-dnl">\n</span></span>')
     # An empty line still has to occupy one: an empty block has no height, and the blank
     # lines in a diagram are the ones the connectors are drawn down.
-    assert "&#8203;" in _rendered([""], {"nodes": [], "regions": []})[0]
+    assert "&#8203;" in _rendered([""], empty_model())[0]
 
 
-def test_a_rendered_name_is_wrapped_as_a_clickable_node(modelled: tuple[list[str], dict]) -> None:
+def test_a_rendered_name_is_wrapped_as_a_clickable_node(modelled: tuple[list[str], DiagramModel]) -> None:
     """With the anchor on it, which is how a jump finds it and a click says what it is."""
     lines, model = modelled
     backup = _node(model, _BACKUP)
@@ -744,7 +745,7 @@ def test_a_name_and_a_connector_never_claim_the_same_character() -> None:
     costs the name its click target outright.
     """
     line = "──── Backup ────"
-    node = {"anchor": _BACKUP.anchor, "index": 0, "kind": TASK, "col": 5, "len": 6}
+    node = diagram_node(_BACKUP.anchor, TASK, col=5, length=6)
 
     spans = guiwins_diagram._diagram_spans(0, line, {0: [(0, len(line), 7)]}, {0: [node]})
 
@@ -776,7 +777,7 @@ def test_a_run_crossing_a_wide_bundle_of_bars_is_still_one_connector() -> None:
     assert any(end == width for _, _, end in own[0]), "the far end of the run is not in the same connector"
 
 
-def test_a_project_line_carries_its_fold_control(modelled: tuple[list[str], dict]) -> None:
+def test_a_project_line_carries_its_fold_control(modelled: tuple[list[str], DiagramModel]) -> None:
     """The one control the Diagram draws itself, on the line that names the Project."""
     lines, model = modelled
     home = model["regions"][0]
@@ -815,7 +816,7 @@ def test_the_diagram_looks_for_the_name_the_map_window_is_opened_under() -> None
     Both "Open View In New Window" settings, because the name grows a unique suffix under
     one of them and a prefix match is what has to keep working.
     """
-    script = diagintr.interaction_js("c1", "c2", {"nodes": [], "regions": [], "edges": []})
+    script = diagintr.interaction_js("c1", "c2", empty_model())
 
     reused = userintr_views.popout_window_name("/popout/map?goto=x&scope=y", new_window=False)
     fresh = userintr_views.popout_window_name("/popout/map?goto=x&scope=y", new_window=True)
@@ -861,7 +862,7 @@ def test_every_click_a_map_can_answer_raises_it_the_same_way() -> None:
     """
     raising = mapjump.raise_map_window_js().strip()
 
-    assert raising in diagintr.interaction_js("c1", "c2", {"nodes": [], "regions": [], "edges": []})
+    assert raising in diagintr.interaction_js("c1", "c2", empty_model())
     assert raising in mapjump.click_wiring_js("c1")
     assert raising in mapjump.find_result_click_js()
 
@@ -1012,7 +1013,7 @@ def test_the_chain_gesture_is_taken_over_before_the_browser_selects_text() -> No
     then the blue is on the page.  Asserted because the fix is invisible in the code that
     matters (onClick) and lives in a handler that would look redundant to anyone tidying up.
     """
-    script = diagintr.interaction_js("c1", "c2", {"nodes": [], "regions": [], "edges": []})
+    script = diagintr.interaction_js("c1", "c2", empty_model())
 
     assert 'addEventListener("mousedown"' in script
     # Only the gesture is taken over: selecting and copying diagram text still works.
@@ -1047,7 +1048,8 @@ def test_a_redrawn_diagram_gives_the_connector_script_its_new_connectors() -> No
 
 def test_the_interaction_script_carries_the_model_and_its_class_names() -> None:
     """The browser acts entirely on what is handed to it here; nothing is looked up twice."""
-    model = {"nodes": [{"anchor": "a"}], "regions": [], "edges": []}
+    model = empty_model()
+    model["nodes"].append(diagram_node())
 
     script = diagintr.interaction_js("c1", "c2", model)
 
@@ -1110,7 +1112,7 @@ def _noted_book(*, shown: bool = True) -> None:
 
 
 @pytest.fixture
-def noted(tmp_path: object) -> tuple[list[str], dict]:
+def noted(tmp_path: object) -> tuple[list[str], DiagramModel]:
     """The three-Project diagram, drawn with notes saved first, as its rendered lines and its model."""
     _noted_book()
     tables = _load(_MODEL_XML, {"Backup": ["Restore"], "Restore": ["Notify Team"]})
@@ -1133,41 +1135,41 @@ def noted(tmp_path: object) -> tuple[list[str], dict]:
 
 
 def test_an_object_with_a_note_carries_it_in_the_model_and_one_without_carries_nothing(
-    noted: tuple[list[str], dict],
+    noted: tuple[list[str], DiagramModel],
 ) -> None:
     _, model = noted
 
     backup = _node(model, _BACKUP)
     restore = _node(model, _RESTORE)
 
-    assert backup["note"] == 'Rewrite <it> & "quote"'
-    assert backup["tags"] == ["flaky", "needs-rewrite"]
+    assert backup.get("note") == 'Rewrite <it> & "quote"'
+    assert backup.get("tags") == ["flaky", "needs-rewrite"]
     # Most objects have none, and the model is sent to the browser whole.
     assert "note" not in restore
     assert "tags" not in restore
 
 
-def test_every_drawing_of_a_noted_object_carries_its_note(noted: tuple[list[str], dict]) -> None:
+def test_every_drawing_of_a_noted_object_carries_its_note(noted: tuple[list[str], DiagramModel]) -> None:
     _, model = noted
 
     drawings = _nodes_for(model, _SHARED)
 
     assert len(drawings) > 1
-    assert all(node["tags"] == ["flaky"] for node in drawings)
+    assert all(node.get("tags") == ["flaky"] for node in drawings)
 
 
-def test_a_project_and_a_profile_carry_their_notes_too(noted: tuple[list[str], dict]) -> None:
+def test_a_project_and_a_profile_carry_their_notes_too(noted: tuple[list[str], DiagramModel]) -> None:
     _, model = noted
 
     home = next(node for node in model["nodes"] if node["kind"] == PROJECT and node["name"] == "Home")
     wake_up = next(node for node in model["nodes"] if node["kind"] == PROFILE and node["name"] == "Wake Up")
 
-    assert home["tags"] == ["family"]
-    assert (wake_up["note"], wake_up["tags"]) == ("", ["flaky"])
+    assert home.get("tags") == ["family"]
+    assert (wake_up.get("note"), wake_up.get("tags")) == ("", ["flaky"])
 
 
 def test_the_tags_the_diagram_offers_are_those_of_objects_it_draws_counted_by_object(
-    noted: tuple[list[str], dict],
+    noted: tuple[list[str], DiagramModel],
 ) -> None:
     _, model = noted
 
@@ -1187,14 +1189,14 @@ def test_notes_switched_off_leave_the_diagram_as_it_was(tmp_path: object) -> Non
     assert all("tags" not in node and "note" not in node for node in model["nodes"])
 
 
-def test_a_diagram_with_no_notes_file_is_as_it_always_was(modelled: tuple[list[str], dict]) -> None:
+def test_a_diagram_with_no_notes_file_is_as_it_always_was(modelled: tuple[list[str], DiagramModel]) -> None:
     _, model = modelled
 
     assert model["tags"] == {}
     assert all("tags" not in node for node in model["nodes"])
 
 
-def test_the_browser_is_told_the_classes_a_tag_is_followed_through(noted: tuple[list[str], dict]) -> None:
+def test_the_browser_is_told_the_classes_a_tag_is_followed_through(noted: tuple[list[str], DiagramModel]) -> None:
     _, model = noted
 
     classes = json.loads(diagintr.model_json(model))["classes"]
@@ -1205,7 +1207,9 @@ def test_the_browser_is_told_the_classes_a_tag_is_followed_through(noted: tuple[
     assert classes["tagging"] == diagintr.TAGGING_CLASS
 
 
-def test_a_name_with_a_note_is_marked_and_carries_the_note_as_its_tooltip(noted: tuple[list[str], dict]) -> None:
+def test_a_name_with_a_note_is_marked_and_carries_the_note_as_its_tooltip(
+    noted: tuple[list[str], DiagramModel],
+) -> None:
     lines, model = noted
     backup = _node(model, _BACKUP)
 
@@ -1217,7 +1221,9 @@ def test_a_name_with_a_note_is_marked_and_carries_the_note_as_its_tooltip(noted:
 
 
 def test_a_name_with_only_tags_has_them_as_its_tooltip() -> None:
-    node = {"anchor": "a", "index": 0, "kind": TASK, "col": 0, "len": 6, "tags": ["flaky"], "note": ""}
+    node = diagram_node("a", TASK, length=6)
+    node["tags"] = ["flaky"]
+    node["note"] = ""
 
     spans = guiwins_diagram._diagram_spans(0, "Backup", {}, {0: [node]})
 
@@ -1226,7 +1232,7 @@ def test_a_name_with_only_tags_has_them_as_its_tooltip() -> None:
 
 
 def test_a_name_without_a_note_is_wrapped_exactly_as_before() -> None:
-    node = {"anchor": "a", "index": 0, "kind": TASK, "col": 0, "len": 6}
+    node = diagram_node("a", TASK, length=6)
 
     spans = guiwins_diagram._diagram_spans(0, "Backup", {}, {0: [node]})
 
@@ -1235,7 +1241,7 @@ def test_a_name_without_a_note_is_wrapped_exactly_as_before() -> None:
     )
 
 
-def test_the_script_that_follows_a_tag_is_in_the_interaction_script(noted: tuple[list[str], dict]) -> None:
+def test_the_script_that_follows_a_tag_is_in_the_interaction_script(noted: tuple[list[str], DiagramModel]) -> None:
     _, model = noted
 
     script = diagintr.interaction_js("c1", "c2", model)

@@ -62,6 +62,7 @@ if TYPE_CHECKING:
 
     from maptasker.src.core.mapjump import Target
     from maptasker.src.core.primitem import RunState
+    from maptasker.src.core.scenelayout import V2Layout
 
 # The two kinds of Scene.  These strings are what the Add Scene version picker shows and what
 # create_new_scene takes, so they are display names, not internal codes -- there is no third
@@ -161,7 +162,7 @@ class SceneModel(Protocol):
         """Bring the Tasks that address this Scene's elements by name along with renames made in the designer."""
         ...
 
-    def revert_layout(self, snapshot: Element, layout: dict[str, Any] | None) -> bool:
+    def revert_layout(self, snapshot: Element, layout: V2Layout | None) -> bool:
         """Put a designer's working copy of the Scene's content back as the snapshot had it.
 
         Returns whether that working copy had been changed.  `layout` is None when there is no
@@ -189,7 +190,7 @@ class LegacyModel:
         """Rewrite the Task actions that address the renamed elements by name (18 action codes do)."""
         sceneedit_legacy.apply_element_renames_to_tasks(scene_name, renames, state=state)
 
-    def revert_layout(self, snapshot: Element, layout: dict[str, Any] | None) -> bool:
+    def revert_layout(self, snapshot: Element, layout: V2Layout | None) -> bool:
         """Nothing: a Legacy designer edits the element itself, which the caller restores."""
         del snapshot, layout
         return False
@@ -286,7 +287,7 @@ class V2Model:
         """Keep the layout's own copy of the name in step with the <nme> -- see rename_v2_layout."""
         scenelayout.rename_v2_layout(scene_element, new_name)
 
-    def revert_layout(self, snapshot: Element, layout: dict[str, Any] | None) -> bool:
+    def revert_layout(self, snapshot: Element, layout: V2Layout | None) -> bool:
         """Put the designer's decoded tree back as the snapshot's <lj> decodes.
 
         It has to be reverted as well as the element, and cannot be reverted FROM it without a
@@ -305,7 +306,7 @@ class V2Model:
         layout.update(original)
         return changed
 
-    def anchor_parts(self, layout: dict[str, Any]) -> dict[int, dict[str, str]]:
+    def anchor_parts(self, layout: V2Layout) -> dict[int, dict[str, str]]:
         """{id(component): {property: the Map anchor part}} for every property worth anchoring.
 
         Only the properties that hold a variable, which is exactly the set text_sites yields --
@@ -449,7 +450,7 @@ class V2Property:
     label: str  # how the designer's tree names the component
 
 
-def v2_string_properties(layout: dict[str, Any], wanted: dict[str, tuple[str, ...]]) -> Iterator[V2Property]:
+def v2_string_properties(layout: V2Layout, wanted: dict[str, tuple[str, ...]]) -> Iterator[V2Property]:
     """The string properties of a layout's components, for the component types and properties in `wanted`.
 
     `wanted` maps a component type to the property names to read ({"Text": ("text",)}).  Here, and not in the

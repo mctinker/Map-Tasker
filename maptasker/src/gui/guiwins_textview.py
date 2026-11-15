@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING, Any, cast
 from nicegui import run, ui
 
 from maptasker.src.core import assettext, mapjump
+from maptasker.src.core.diagmodel import DiagramModel, empty_model
 from maptasker.src.core.htmlsafe import css_color
 from maptasker.src.core.maputil2 import suppress_logged, translate_string
 from maptasker.src.core.outdir import output_path
@@ -607,7 +608,7 @@ class NiceGuiTextView(TextViewSearch):
 
     def _chunk_view_html(
         self, final_html: str, is_diagram: bool
-    ) -> tuple[list[tuple[str, int]], dict[str, Any], dict[int, list[tuple[int, int, int]]] | None]:
+    ) -> tuple[list[tuple[str, int]], DiagramModel, dict[int, list[tuple[int, int, int]]] | None]:
         """Cut the file's text into the pieces it is streamed to the browser in.
 
         Args:
@@ -628,7 +629,7 @@ class NiceGuiTextView(TextViewSearch):
         # What makes the Diagram clickable rather than merely drawn -- see diagintr.
         # Empty for a Diagram file left on disk by an older run, in which case the
         # lines below are wrapped exactly as they always were.
-        diagram_model = diagintr.model(state=self.master_gui.state) if is_diagram else {}
+        diagram_model = diagintr.model(state=self.master_gui.state) if is_diagram else empty_model()
         nodes_by_line = diagintr.nodes_by_line(diagram_model)
         folds_by_line = diagintr.folds_by_line(diagram_model)
 
@@ -717,12 +718,12 @@ class NiceGuiTextView(TextViewSearch):
                     await asyncio.sleep(0.01)
 
     async def _finish_view(
-        self, diagram_model: dict[str, Any], connectors_by_line: dict[int, list[tuple[int, int, int]]] | None
+        self, diagram_model: DiagramModel, connectors_by_line: dict[int, list[tuple[int, int, int]]] | None
     ) -> None:
         """Everything that happens once the last chunk is on the page: wiring, hints, and the jump.
 
         Args:
-            diagram_model: The Diagram's interactive model, {} for the other views.
+            diagram_model: The Diagram's interactive model, an empty one for the other views.
             connectors_by_line: The Diagram's connectors by line number, None for the other views.
         """
         if connectors_by_line:
@@ -750,7 +751,7 @@ class NiceGuiTextView(TextViewSearch):
         # chunk that only just arrived.
         await self._deliver_jump()
 
-    def _enable_diagram_interaction(self, diagram_model: dict[str, Any]) -> None:
+    def _enable_diagram_interaction(self, diagram_model: DiagramModel) -> None:
         """Wire up the Diagram view's clickable nodes, folds, chains and zoom.
 
         The DOM half of it.  The Python half is one subscription -- the same "mt_jump" a
@@ -766,7 +767,7 @@ class NiceGuiTextView(TextViewSearch):
             register_finding_clicks(self.master_gui)
             status_id = mapjump.dom_id(self.diagram_state_label) if hasattr(self, "diagram_state_label") else ""
             ui.run_javascript(diagintr.interaction_js(mapjump.dom_id(self.scroll_area), status_id, diagram_model))
-        fill_tag_menu(self, diagram_model.get("tags", {}))
+        fill_tag_menu(self, diagram_model["tags"])
 
     def diagram_command(self, name: str, argument: float | str | None = None) -> None:
         """Carry one of the Diagram toolbar's buttons to the view it belongs to."""

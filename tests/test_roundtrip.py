@@ -41,9 +41,10 @@ from maptasker.src.core.initparg import ProgramArguments
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.edit import profedit, projedit, roundtrip, taskedit, taskedit_model, taskedit_save
 from maptasker.src.gui import userintr_android, userintr_android_support
+from maptasker.src.gui.guiwins import AndroidFields
 from maptasker.src.mapgen import taskerd
 
-from tests.doubles import required
+from tests.doubles import fake_android_fields, required
 
 # One Project owning one Profile, that Profile's Entry Task, a Scene the Project declares,
 # and the Task that Scene's button fires.  Small, but it is every relationship the four
@@ -330,9 +331,9 @@ def test_a_failing_report_leads_with_the_failure() -> None:
 # ==========================================
 # The checkbox itself -- what the eight Save To Android handlers do with the answer.
 # ==========================================
-def _panel(*, ticked: bool) -> dict:
+def _panel(*, ticked: bool) -> AndroidFields:
     """A Save To Android panel's field refs, with "Verify" in the given state."""
-    return {"verify": SimpleNamespace(value=ticked)}
+    return fake_android_fields(verify=SimpleNamespace(value=ticked))
 
 
 def test_an_unticked_verify_does_not_even_render() -> None:
@@ -377,4 +378,6 @@ def test_a_ticked_verify_that_fails_stops_the_save_before_the_device_is_touched(
 def test_a_panel_without_the_checkbox_is_not_a_failure() -> None:
     """Belt and braces for a caller that has not been given the field yet -- an absent
     checkbox reads as unticked, not as a save to refuse."""
-    assert userintr_android.round_trip_verified({}, lambda: roundtrip.verify_project("Home", state=PrimeItems))
+    assert userintr_android.round_trip_verified(
+        fake_android_fields(), lambda: roundtrip.verify_project("Home", state=PrimeItems)
+    )

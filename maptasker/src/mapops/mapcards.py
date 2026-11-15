@@ -45,12 +45,13 @@ from typing import TYPE_CHECKING, Any
 
 from maptasker.src.core.actionc import action_codes
 from maptasker.src.core.taskervars import tasker_global_variable_names
+from maptasker.src.edit.taskedit_addable import ActionRow
 
 if TYPE_CHECKING:
     from collections.abc import Collection, Mapping
 
 # A catalog row, as taskedit_addable lists them: action_key, name, category_name and so on.
-Row = dict[str, Any]
+Row = ActionRow
 
 CARDS_FILE = os.path.normpath(
     os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "assets", "json", "action_cards.json"),

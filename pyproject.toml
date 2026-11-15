@@ -447,6 +447,15 @@ min_confidence = 60
 # NiceGUI calls a page function when the browser asks for its route.
 ignore_decorators = ["@ui.page*"]
 ignore_names = [
+    # The keys of a TypedDict (core/diagmodel.CallEdge), read by subscript with a string, which vulture cannot see.
+    "caller_row",
+    "called_row",
+    "caller_name",
+    # The keys of the export's TypedDicts (mapgen/mapexport.ExportMeta, DiagramCall), read by subscript or written
+    # into the JSON, which vulture cannot see.
+    "format_version",
+    "generator",
+    "called_project",
     # html.parser.HTMLParser calls these by name as it reads the markup.
     "handle_starttag",
     "handle_startendtag",
@@ -589,6 +598,7 @@ strict = [
     "maptasker/src/core/deprecate.py",
     "maptasker/src/core/devicecache.py",
     "maptasker/src/core/devicewait.py",
+    "maptasker/src/core/diagmodel.py",
     "maptasker/src/core/dirout.py",
     "maptasker/src/core/editcommon.py",
     "maptasker/src/core/elemvals.py",

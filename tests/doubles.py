@@ -23,8 +23,10 @@ from typing import TYPE_CHECKING, Any, TypeVar, cast
 T = TypeVar("T")
 
 if TYPE_CHECKING:
+    from maptasker.src.core.diagmodel import DiagramEdge, DiagramNode, DiagramRegion
     from maptasker.src.core.primitem import RunState
     from maptasker.src.core.runcfg import RunConfig
+    from maptasker.src.gui.guiwins import AndroidFields
     from maptasker.src.gui.userintr import MyGui
 
 
@@ -58,3 +60,44 @@ def expect(value: object, kind: type[T]) -> T:
     """`value`, which the test knows is a `kind`: a call that returns either a result or an error message is read as a result."""
     assert isinstance(value, kind), f"expected a {kind.__name__}, found {value!r}"
     return value
+
+
+def diagram_node(
+    anchor: str = "a",
+    kind: str = "task",
+    name: str = "",
+    line: int = 0,
+    col: int = 0,
+    length: int = 4,
+    project: str = "",
+    index: int = 0,
+) -> DiagramNode:
+    """A Diagram node with every field a node has, so a test names only the ones it is about."""
+    return {
+        "anchor": anchor,
+        "kind": kind,
+        "name": name,
+        "line": line,
+        "col": col,
+        "len": length,
+        "project": project,
+        "token": "",
+        "index": index,
+    }
+
+
+def diagram_region(
+    anchor: str = "p", name: str = "Test", line: int = 2, start: int = 1, fold: int = 4, end: int = 5
+) -> DiagramRegion:
+    """A Diagram region with every field a region has."""
+    return {"anchor": anchor, "name": name, "line": line, "start": start, "fold": fold, "end": end}
+
+
+def diagram_edge(caller: str, called: str, groups: list[int]) -> DiagramEdge:
+    """A Diagram call edge."""
+    return {"caller": caller, "called": called, "groups": groups}
+
+
+def fake_android_fields(**widgets: object) -> AndroidFields:
+    """A Save To Android panel's device fields, built from stand-ins: only the ones a test is about need be given."""
+    return cast("AndroidFields", dict(widgets))

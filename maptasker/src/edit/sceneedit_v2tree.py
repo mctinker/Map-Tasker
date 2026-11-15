@@ -10,7 +10,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from maptasker.src.core.maputil2 import as_json_list, as_json_object, strip_html_tags, tasker_icon_name
-from maptasker.src.core.scenelayout import V2_ROOT_KEY
+from maptasker.src.core.scenelayout import V2_ROOT_KEY, V2Layout, V2Node
 from maptasker.src.edit.sceneedit_v2 import (
     V2_BELOW_SHOW_WHEN_PROPS,
     V2_COMPONENT_SCHEMA,
@@ -37,12 +37,12 @@ class V2TreeRow:
 
     path: tuple[Any, ...]
     depth: int
-    node: dict[str, Any]
+    node: V2Node
     slot: str
     label: str
 
 
-def v2_child_slots(node: dict[str, Any]) -> list[tuple[str, list[Any]]]:
+def v2_child_slots(node: V2Node) -> list[tuple[str, list[Any]]]:
     """The (slot key, child list) pairs hanging off this node.
 
     A container's children live under a type-specific key -- "children" for Column/Row,
@@ -100,7 +100,7 @@ def _v2_label_text(value: str) -> str:
     return single_line if len(single_line) <= _V2_LABEL_MAX else f"{single_line[:_V2_LABEL_MAX]}..."
 
 
-def v2_reads_as_html(node: dict[str, Any]) -> bool:
+def v2_reads_as_html(node: V2Node) -> bool:
     """Whether this component's text is markup rather than the words themselves -- its
     Content format settles on Html.
 
@@ -112,7 +112,7 @@ def v2_reads_as_html(node: dict[str, Any]) -> bool:
     return field is not None and v2_state_of(field, node.get(field.key, "")) == "Html"
 
 
-def v2_node_name(node: dict[str, Any]) -> str:
+def v2_node_name(node: V2Node) -> str:
     """What a component is called in the designer: its treeLabel, else the property named for
     its type in V2_LABEL_FALLBACK, else its id.
 
@@ -145,7 +145,7 @@ def v2_node_name(node: dict[str, Any]) -> str:
     return _v2_label_text(own_value) or str(node.get("id", ""))
 
 
-def v2_node_label(node: dict[str, Any]) -> str:
+def v2_node_label(node: V2Node) -> str:
     """ "Text 'Empty Scene'" -- how a node reads in the designer's tree and at the head of its
     inspector.  See v2_node_name for which of the component's names is used.
     """
@@ -154,7 +154,7 @@ def v2_node_label(node: dict[str, Any]) -> str:
     return f"{node_type} '{name}'" if name else node_type
 
 
-def v2_flatten(layout: dict[str, Any]) -> list[V2TreeRow]:
+def v2_flatten(layout: V2Layout) -> list[V2TreeRow]:
     """The layout's component tree as a flat, depth-tagged list, in display order --
     what the designer's tree pane renders one row per entry.
 
@@ -165,7 +165,7 @@ def v2_flatten(layout: dict[str, Any]) -> list[V2TreeRow]:
     """
     rows: list[V2TreeRow] = []
 
-    def walk(node: dict[str, Any], depth: int, path: tuple[Any, ...], slot: str) -> None:
+    def walk(node: V2Node, depth: int, path: tuple[Any, ...], slot: str) -> None:
         rows.append(V2TreeRow(path=path, depth=depth, node=node, slot=slot, label=v2_node_label(node)))
         for slot_key, children in v2_child_slots(node):
             for index, raw_child in enumerate(children):
@@ -179,7 +179,7 @@ def v2_flatten(layout: dict[str, Any]) -> list[V2TreeRow]:
     return rows
 
 
-def v2_node_at(layout: dict[str, Any], path: tuple[Any, ...]) -> dict[str, Any] | None:
+def v2_node_at(layout: V2Layout, path: tuple[Any, ...]) -> dict[str, Any] | None:
     """The node a v2_flatten path points at, or None if the path no longer resolves
     (defence in depth -- phase 1 can't restructure the tree, so it always should).
     """
@@ -196,7 +196,7 @@ def v2_node_at(layout: dict[str, Any], path: tuple[Any, ...]) -> dict[str, Any] 
     return node
 
 
-def _v2_universal_props(node: dict[str, Any]) -> list[V2Prop]:
+def _v2_universal_props(node: V2Node) -> list[V2Prop]:
     """The properties every component can carry, with the state fields and then
     V2_BELOW_SHOW_WHEN_PROPS spliced in directly below Show when, for the types that have
     them.
@@ -225,7 +225,7 @@ def _v2_universal_props(node: dict[str, Any]) -> list[V2Prop]:
     return props
 
 
-def v2_editable_props(node: dict[str, Any]) -> list[V2Prop]:
+def v2_editable_props(node: V2Node) -> list[V2Prop]:
     """What the inspector puts up for this node: its schema properties first, then any
     other scalar key it happens to carry.
 

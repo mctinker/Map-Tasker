@@ -35,7 +35,7 @@ from maptasker.src.gui.guiwins_mapstream import (
 from maptasker.src.gui.guiwins_views import scope_badge_text, view_theme_colors
 from maptasker.src.mapgen import diagintr
 
-from tests.doubles import fake_state, fake_window
+from tests.doubles import diagram_node, fake_state, fake_window
 from tests.map_html_reference import optimized
 
 
@@ -197,7 +197,7 @@ def test_connectors_are_inverted_from_by_id_to_by_line() -> None:
     assert diagram_connectors_by_line(fake_state()) == {}
 
 
-_NODE = {"col": 3, "len": 6, "anchor": "task_1", "index": 4, "kind": "task"}
+_NODE = diagram_node("task_1", col=3, length=6, index=4)
 
 
 def test_a_name_is_wrapped_in_a_clickable_node_span() -> None:
@@ -218,17 +218,17 @@ def test_a_connector_that_runs_into_a_name_is_clipped_so_the_name_keeps_its_clic
 
 def test_a_connector_split_by_a_name_in_its_middle_keeps_both_halves() -> None:
     line = "─── Name ───"
-    node = {"col": 4, "len": 4, "anchor": "a", "index": 0, "kind": "profile"}
+    node = diagram_node("a", "profile", col=4, length=4)
     spans = _diagram_spans(0, line, {0: [(0, len(line), 1)]}, {0: [node]})
     assert sorted((start, end) for start, end, _ in spans) == [(0, 4), (4, 8), (8, len(line))]
 
 
 def test_a_node_that_starts_beyond_the_end_of_the_line_is_ignored() -> None:
-    assert _diagram_spans(0, "short", {}, {0: [{"col": 40, "len": 3, "anchor": "a", "index": 0, "kind": "t"}]}) == []
+    assert _diagram_spans(0, "short", {}, {0: [diagram_node("a", "t", col=40, length=3)]}) == []
 
 
 def test_a_line_is_one_element_with_the_text_between_its_spans_escaped() -> None:
-    node = {"col": 0, "len": 1, "anchor": "t1", "index": 1, "kind": "task"}
+    node = diagram_node("t1", length=1, index=1)
     html = wrap_diagram_line(5, "x <b> y", {}, {5: [node]}, {})
     assert html.startswith(f'<span class="{diagintr.LINE_CLASS}" data-line="5">')
     assert " &lt;b&gt; y" in html, "text outside the spans is escaped"

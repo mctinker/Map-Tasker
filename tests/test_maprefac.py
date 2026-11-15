@@ -25,7 +25,7 @@ import json
 import os
 import xml.etree.ElementTree as ET
 from collections.abc import Iterator
-from typing import Any
+from typing import Any, cast
 
 import pytest
 from maptasker.src.core.initparg import ProgramArguments
@@ -34,6 +34,7 @@ from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.edit import sessundo, taskedit_save
 from maptasker.src.gui import guiwins_refactor
 from maptasker.src.gui.guiwins_nav import opening_view_in_a_new_window
+from maptasker.src.gui.guiwins_refactor import RefactorWidgets
 from maptasker.src.mapgen import taskerd
 from maptasker.src.mapops import maprefac, maprefac_duplicate, maprefac_extract, maprefac_model, maprefac_move
 from nicegui import binding
@@ -943,8 +944,8 @@ class _Box:
         self.value = value
 
 
-def _widgets(**values: Any) -> dict:
-    """The widget dict guiwins_refactor builds, filled in with the given values."""
+def _widgets(**values: Any) -> RefactorWidgets:
+    """The widgets guiwins_refactor builds, filled in with the given values."""
     keys = (
         "extract_task",
         "extract_from",
@@ -959,7 +960,10 @@ def _widgets(**values: Any) -> dict:
         "duplicate_object",
         "duplicate_name",
     )
-    return {key: _Box(values.get(key)) for key in keys}
+    widgets = RefactorWidgets()
+    for key in keys:
+        setattr(widgets, key, _Box(values.get(key)))
+    return widgets
 
 
 def test_the_dialog_asks_for_the_range_the_user_selected(loaded: None) -> None:
@@ -1122,8 +1126,8 @@ def test_extract_allows_a_task_of_the_profile_on_screen(loaded: None) -> None:
     assert maprefac.apply(plan, state=PrimeItems) == (True, [])
 
 
-def _pickers() -> dict:
-    """The widget dict guiwins_refactor fills, with stand-ins for every pulldown it touches."""
+def _pickers() -> RefactorWidgets:
+    """The widgets guiwins_refactor fills, with stand-ins for every pulldown it touches."""
     keys = (
         "extract_task",
         "extract_from",
@@ -1138,13 +1142,15 @@ def _pickers() -> dict:
         "split_picks",
         "extract_scope_note",
     )
-    widgets = {key: _Box() for key in keys}
-    widgets["move_kind"].value = TASK
-    widgets["duplicate_kind"].value = PROJECT
-    widgets["filled"] = {}
+    widgets = RefactorWidgets()
+    for key in keys:
+        setattr(widgets, key, _Box())
+    widgets.move_kind.value = TASK
+    widgets.duplicate_kind.value = PROJECT
     # The scope note is a label, not a pulldown: it only needs the two calls made on it.
-    widgets["extract_scope_note"].set_text = lambda _text: None
-    widgets["extract_scope_note"].set_visibility = lambda _visible: None
+    note = cast("Any", widgets.extract_scope_note)
+    note.set_text = lambda _text: None
+    note.set_visibility = lambda _visible: None
     return widgets
 
 
@@ -1154,10 +1160,10 @@ def test_a_single_selected_task_is_filled_in_for_you(loaded: None) -> None:
     widgets = _pickers()
     guiwins_refactor.fill_options(widgets, state=PrimeItems)
 
-    assert widgets["extract_task"].value == "20"
+    assert widgets.extract_task.value == "20"
     # ...and it cascades: the action pulldowns are ready without a second interaction.
     assert [number for number, _ in maprefac.action_choices("20", state=PrimeItems)] == [1, 2, 3, 4, 5, 6]
-    assert set(widgets["extract_from"].options) == {"1", "2", "3", "4", "5", "6"}
+    assert set(widgets.extract_from.options) == {"1", "2", "3", "4", "5", "6"}
 
 
 def test_a_profile_running_one_task_is_filled_in_too(loaded: None) -> None:
@@ -1165,7 +1171,7 @@ def test_a_profile_running_one_task_is_filled_in_too(loaded: None) -> None:
     _displaying(single_profile_name="Dawn")  # Dawn runs Task 20 and nothing else
     widgets = _pickers()
     guiwins_refactor.fill_options(widgets, state=PrimeItems)
-    assert widgets["extract_task"].value == "20"
+    assert widgets.extract_task.value == "20"
 
 
 def test_nothing_is_filled_in_when_there_is_a_choice_to_make(loaded: None) -> None:
@@ -1173,16 +1179,16 @@ def test_nothing_is_filled_in_when_there_is_a_choice_to_make(loaded: None) -> No
     _displaying(single_profile_name="Dusk")  # Dusk runs two Tasks
     widgets = _pickers()
     guiwins_refactor.fill_options(widgets, state=PrimeItems)
-    assert widgets["extract_task"].value is None
-    assert len(widgets["extract_task"].options) == 2
+    assert widgets.extract_task.value is None
+    assert len(widgets.extract_task.options) == 2
 
 
 def test_nothing_is_filled_in_when_nothing_is_selected(loaded: None) -> None:
     """Unscoped, every Task is offered and none is chosen."""
     widgets = _pickers()
     guiwins_refactor.fill_options(widgets, state=PrimeItems)
-    assert widgets["extract_task"].value is None
-    assert len(widgets["extract_task"].options) == 5
+    assert widgets.extract_task.value is None
+    assert len(widgets.extract_task.options) == 5
 
 
 def test_the_other_three_operations_are_not_narrowed(loaded: None) -> None:

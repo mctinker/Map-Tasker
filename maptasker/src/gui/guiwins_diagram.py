@@ -6,7 +6,7 @@ step through the connectors live here with them."""
 from __future__ import annotations
 
 from html import escape
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from nicegui import ui
 
@@ -16,6 +16,7 @@ from maptasker.src.mapgen import diagintr, mapexport
 from maptasker.src.mapgen.diagutil import icon_spans
 
 if TYPE_CHECKING:
+    from maptasker.src.core.diagmodel import DiagramNode
     from maptasker.src.core.primitem import RunState
     from maptasker.src.gui.guiwins_textview import NiceGuiTextView
 
@@ -81,16 +82,17 @@ def diagram_connectors_by_line(state: RunState) -> dict[int, list[tuple[int, int
     return by_line
 
 
-def _tagged_class(node: dict[str, Any]) -> str:
+def _tagged_class(node: DiagramNode) -> str:
     """The extra class a name carries when the user has put a note or tags on it: ' mt-dtagged', or nothing."""
     return f" {diagintr.TAGGED_CLASS}" if node.get("note") or node.get("tags") else ""
 
 
-def _note_title(node: dict[str, Any]) -> str:
+def _note_title(node: DiagramNode) -> str:
     """The tooltip of a name the user has put a note or tags on -- the note, then the tags -- as an attribute, or ''."""
-    lines = [node["note"]] if node.get("note") else []
-    if node.get("tags"):
-        lines.append(" ".join(f"#{tag}" for tag in node["tags"]))
+    note, tags = node.get("note"), node.get("tags")
+    lines = [note] if note else []
+    if tags:
+        lines.append(" ".join(f"#{tag}" for tag in tags))
     if not lines:
         return ""
     return f' title="{escape(chr(10).join(lines), quote=True).replace(chr(10), "&#10;")}"'
@@ -100,7 +102,7 @@ def _diagram_spans(
     line_num: int,
     line: str,
     connectors_by_line: dict[int, list[tuple[int, int, int]]],
-    nodes_by_line: dict[int, list[dict[str, Any]]],
+    nodes_by_line: dict[int, list[DiagramNode]],
 ) -> list[tuple[int, int, str]]:
     """Every span to wrap on this line, in column order and never overlapping.
 
@@ -273,7 +275,7 @@ def wrap_diagram_line(
     line_num: int,
     line: str,
     connectors_by_line: dict[int, list[tuple[int, int, int]]],
-    nodes_by_line: dict[int, list[dict[str, Any]]],
+    nodes_by_line: dict[int, list[DiagramNode]],
     folds_by_line: dict[int, str],
 ) -> str:
     """One Diagram line as its own element, with its connectors and its names inside it.
