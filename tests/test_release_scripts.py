@@ -149,7 +149,7 @@ def test_a_change_that_runs_over_two_lines_is_one_change() -> None:
     assert "-text import" not in notes
 
 
-def test_a_long_sentence_is_cut_where_a_clause_ends_so_it_still_reads_as_a_sentence() -> None:
+def test_a_long_sentence_is_cut_where_a_clause_that_only_adds_detail_begins() -> None:
     sentence = changelog_release.one_sentence(
         "A Background color you choose now paints the window's main area, the Tree and Scene views, and the Map, "
         "with light or dark text to suit it, which it never did before because of a key that no palette has."
@@ -161,26 +161,69 @@ def test_a_long_sentence_is_cut_where_a_clause_ends_so_it_still_reads_as_a_sente
     )
 
 
-def test_a_long_sentence_is_never_cut_inside_a_bracket() -> None:
-    sentence = changelog_release.one_sentence(
-        "Plugin Advisor lists the plugins your file uses that Tasker now does itself, such as AutoShortcut "
-        "(the Shortcut action, Tasker 5.9) and Join (Remote Action Execution, 6.4), with the built-in that takes over."
+@pytest.mark.parametrize(
+    "sentence",
+    [
+        # Both of these were cut in the middle on the 16.0.0 release page.
+        "Clicking a link in the Project Dependencies, Notes & Tags, Compatibility Check or New-Phone Checklist windows now follows the 'Open View In New Window' checkbox.",
+        "Compatibility Check in the Analyze section sets your file against a Tasker version you pick, and optionally an older Android, and lists the actions, events and states that version does not have.",
+        "Word, " * 40 + "end",
+    ],
+)
+def test_a_sentence_with_no_clean_place_to_cut_is_kept_whole_never_cut_inside_a_list(sentence: str) -> None:
+    kept = changelog_release.one_sentence(sentence)
+
+    assert kept == (sentence if sentence.endswith(".") else f"{sentence}.")
+    assert not kept.endswith("...")
+
+
+_PLUGIN_SENTENCE = (
+    "The Plugin Advisor lists the plugins your file uses that Tasker now does itself, such as AutoShortcut "
+    "(the Shortcut action, Tasker 5.9) and Join (Remote Action Execution, 6.4), with the built-in that takes over."
+)
+_REDDIT_SENTENCE = (
+    "Export for Reddit in the Map view's Export menu copies whatever the Map shows -- a Project, Profile, Task "
+    "or Scene, or everything -- to the clipboard in Tasker's own text layout, as a code block ready to paste."
+)
+_SEMICOLON_SENTENCE = (
+    "Something that is long enough to need cutting somewhere near its middle; and then a second half that "
+    "runs on for a good while longer than the limit allows for one brief sentence."
+)
+
+
+@pytest.mark.parametrize(
+    ("sentence", "kept"),
+    [
+        (_PLUGIN_SENTENCE, "The Plugin Advisor lists the plugins your file uses that Tasker now does itself."),
+        (_REDDIT_SENTENCE, "Export for Reddit in the Map view's Export menu copies whatever the Map shows."),
+        (_SEMICOLON_SENTENCE, "Something that is long enough to need cutting somewhere near its middle."),
+    ],
+)
+def test_a_cut_is_made_at_a_dash_a_semicolon_or_a_trailing_clause_and_no_bracket_is_left_open(
+    sentence: str, kept: str
+) -> None:
+    assert changelog_release.one_sentence(sentence) == kept
+    assert kept.count("(") == kept.count(")")
+
+
+def test_with_no_clean_place_inside_the_limit_the_first_one_past_it_is_used() -> None:
+    sentence = (
+        "It does a long thing to a long list of things that goes on and on and on for rather more than the limit "
+        "allows, and carries on a good deal further than that, which is a detail, with more detail still after it."
     )
 
-    assert sentence.count("(") == sentence.count(")")
+    kept = changelog_release.one_sentence(sentence)
+
+    assert kept.endswith("allows, and carries on a good deal further than that.")
 
 
-def test_a_long_sentence_with_no_clause_to_cut_at_is_cut_at_a_word_and_marked() -> None:
-    sentence = changelog_release.one_sentence("Word " * 60)
+def test_a_comma_in_a_list_or_before_and_is_never_a_place_to_cut() -> None:
+    sentence = (
+        "It handles Projects, Profiles, Tasks, Scenes, Variables, Plugins, Widgets, Shortcuts and Notifications "
+        "across a very large number of places, and then also something else entirely that nobody asked for."
+    )
 
-    assert len(sentence) <= changelog_release.SENTENCE_LIMIT
-    assert sentence.endswith("...")
-    assert not sentence[:-3].endswith(" ")
-
-
-def test_every_sentence_in_the_text_is_within_the_limit() -> None:
-    for words in (5, 30, 80):
-        assert len(changelog_release.one_sentence("Alpha beta, " * words)) <= changelog_release.SENTENCE_LIMIT
+    assert changelog_release.one_sentence(sentence) == sentence
 
 
 def test_the_placeholders_known_issues_and_older_sections_are_not_in_the_text() -> None:
@@ -204,15 +247,18 @@ def test_the_heading_of_the_text_carries_the_date_once_the_changelog_has_one() -
 
 
 def test_the_changelog_in_the_repository_makes_a_release_text() -> None:
-    """Whatever is in Changelog.md now: every change gets a sentence, none runs long, and nothing is left bare."""
+    """Whatever is in Changelog.md now: every change gets a whole sentence, and none is cut off."""
     text = (_ROOT / "Changelog.md").read_text(encoding="utf-8")
 
     notes = changelog_release.release_notes(text, changelog_release.pyproject_version())
 
     lines = [line for line in notes.splitlines() if line.startswith("- ")]
     assert lines
-    assert all(len(line) <= changelog_release.SENTENCE_LIMIT + 2 for line in lines)
-    assert not any("__" in line for line in lines)
+    for line in lines:
+        assert line.endswith("."), line
+        assert not line.endswith("..."), f"cut off: {line}"
+        assert line.count("(") == line.count(")"), line
+        assert "__" not in line, line
 
 
 # ##################################################################################

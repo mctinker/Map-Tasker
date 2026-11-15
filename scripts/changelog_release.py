@@ -19,7 +19,8 @@ subcommand so a person and the release workflow use the same code:
     category it was filed in.  The Changelog's own bullets run to two sentences and say more than a release page needs;
     the Changelog stays the full record, and the release links to it.  Known Issues are not changes and are left out.
 
-A sentence is cut, at a word, when it runs past SENTENCE_LIMIT characters, since "brief" is the point of the page.
+A sentence that runs past SENTENCE_LIMIT characters is cut where a clause that only adds detail begins, never at a
+word and never inside a list; one with no such place is kept whole.
 """
 
 from __future__ import annotations
@@ -148,25 +149,37 @@ def plain(text: str) -> str:
     return re.sub(r"\*\*([^*]+)\*\*", r"\1", text)
 
 
-# Where a long sentence is best cut: a dash, a semicolon or a comma, so what is left still reads as a sentence.
-CLAUSE_BREAK = re.compile(r"\s+--\s+|;\s+|,\s+")
+# Where a long sentence can be cut and still be a sentence: at a dash or a semicolon, or at a comma that begins a clause
+# which only adds to what came before ("..., which ...", "..., such as ...", "..., with ...").  A comma anywhere else
+# may be one of a list ("Projects, Notes & Tags, Compatibility Check or ...") or join two halves of one thought
+# ("..., and optionally an older Android, and lists the actions"), and cutting there leaves a sentence that stops
+# in the middle.
+TRAILING_CLAUSE = (
+    "which|so|such as|because|where|when|while|instead|without|with|though|although|as|since|meaning|including|like|"
+    "giving|making|but|plus"
+)
+SAFE_BREAK = re.compile(rf"\s+--\s+|;\s+|,\s+(?=(?:{TRAILING_CLAUSE})\b)", re.IGNORECASE)
 MIN_CLAUSE = 50
 
 
 def one_sentence(text: str) -> str:
-    """The first sentence of a change, brought under SENTENCE_LIMIT when it runs longer.
+    """The first sentence of a change, brought under SENTENCE_LIMIT when it runs longer and can be cut cleanly.
 
-    A long one is cut at its last clause break that fits (a dash, semicolon or comma) that leaves at least MIN_CLAUSE
-    characters and no bracket open, and ends there; with no such break it is cut at a word and marked with "...".
+    A long one is cut at the last SAFE_BREAK that still fits and leaves at least MIN_CLAUSE characters and no bracket
+    open, or failing that the first one past the limit, and ends there.  With no such break at all it is kept whole: a sentence a little over the limit is better than one
+    that stops in the middle of a list, and the page is a summary, not a limit.  It is never cut at an arbitrary word.
     """
     sentence = SENTENCE_END.split(plain(text).strip(), maxsplit=1)[0].strip()
     if len(sentence) > SENTENCE_LIMIT:
-        # The last break that still fits and leaves no bracket open: as much of the change as a brief sentence holds.
-        for found in reversed(list(CLAUSE_BREAK.finditer(sentence[:SENTENCE_LIMIT]))):
+        breaks = list(SAFE_BREAK.finditer(sentence))
+        # The last break that still fits (as much of the change as a brief sentence holds); failing that, the first one
+        # past the limit (the shortest clean sentence there is).
+        fitting = [found for found in breaks if found.start() <= SENTENCE_LIMIT]
+        for found in [*reversed(fitting), *(b for b in breaks if b not in fitting)]:
             kept = sentence[: found.start()]
-            if len(kept) >= MIN_CLAUSE and kept.count("(") == kept.count(")"):
+            # No bracket left open, and no dash aside left unclosed (a pair of dashes is a bracket too).
+            if len(kept) >= MIN_CLAUSE and kept.count("(") == kept.count(")") and kept.count(" -- ") % 2 == 0:
                 return f"{kept.rstrip(' ,;:-')}."
-        return f"{sentence[: SENTENCE_LIMIT - 3].rsplit(' ', 1)[0].rstrip(' ,;:-')}..."
     return sentence if sentence.endswith((".", "!", "?")) else f"{sentence}."
 
 
