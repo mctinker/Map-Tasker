@@ -1627,7 +1627,7 @@ class MapTaskerEventHandlers:
         )
         # Add the changelog to the help text.
         if query_name == "help":
-            changes = get_changelog_file(CHANGELOG_URL, "##", 11)
+            changes = get_changelog_file(CHANGELOG_URL, "##", 4)
             # Assembled from its separately translated pieces rather than looked up whole --
             # see userhelp.build_help, which owns that split.  Slicing the assembled screen
             # apart here instead is what this used to do, and it broke the moment the help
@@ -1672,7 +1672,7 @@ class MapTaskerEventHandlers:
         Returns:
             None
         """
-        number_of_versions = 11
+        number_of_versions = 4
         changes = get_changelog_file(CHANGELOG_URL, "##", number_of_versions)
 
         if changes:

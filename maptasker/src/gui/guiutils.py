@@ -1199,7 +1199,7 @@ def display_error_file_and_ai_response(self: "MyGui | WindowOwner") -> None:
 # Write out the changelog defined in guiutils after updating the app from pypi.
 def create_changelog() -> None:
     """Create changelog file."""
-    changes = get_changelog_file(CHANGELOG_URL, "##", 6)
+    changes = get_changelog_file(CHANGELOG_URL, "##", 3)
     # utf-8 explicitly, on this write and on the read in check_for_changelog: the change
     # log is written on GitHub and is full of characters (arrows, bullets, quotes) that
     # Windows' default cp1252 cannot encode, and an unhandled UnicodeEncodeError here

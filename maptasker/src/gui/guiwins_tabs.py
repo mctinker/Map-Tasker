@@ -716,7 +716,7 @@ def create_font_section(self: MyGui) -> None:
                 "Type to find a font: what starts with your text is listed first, then the looser matches, "
                 "so 'ari' shows Arial and the fonts like it.\n\n"
                 "The font selected will be used in all output.\n\n"
-                "'Courier' or 'Courier New' is highly recommended for Diagrams to ensure proper connector "
+                "'Courier New' or 'Menlo' is highly recommended for Diagrams to ensure proper connector "
                 "alignment. A font that is not monospaced will not hold the Diagram's connectors or the "
                 "output's indentation in line.",
             ),
