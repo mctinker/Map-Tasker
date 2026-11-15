@@ -111,7 +111,7 @@ def _fill(user: Any, phone: FakeTasker, path: str) -> None:
 @pytest.mark.asyncio
 async def test_the_panel_fetches_the_backup_the_user_typed_the_path_of(phone: FakeTasker, window: Window) -> None:
     def build() -> None:
-        window.android_container = ui.column()
+        window.android_container = ui.column().classes("hidden")  # as the drawer builds it: shut until opened
         window.handlers.get_xml_from_android_event()
 
     async with open_page(build) as user:
@@ -134,7 +134,7 @@ async def test_the_panel_fetches_the_backup_the_user_typed_the_path_of(phone: Fa
 
 def _panel(window: Window):
     def build() -> None:
-        window.android_container = ui.column()
+        window.android_container = ui.column().classes("hidden")  # as the drawer builds it: shut until opened
         window.handlers.get_xml_from_android_event()
 
     return build
@@ -984,3 +984,24 @@ async def test_a_scene_is_imported_through_the_chooser_and_the_file_is_named_for
         assert any("is now in Tasker" in text for text in user.notify.messages)
 
     assert "Panel" in phone.scenes
+
+
+@pytest.mark.asyncio
+async def test_pressing_the_android_button_again_puts_the_panel_away_as_cancel_entry_does(window: Window) -> None:
+    """Open, the panel is there; the same button pressed once more empties it and hides it, and again opens it."""
+    seen: list[bool] = []
+
+    def build() -> None:
+        window.android_container = ui.column().classes("hidden")
+        window.handlers.get_xml_from_android_event()
+        seen.append("hidden" not in window.android_container.classes)
+        window.handlers.get_xml_from_android_event()
+        seen.append("hidden" not in window.android_container.classes)
+        seen.append(len(window.android_container.default_slot.children) == 0)
+        window.handlers.get_xml_from_android_event()
+        seen.append("hidden" not in window.android_container.classes)
+
+    async with open_page(build):
+        pass
+
+    assert seen == [True, False, True, True]

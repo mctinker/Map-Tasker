@@ -12,6 +12,10 @@ All notable changes to this project will be documented in this file!
 
 - Changed: In the Notes & Tags, Project Dependencies, Compatibility Check, New-Phone Checklist and Plugin Retirement Advisor windows, the Close button now sits right beside the other buttons instead of alone in the far lower right corner.
 
+- Changed: In the right-hand panel, the 'Get XML from Android Device' button and its '?' now sit directly below 'Get Local XML File', so the two ways to load a configuration are together. The 'File Operations' heading that used to sit above them is gone.
+
+- Changed: Clicking 'Get XML from Android Device' while its entry panel or its list of XML files is showing now puts that panel away, just as 'Cancel Entry' does, instead of rebuilding it.
+
 ### Removed
 
 ### Fixed

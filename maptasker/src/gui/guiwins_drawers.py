@@ -274,11 +274,6 @@ def _create_right_drawer(self: MyGui) -> None:
         ui.label(translate_string("Execution")).classes("text-xs font-bold uppercase text-gray-400 mt-2 self-center")
         _create_execution_section(self)
 
-        ui.label(translate_string("File Operations")).classes(
-            "text-xs font-bold uppercase text-gray-400 mt-3 self-center",
-        ).style("margin-top:5px")
-        create_file_and_message_buttons_section(self)
-
         ui.label(translate_string("Display Views")).classes(
             "text-xs font-bold uppercase text-gray-400 mt-3 self-center",
         )
@@ -337,7 +332,7 @@ def _drawer_section(self: MyGui, key: str, title: str, icon: str) -> ui.expansio
 
 
 def _create_execution_section(self: MyGui) -> None:
-    """The Execution group: Get Local XML File, Exit, and the two checkboxes that shape what Exit and a new view do."""
+    """The Execution group: Get Local XML File, Get XML from Android Device, Exit, and the checkboxes that shape what Exit and a new view do."""
     get_file_color = "green" if self.state.file_to_get else "red"
     blink_class = "" if self.state.file_to_get else " animate-pulse"
 
@@ -353,6 +348,10 @@ def _create_execution_section(self: MyGui) -> None:
                 "Fetch XML from a local drive on this computer.\n\nThe XML fetched will become the current source for MapTasker commands.",
             ),
         ).style("white-space: pre-wrap")
+
+    # Get XML from Android Device and its "?", with the panel that opens under them: the two ways to load a
+    # configuration sit together, ahead of Exit.
+    create_file_and_message_buttons_section(self)
 
     ui.button(
         translate_string("Exit"),

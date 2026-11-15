@@ -43,6 +43,8 @@ from maptasker.src.edit import (
 from maptasker.src.gui.guiutils import update_tasker_object_menus
 from maptasker.src.gui.guiutils_android import (
     android_address_defaults,
+    android_panel_is_open,
+    close_android_panel,
     notify_watch_android_device,
     phone_wait_line,
     ping_android_device,
@@ -107,6 +109,11 @@ class AndroidEventHandlers(HandlerGroup):
         Replaces legacy manual CustomTkinter pixel coordinates with automated fluid Flexbox grids.
         """
         gui = self.gui
+
+        # Pressed again while its panel is showing, the button puts the panel away, as Cancel Entry does.
+        if android_panel_is_open(gui):
+            close_android_panel(gui)
+            return
 
         # 1. Clear out old entries and unhide the sidebar container panel slot
         gui.android_container.clear()
@@ -250,10 +257,7 @@ class AndroidEventHandlers(HandlerGroup):
             # Close button clears the contents and re-hides the panel drawer clean
             ui.button(
                 translate_string("Cancel Entry"),
-                on_click=lambda: (
-                    gui.android_container.clear(),
-                    gui.android_container.classes(add="hidden"),
-                ),
+                on_click=lambda: close_android_panel(gui),
             ).classes("text-xs").props("flat color=negative dense")
 
     def _mount_set_details_button(self) -> None:

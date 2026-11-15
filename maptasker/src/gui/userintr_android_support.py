@@ -18,6 +18,7 @@ from maptasker.src.core.sysconst import logger
 from maptasker.src.device import devicecheck, devicefiles, deviceoffer, devicetask, deviceverify
 from maptasker.src.gui.guiutils_android import (
     clear_android_buttons,
+    close_android_panel,
     wait_line,
 )
 from maptasker.src.gui.guiwins import build_round_trip_report_dialog
@@ -288,7 +289,7 @@ def _mount_file_picker(self: MyGui, filelist: list[str]) -> None:
         # Flat modern action button to easily close the selection panel
         ui.button(
             translate_string("Cancel Entry"),
-            on_click=lambda: (self.android_container.clear(), self.android_container.classes(add="hidden")),
+            on_click=lambda: close_android_panel(self),
         ).classes("text-xs w-full mt-2").props("outline color=negative dense")
 
 

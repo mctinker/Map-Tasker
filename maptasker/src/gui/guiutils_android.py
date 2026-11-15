@@ -20,6 +20,20 @@ if TYPE_CHECKING:
     from maptasker.src.gui.userintr import MyGui
 
 
+def android_panel_is_open(gui: "MyGui") -> bool:
+    """Whether the Android panel under the "Get XML from Android Device" button is showing."""
+    return "hidden" not in gui.android_container.classes
+
+
+def close_android_panel(gui: "MyGui") -> None:
+    """Empty the Android panel and put it away: what every "Cancel Entry" button does.
+
+    Whichever sub-panel is in it (the connection details, or the dropdown of the device's XML files) goes with it.
+    """
+    gui.android_container.clear()
+    gui.android_container.classes(add="hidden")
+
+
 # Clear all buttons associated with fetching the backup file from Android device
 def clear_android_buttons(self: "MyGui") -> None:
     """
