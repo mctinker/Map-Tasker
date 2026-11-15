@@ -136,7 +136,10 @@ def _unchanged(working: ET.Element, original: ET.Element) -> bool:
             return False
         if new.attrib != old.attrib or (len(new.attrib) > 1 and list(new.attrib) != list(old.attrib)):
             return False
-        pending.extend(zip(new, old, strict=True))
+        # Elements compare by identity, so this is one C-speed pass that is true when _clone left every child
+        # shared -- which is nearly everything below the object -- and spares pushing each of them just to pop it.
+        if list(new) != list(old):
+            pending.extend(zip(new, old, strict=True))
     return True
 
 

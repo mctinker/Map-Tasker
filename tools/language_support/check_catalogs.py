@@ -83,6 +83,7 @@ from __future__ import annotations
 import argparse
 import ast
 import difflib
+import functools
 import gettext
 import importlib.util
 import re
@@ -212,7 +213,8 @@ def read_catalog(path: Path) -> Catalog:
     """Parse one messages.po.  The header (the empty msgid) is left out."""
     catalog = Catalog(language=path.parent.parent.name, path=path)
     text = path.read_text(encoding="utf-8")
-    for match in ENTRY.finditer(text):
+    matches = list(ENTRY.finditer(text))
+    for match in matches:
         msgid = decode(match.group("id"))
         if match.group("context") is not None:
             # A msgctxt entry is looked up with pgettext(), which nothing here calls; it is kept apart so
@@ -227,7 +229,7 @@ def read_catalog(path: Path) -> Catalog:
             continue
         catalog.entries[msgid] = decode(match.group("str"))
     # Every msgid line should have become an entry (or the header); one that did not is a malformed entry.
-    catalog.unreadable = len(re.findall(r"^msgid\s", text, re.MULTILINE)) - len(ENTRY.findall(text))
+    catalog.unreadable = len(re.findall(r"^msgid\s", text, re.MULTILINE)) - len(matches)
     return catalog
 
 
@@ -647,6 +649,7 @@ def split_blocks(text: str) -> list[str]:
     return blocks
 
 
+@functools.cache
 def block_kind(block: str) -> str:
     """What sort of block this is: a heading of some level, html, code, table, quote, list, rule or paragraph."""
     first = block.split("\n", 1)[0]
@@ -678,6 +681,7 @@ def neutral(target: str) -> str:
     return target
 
 
+@functools.cache
 def signature(block: str) -> tuple[object, ...]:
     """What a translator must not change in a block: its kind, links, images, code and the shape of its list."""
     kind = block_kind(block)
@@ -754,9 +758,20 @@ ANCHOR = re.compile(r"[A-Z][A-Za-z0-9_.+-]{2,}|\d[\w.]*")
 GAP = -1.0
 
 
-def anchors(block: str) -> set[str]:
-    """The names, numbers and acronyms in a block's prose, which a translation tends to keep as they are."""
-    return set(ANCHOR.findall(CODE_SPAN.sub(" ", HTML_TAG.sub(" ", block))))
+@functools.cache
+def anchors(block: str) -> frozenset[str]:
+    """The names, numbers and acronyms in a block's prose, which a translation tends to keep as they are.
+
+    Cached (as are block_kind and signature): aligning a README scores every English block against every translated
+    one, so the same block is asked about once for each block on the other side.
+    """
+    return frozenset(ANCHOR.findall(CODE_SPAN.sub(" ", HTML_TAG.sub(" ", block))))
+
+
+@functools.cache
+def raw_anchors(block: str) -> frozenset[str]:
+    """Every name, number and acronym in a block, its code and tags included."""
+    return frozenset(ANCHOR.findall(block))
 
 
 def pair_score(english: str, translated: str) -> float | None:
@@ -770,7 +785,7 @@ def pair_score(english: str, translated: str) -> float | None:
         return None
     base = 3.0 if signature(english) == signature(translated) else 0.5
     names = anchors(english)
-    shared = len(names & set(re.findall(ANCHOR, translated))) / len(names) if names else 0.0
+    shared = len(names & raw_anchors(translated)) / len(names) if names else 0.0
     ratio = min(len(english), len(translated)) / max(len(english), len(translated), 1)
     return base + 3.0 * shared + ratio
 

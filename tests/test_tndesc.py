@@ -8,6 +8,7 @@ tooltip says, and that the HTML check says what is wrong with a description and 
 
 from __future__ import annotations
 
+import re
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
@@ -361,14 +362,22 @@ def test_page_wrapper_tags_are_not_complained_about_or_left_open() -> None:
 # ##################################################################################
 # The sample backups.
 # ##################################################################################
+# A <d> element holding only text, as Tasker writes a description.
+_DESCRIPTION = re.compile(rb"<d(?:\s[^>]*)?>[^<]*</d>")
+
+
 def _sample_descriptions() -> list[str]:
+    """The text of every <d> in the sample backups.
+
+    Found by scanning each file's bytes for the element and handing just that to ElementTree, which keeps its reading
+    of entities and line ends exactly.  Parsing whole backups to reach a few thousand short strings was most of this
+    test's run time.  A backup that is not well-formed XML is read too, which suits a test of what real shares say.
+    """
     found: list[str] = []
     for path in sorted(SAMPLES.glob("*.xml")):
-        try:
-            root = ET.parse(path).getroot()
-        except ET.ParseError:
-            continue
-        found.extend(d.text for d in root.iter("d") if d.text)
+        found.extend(
+            text for found_one in _DESCRIPTION.finditer(path.read_bytes()) if (text := ET.fromstring(found_one[0]).text)
+        )
     return found
 
 
