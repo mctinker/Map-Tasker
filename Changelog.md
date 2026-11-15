@@ -2,57 +2,15 @@
 
 All notable changes to this project will be documented in this file!
 
-## [16.0.0] 15-Nov-2026
+## [16.0.1] ??-Nov-2026
 
 ### Added
 
-- Added: __Plugin Retirement Advisor__ in the Analyze section lists the plugins your file uses that Tasker now does itself, such as AutoShortcut (the Shortcut action, Tasker 5.9) and Join (Remote Action Execution, 6.4), with the built-in that takes over, the version it arrived in and every place the plugin is used. It says when a plugin is only partly replaced, and it changes nothing.
-
-- Added: __New-Phone Checklist__ in the Analyze section lists what is left to set up after restoring a backup onto a new phone -- plugins and apps to install (flagged when the phone lacks them), special access with its commands ready to copy, global variables with their values, and Profiles to enable -- each with a tick-box. Your ticks are remembered between sessions.
-
-- Added: __Export for Reddit__ in the Map view's Export menu copies whatever the Map shows -- a Project, Profile, Task or Scene, or everything -- to the clipboard in Tasker's own text layout, as a code block ready to paste into a post on r/tasker. A copy is also saved in the Output Folder.
-
-- Added: __Compatibility Check__ in the Analyze section sets your file against a Tasker version you pick, and optionally an older Android, and lists the actions, events and states that version does not have, plus the behaviours that changed on the way. Its Table tab is the whole list from Tasker's release notes and the developer's beta posts, 5.0 to 6.7.8, with how many places your file uses each.
-
-- Added: __Project Dependencies__ in the Analyze section shows which Projects use Tasks, Scenes and global variables that live in other Projects, as a graph and a table, with every use a click into the Map. It tells you what is safe to split out or share, which Projects can only be separated together, and what would be left dangling if you deleted a Project.
-
-- Added: __Near-Duplicates__ in the Refactor window finds Tasks that were copied and pasted with small differences, and turns the actions they share into one Task that each of them calls, with a preview first and one Undo. The shared Task gets a note, tagged #shared, naming the Tasks that call it; Undo reverses the merge but leaves that note in your notes file.
-
-- Added: __Split Project__ in the Refactor window moves the Tasks and Profiles you choose, with everything they need, into a new Project. The preview shows what comes along and why, and lists every use still joining the new Project to the rest, with one Undo afterwards.
-
 ### Changed
-
-- Changed: The hint at the top of the Diagram now suggests Menlo as the monospaced font, and its name is a link that downloads the font for Windows and Linux. MapTasker does not ship the font, because it is Apple's.  
-
-- Changed: The __Font To Use In Output__ pulldown now lets you type to find a font, and lists the closest matches first, so typing 'ari' shows Arial and its relatives ahead of fonts that merely contain those letters. A small slip such as 'ariel', or a file name such as 'Menlo-Regular.ttf', still finds the font.
-
-- Changed: The Colors tab category 'TaskerNet Information' is now called 'TaskerNet Descriptions', which is what it colors.
-
-- Changed: __Save To Android__ in the Task, Profile, Project and Scene editors is now one button that saves the file to the Tasker folder and also imports it into Tasker. Untick 'Also import into Tasker' in that window to write the file only; the choice is remembered.
-
-- Changed: The 'Check IDs' warning now has a 'Use a new ID' button when the phone already uses a new Task's ID, which gives the Task a free one and sends it again. It is offered only for a Task made in MapTasker, never for one already in your file.
-
-- Changed: The 'waiting up to N seconds' notice now also shows while MapTasker checks what Tasker already has before a save, and the time allowed for the phone's helper Tasks grows with the size of its configuration. A phone with a large configuration is no longer given up on early.
 
 ### Removed
 
 ### Fixed
-
-- Fixed: Health Check no longer stops with an error on a backup holding two Profiles with the same trigger when one of them has no ID.
-
-- Fixed: A Map, Diagram or other view opened in its own window now follows the app's Light or Dark mode. It followed the computer's setting instead, so with the app in light mode on a dark computer the window around the Map, its toolbar and its default text were dark.
-
-- Fixed: Switching between dark and light mode no longer repaints a Map that is already on screen, and the Background color you assigned now survives the switch. Before, the Map turned white or dark grey and the assigned color was reset to the new mode's own.
-
-- Fixed: The boxes around TaskerNet descriptions and Task labels in the Map are now a slightly darker tone of the Background color you assigned. They had a color of their own, which looked like a different background.
-
-- Fixed: A Background color you choose in the Colors tab now paints the window's main area, and the Tree and Scene views, as well as the Map, with light or dark text to suit it. It was only reaching the Map, so the rest of the window stayed white (or dark grey) whatever you picked.
-
-- Fixed: Named Tasks that are not called by any Profile, and that no Project lists, are now in the Map's directory. They were written at the end of the Map but left out of the directory, so there was no link to them.
-
-- Fixed: A connector in the Diagram view is no longer broken into pieces, so Jump to Start and Jump to End reach its ends, when a Task without a name is called after an action that has a label (such as an 'If'). The name made up for that Task had a line break in it, which split its line in two and pushed every connector passing it out of line.
-
-- Fixed: Clicking a link in the Project Dependencies, Notes & Tags, Compatibility Check or New-Phone Checklist windows now follows the 'Open View In New Window' checkbox. They opened another tab for every click even with the box unticked.
 
 ### Known Issues
 
@@ -66,6 +24,30 @@ you have closed all pre-existing MapTasker browser tabs and you still get this e
 
 
 ## Older History Logs
+
+## [16.0.0] 15-Nov-2026
+
+- Added: __Plugin Retirement Advisor__ in the Analyze section lists the plugins your file uses that Tasker now does itself, such as AutoShortcut (the Shortcut action, Tasker 5.9) and Join (Remote Action Execution, 6.4), with the built-in that takes over, the version it arrived in and every place the plugin is used. It says when a plugin is only partly replaced, and it changes nothing.
+- Added: __New-Phone Checklist__ in the Analyze section lists what is left to set up after restoring a backup onto a new phone -- plugins and apps to install (flagged when the phone lacks them), special access with its commands ready to copy, global variables with their values, and Profiles to enable -- each with a tick-box. Your ticks are remembered between sessions.
+- Added: __Export for Reddit__ in the Map view's Export menu copies whatever the Map shows -- a Project, Profile, Task or Scene, or everything -- to the clipboard in Tasker's own text layout, as a code block ready to paste into a post on r/tasker. A copy is also saved in the Output Folder.
+- Added: __Compatibility Check__ in the Analyze section sets your file against a Tasker version you pick, and optionally an older Android, and lists the actions, events and states that version does not have, plus the behaviours that changed on the way. Its Table tab is the whole list from Tasker's release notes and the developer's beta posts, 5.0 to 6.7.8, with how many places your file uses each.
+- Added: __Project Dependencies__ in the Analyze section shows which Projects use Tasks, Scenes and global variables that live in other Projects, as a graph and a table, with every use a click into the Map. It tells you what is safe to split out or share, which Projects can only be separated together, and what would be left dangling if you deleted a Project.
+- Added: __Near-Duplicates__ in the Refactor window finds Tasks that were copied and pasted with small differences, and turns the actions they share into one Task that each of them calls, with a preview first and one Undo. The shared Task gets a note, tagged #shared, naming the Tasks that call it; Undo reverses the merge but leaves that note in your notes file.
+- Added: __Split Project__ in the Refactor window moves the Tasks and Profiles you choose, with everything they need, into a new Project. The preview shows what comes along and why, and lists every use still joining the new Project to the rest, with one Undo afterwards.
+- Changed: The hint at the top of the Diagram now suggests Menlo as the monospaced font, and its name is a link that downloads the font for Windows and Linux. MapTasker does not ship the font, because it is Apple's.  
+- Changed: The __Font To Use In Output__ pulldown now lets you type to find a font, and lists the closest matches first, so typing 'ari' shows Arial and its relatives ahead of fonts that merely contain those letters. A small slip such as 'ariel', or a file name such as 'Menlo-Regular.ttf', still finds the font.
+- Changed: The Colors tab category 'TaskerNet Information' is now called 'TaskerNet Descriptions', which is what it colors.
+- Changed: __Save To Android__ in the Task, Profile, Project and Scene editors is now one button that saves the file to the Tasker folder and also imports it into Tasker. Untick 'Also import into Tasker' in that window to write the file only; the choice is remembered.
+- Changed: The 'Check IDs' warning now has a 'Use a new ID' button when the phone already uses a new Task's ID, which gives the Task a free one and sends it again. It is offered only for a Task made in MapTasker, never for one already in your file.
+- Changed: The 'waiting up to N seconds' notice now also shows while MapTasker checks what Tasker already has before a save, and the time allowed for the phone's helper Tasks grows with the size of its configuration. A phone with a large configuration is no longer given up on early.
+- Fixed: Health Check no longer stops with an error on a backup holding two Profiles with the same trigger when one of them has no ID.
+- Fixed: A Map, Diagram or other view opened in its own window now follows the app's Light or Dark mode. It followed the computer's setting instead, so with the app in light mode on a dark computer the window around the Map, its toolbar and its default text were dark.
+- Fixed: Switching between dark and light mode no longer repaints a Map that is already on screen, and the Background color you assigned now survives the switch. Before, the Map turned white or dark grey and the assigned color was reset to the new mode's own.
+- Fixed: The boxes around TaskerNet descriptions and Task labels in the Map are now a slightly darker tone of the Background color you assigned. They had a color of their own, which looked like a different background.
+- Fixed: A Background color you choose in the Colors tab now paints the window's main area, and the Tree and Scene views, as well as the Map, with light or dark text to suit it. It was only reaching the Map, so the rest of the window stayed white (or dark grey) whatever you picked.
+- Fixed: Named Tasks that are not called by any Profile, and that no Project lists, are now in the Map's directory. They were written at the end of the Map but left out of the directory, so there was no link to them.
+- Fixed: A connector in the Diagram view is no longer broken into pieces, so Jump to Start and Jump to End reach its ends, when a Task without a name is called after an action that has a label (such as an 'If'). The name made up for that Task had a line break in it, which split its line in two and pushed every connector passing it out of line.
+- Fixed: Clicking a link in the Project Dependencies, Notes & Tags, Compatibility Check or New-Phone Checklist windows now follows the 'Open View In New Window' checkbox. They opened another tab for every click even with the box unticked.
 
 ## [15.2.0] 10-Nov-2026
 
