@@ -64,7 +64,7 @@ jobs:
       final: ${{ steps.version.outputs.final }}
       rehearsal: ${{ steps.version.outputs.rehearsal }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Which version, and is this a rehearsal
         id: version
@@ -116,7 +116,7 @@ jobs:
     needs: check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Install uv
         uses: astral-sh/setup-uv@v7
@@ -171,7 +171,7 @@ jobs:
     needs: [check, testpypi]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: What the release would say
         run: |
@@ -220,7 +220,7 @@ jobs:
     permissions:
       contents: write # to create the release; nothing else is granted
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - uses: actions/download-artifact@v5
         with:
