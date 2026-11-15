@@ -13,10 +13,11 @@ from typing import Any
 from xml.etree.ElementTree import Element
 
 import maptasker.src.core.elemvals as task_flags
+from maptasker.src.core.actionc import action_codes
 from maptasker.src.core.dirout import add_directory_item
 from maptasker.src.core.elemvals import get_kid_app
 from maptasker.src.core.format import build_tooltip_span, format_html
-from maptasker.src.core.mapjump import SCENE, TASK, Target, anchor_html
+from maptasker.src.core.mapjump import SCENE, TASK, Target, actions_in_map_order, anchor_html
 from maptasker.src.core.maputils import find_owning_project_for_scene, fix_hyperlink_name
 from maptasker.src.core.mapwriter import BLANK_LINE_BEFORE
 from maptasker.src.core.nameattr import add_name_attribute
@@ -33,6 +34,7 @@ from maptasker.src.core.sysconst import (
 from maptasker.src.core.xmldata import tag_in_type
 from maptasker.src.mapgen.notesout import note_lines
 from maptasker.src.mapgen.taskactn import get_task_actions_and_output
+from maptasker.src.mapgen.tasks import INDENT_IN_CODES, INDENT_OUT_CODES
 from maptasker.src.mapgen.twisty import add_twisty, remove_twisty
 
 
@@ -95,6 +97,60 @@ def get_scene_element_names(scene: Element) -> list[str]:
     return element_names
 
 
+# The most actions a Task's tooltip lists before it says how many more there are.  The tooltip is one block that the
+# browser places and cannot scroll, so a Task with a couple of hundred actions would run off the screen.
+MAX_TOOLTIP_ACTIONS = 40
+
+
+# Get a Task's actions as numbered, indented lines, in the order the Map shows them (e.g. for a tooltip).
+def get_task_action_lines(task: Element, indent_size: int) -> list[str]:
+    """
+    Build the list of a Task's actions the way the Map lists them, but by title alone: "01: Flash", "02: Variable Set".
+
+        :param task: the Task's xml element to go through.
+        :param indent_size: how many spaces one level of If/For nesting is, which is the Map's own indentation setting.
+        :return: one line per action, numbered from 01 in the order the Map numbers them, and indented the way the Map
+            indents them: what is inside an If, Else or For is in one level, and the Else and End lines that close a
+            block are back out with the line that opened it.  A plugin action is named the way the Health Check names
+            it: by its own entry, and by the entry it shares with other plugins only when it has none.  An action
+            MapTasker has no code for is "code N", so it is still one line of the list.
+    """
+    lines: list[str] = []
+    level = 0
+    for number, action in enumerate(actions_in_map_order(task), start=1):
+        code = (action.findtext("code") or "").strip()
+        entry = action_codes.get(f"{code}t")
+        if entry is not None and not entry.name and entry.redirect:
+            entry = action_codes.get(entry.redirect, entry)
+        title = entry.name if entry is not None and entry.name else f"code {code}"
+
+        # The same codes, in the same order, that tasks.get_actions indents the Map's own lines by.
+        if code in INDENT_OUT_CODES:
+            level = max(level - 1, 0)
+        lines.append(f"{number:02d}: {' ' * (level * indent_size)}{title}")
+        if code in INDENT_IN_CODES:
+            level += 1
+    return lines
+
+
+# The "Actions:" lines of a Task's tooltip: a heading, then each action, and how many more past the limit.
+def task_action_tooltip_lines(task: Element | None, indent_size: int) -> list[str]:
+    """
+    The lines that go under a Task's Project line in its tooltip, or [] when it has no actions (or is not known).
+
+        :param task: the Task's xml element, or None where the Task could not be found.
+        :param indent_size: how many spaces one level of nesting is (see get_task_action_lines).
+    """
+    if task is None:
+        return []
+    lines = get_task_action_lines(task, indent_size)
+    if not lines:
+        return []
+    shown = lines[:MAX_TOOLTIP_ACTIONS]
+    left = len(lines) - len(shown)
+    return ["Actions:", *shown, *([f"... and {left} more"] if left else [])]
+
+
 # ################################################################################
 # Given an item, build output line for Task or Scene
 # ################################################################################
@@ -104,6 +160,7 @@ def format_task_or_scene(
     config: RunConfig,
     project_name: str = "",
     profile_name: str = "",
+    the_task: Element | None = None,
     *,
     state: RunState,
 ) -> tuple[str, str]:
@@ -116,6 +173,7 @@ def format_task_or_scene(
         config (RunConfig): the run's settings
         project_name (str): name of the Project the Task belongs to (for the "Task:" tooltip)
         profile_name (str): name of the Profile the Task belongs to (for the "Task:" tooltip)
+        the_task (Element): the Task's xml, for the list of its actions in the "Task:" tooltip (None if not known)
 
     Returns:
         tuple[str, str]: Our formatted output line and color to user
@@ -131,7 +189,8 @@ def format_task_or_scene(
             "'&nbsp;&nbsp;",
         )
 
-    # Add a tooltip to the "Task:" label showing the owning Profile/Project, if known.
+    # Add a tooltip to the "Task:" label showing the owning Profile/Project, if known, and then -- just below the
+    # Project -- the Task's actions, one title to a line.
     label = list_type
     if list_type == "Task:":
         tooltip_lines: list[str] = []
@@ -139,6 +198,7 @@ def format_task_or_scene(
             tooltip_lines.append(f"Profile: {profile_name}")
         if project_name:
             tooltip_lines.append(f"Project: {project_name}")
+        tooltip_lines.extend(task_action_tooltip_lines(the_task, config.indent))
         label = build_tooltip_span(list_type, tooltip_lines)
     elif list_type == "Scene:":
         # Get owning project for this Scene, if known, and add to the tooltip.
@@ -487,7 +547,7 @@ def format_item(
 
     # Format the Task or Scene
     output_line, color_to_use = format_task_or_scene(
-        list_type, the_item, config, project_name, profile_name, state=state
+        list_type, the_item, config, project_name, profile_name, the_task, state=state
     )
 
     # A blank line above each Task, to set it apart from what came before -- the Task or the Profile above it.  Asked for

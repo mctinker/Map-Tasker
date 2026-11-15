@@ -8,6 +8,8 @@ All notable changes to this project will be documented in this file!
 
 ### Changed
 
+- Changed: Hovering over 'Task:' in the Map view now also lists the Task's actions, numbered and indented like the Map's own, one title to a line, just below the Project name. A Task with more than 40 actions shows the first 40 and how many more there are.
+
 - Changed: In the Notes & Tags, Project Dependencies, Compatibility Check, New-Phone Checklist and Plugin Retirement Advisor windows, the Close button now sits right beside the other buttons instead of alone in the far lower right corner.
 
 ### Removed
