@@ -699,7 +699,7 @@ def test_whats_new_lists_the_latest_versions_and_says_how_many(popups: list[tupl
 
     assert popups[0][0] == "What's New?"
     assert popups[0][1].startswith("## 15.0.2\n- Fixed: something")
-    assert "End of changelog. The latest 10 versions displayed." in popups[0][1]
+    assert "End of changelog. The latest 3 versions displayed." in popups[0][1]
 
 
 def test_whats_new_with_no_changelog_says_it_could_not_be_read(

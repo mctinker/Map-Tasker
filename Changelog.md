@@ -8,6 +8,8 @@ All notable changes to this project will be documented in this file!
 
 ### Changed
 
+- Changed: In the Notes & Tags, Project Dependencies, Compatibility Check, New-Phone Checklist and Plugin Retirement Advisor windows, the Close button now sits right beside the other buttons instead of alone in the far lower right corner.
+
 ### Removed
 
 ### Fixed

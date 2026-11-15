@@ -87,7 +87,6 @@ class RetirementWindow:
                     self._build_table()
             with ui.row().classes("w-full items-center gap-2"):
                 ui.button(translate_string("Save Report"), on_click=self.save_report).props("outline")
-                ui.space()
                 ui.button(translate_string("Close"), on_click=self.dialog.close).props("outline")
         self.draw()
         return self.dialog

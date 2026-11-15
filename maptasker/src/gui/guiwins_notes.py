@@ -125,7 +125,6 @@ class NotesWindow:
                 self._action("edit", translate_string("Edit"), "edit", self.edit)
                 self._action("delete", translate_string("Delete"), "delete", self.delete)
                 self._action("show", translate_string("Show In Map"), "travel_explore", self.show)
-                ui.space()
                 ui.button(translate_string("Close"), on_click=self.dialog.close).props("outline")
 
         if self.book.unreadable:

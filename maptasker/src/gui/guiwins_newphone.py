@@ -145,7 +145,6 @@ class NewPhoneWindow:
                 ui.button(translate_string("Copy as text"), on_click=self.copy_text).props("outline")
                 ui.button(translate_string("Save Report"), on_click=self.save_report).props("outline")
                 ui.button(translate_string("Clear ticks"), on_click=self.clear_ticks).props("outline")
-                ui.space()
                 ui.button(translate_string("Close"), on_click=self.dialog.close).props("outline")
         self.draw()
         return self.dialog
