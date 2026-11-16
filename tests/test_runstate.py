@@ -49,7 +49,7 @@ from maptasker.src.mapgen import (
 from maptasker.src.mapgen.lineout import LineOut
 from maptasker.src.mapops import mapfix, maprefac_duplicate
 
-from tests.doubles import required
+from tests.doubles import required, stand_in
 
 _PROFILE = Target(kind=PROFILE, key="10", name="Wake Up")
 
@@ -456,7 +456,7 @@ def test_a_window_shows_the_error_of_the_state_it_holds() -> None:
     window.state.error_code = 3
     global_message = PrimeItems.error_msg
 
-    guiutils.display_error_file_and_ai_response(window)
+    guiutils.display_error_file_and_ai_response(stand_in(window))
 
     assert window.boxes == [("Something went wrong. with return code 3.", "Red")]
     assert PrimeItems.error_msg == global_message
@@ -465,7 +465,7 @@ def test_a_window_shows_the_error_of_the_state_it_holds() -> None:
 def test_the_handlers_act_on_the_state_of_their_window() -> None:
     state = RunState()
 
-    handlers = userintr.MapTaskerEventHandlers(MyGui(state))
+    handlers = userintr.MapTaskerEventHandlers(stand_in(MyGui(state)))
 
     assert handlers.state is state
 

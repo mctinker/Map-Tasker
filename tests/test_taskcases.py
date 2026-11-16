@@ -1,3 +1,5 @@
+# pyright: reportPrivateUsage=false
+# (this test checks private helpers on purpose)
 """MapTasker Task test cases (taskcases) Unit Tests
 
 A test case is only worth having if it fails when it should and stays quiet when it should not.  So each kind of

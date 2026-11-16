@@ -26,7 +26,7 @@ from maptasker.src.core import timeline
 from maptasker.src.core.primitem import PrimeItems, PrimeItemsReset
 from maptasker.src.core.sysconst import ARGUMENTS_FILE, ERROR_FILE
 
-from tests.doubles import required
+from tests.doubles import required, stand_in
 from tests.test_healthck import _DEFECTIVE_XML
 
 _SYNTHETIC_BACKUP = Path(__file__).parent / "data" / "synthetic_backup.xml"
@@ -336,7 +336,9 @@ def test_the_periods_that_are_understood(period: str, days_back: object) -> None
         cutoff = required(cutoff)
         assert cutoff.hour == cutoff.minute == 0
     else:
-        assert abs((datetime.now().astimezone() - cutoff) - timedelta(days=days_back)) < timedelta(seconds=5)
+        assert abs((datetime.now().astimezone() - required(cutoff)) - timedelta(days=stand_in(days_back))) < timedelta(
+            seconds=5
+        )
 
 
 # ##################################################################################

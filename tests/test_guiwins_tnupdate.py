@@ -481,7 +481,7 @@ async def test_accept_latest_version_is_one_undo() -> None:
         _press(user, _only(user, "Accept Latest Version"))
         await _until(lambda: _built["rebuilt"] == 1)
 
-        assert sessundo.undo(state=PrimeItems)
+        assert sessundo.undo(state=PrimeItems)[0]
 
         assert _live("all_tasks")["20"]["xml"].findtext("Action/Str") == "hello"
         assert _live("all_tasks")["22"]["xml"].findtext("Action/Str") == "anon"

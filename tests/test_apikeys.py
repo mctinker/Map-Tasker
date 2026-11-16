@@ -17,6 +17,7 @@ import stat
 import sys
 from collections.abc import Iterator
 from pathlib import Path
+from typing import Any, cast
 
 import keyring.core
 import pytest
@@ -31,7 +32,7 @@ from maptasker.src.core.sysconst import LEGACY_KEYFILE
 class MemoryKeyring(KeyringBackend):
     """A password store that lives in a dictionary."""
 
-    priority = 1
+    priority = cast("Any", 1)
 
     def __init__(self) -> None:
         super().__init__()
@@ -313,7 +314,7 @@ def test_keys_that_are_all_still_supported_are_not_rewritten(store: MemoryKeyrin
     store.entries[entry] = json.dumps({"openai_key": "sk-openai"})
     writes: list[str] = []
     original = store.set_password
-    store.set_password = lambda service, username, password: (
+    cast("Any", store).set_password = lambda service, username, password: (
         writes.append(username),
         original(service, username, password),
     )[1]

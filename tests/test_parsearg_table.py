@@ -15,6 +15,8 @@ import pytest
 from maptasker.src.core import parsearg
 from maptasker.src.core.sysconst import TYPES_OF_COLORS
 
+from tests.doubles import required
+
 
 @pytest.fixture(scope="module")
 def table() -> dict:
@@ -91,8 +93,9 @@ def test_the_ai_models_offered_are_the_ones_the_program_knows() -> None:
     parser = parsearg.build_parser()
     action = next(action for action in parser._actions if "-ai_model" in action.option_strings)
 
-    assert list(action.choices) == parsearg._ARGUMENT_CHOICES["@ai_models"]()
-    assert len(action.choices) > 10
+    choices = list(required(action.choices))
+    assert choices == parsearg._ARGUMENT_CHOICES["@ai_models"]()
+    assert len(choices) > 10
 
 
 def test_hidden_options_stay_out_of_the_help() -> None:

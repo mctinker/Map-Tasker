@@ -15,8 +15,9 @@ from __future__ import annotations
 import base64
 import gzip
 import json
-import os
 import xml.etree.ElementTree as ET
+from collections.abc import Callable
+from pathlib import Path
 
 import pytest
 from maptasker.src.core import editcommon, scenelayout
@@ -134,7 +135,7 @@ def test_the_encoding_is_the_one_tasker_writes_so_an_untouched_scene_is_byte_ide
     scenelayout.encode_v2_layout(element, {"a": 1, "b": [1, 2]})
 
     assert element.findtext("lj") == first
-    raw = base64.b64decode(first)
+    raw = base64.b64decode(required(first))
     assert raw[:2] == b"\x1f\x8b"
     assert raw[4:8] == b"\x00\x00\x00\x00"  # The mtime header.
     assert json.loads(gzip.decompress(raw)) == {"a": 1, "b": [1, 2]}
@@ -261,10 +262,14 @@ def test_an_unknown_template_is_a_blank_scene() -> None:
 
 
 def test_a_new_scene_needs_a_backup_and_a_kind_that_exists(monkeypatch: pytest.MonkeyPatch) -> None:
-    assert "is not a kind of Scene" in sceneedit.create_new_scene("x", "Version 3", state=PrimeItems)
+    refused = sceneedit.create_new_scene("x", "Version 3", state=PrimeItems)
+    assert isinstance(refused, str)
+    assert "is not a kind of Scene" in refused
 
     monkeypatch.setattr(PrimeItems, "xml_root", None)
-    assert "Load a Tasker backup" in sceneedit.create_new_scene("x", state=PrimeItems)
+    refused = sceneedit.create_new_scene("x", state=PrimeItems)
+    assert isinstance(refused, str)
+    assert "Load a Tasker backup" in refused
 
 
 # ##################################################################################
@@ -503,7 +508,7 @@ def test_a_delete_is_one_step_to_undo() -> None:
 
     assert done
     assert "Dash" in PrimeItems.tasker_root_elements["all_scenes"]
-    assert "Dash" in _project("Home").findtext("scenes")
+    assert "Dash" in required(_project("Home").findtext("scenes"))
     sessundo.clear(PrimeItems)
 
 
@@ -517,7 +522,7 @@ def test_a_scene_name_becomes_a_safe_file_name() -> None:
     assert sceneedit.android_scene_path("A/B") == "/Tasker/scenes/A_B.scn.xml"
 
 
-def test_an_existing_file_is_noticed(tmp_path: os.PathLike) -> None:
+def test_an_existing_file_is_noticed(tmp_path: Path) -> None:
     target = tmp_path / "x.scn.xml"
     assert sceneedit.save_path_exists(str(target)) is False
 
@@ -547,7 +552,7 @@ def test_the_export_is_the_screen_metric_the_scene_and_the_tasks_it_fires_once_e
 
 
 def test_a_backup_with_no_screen_metric_exports_without_one(monkeypatch: pytest.MonkeyPatch) -> None:
-    PrimeItems.xml_root.remove(PrimeItems.xml_root.find("dmetric"))
+    PrimeItems.xml_root.remove(required(PrimeItems.xml_root.find("dmetric")))
 
     root = ET.fromstring(sceneedit.render_standalone_scene_xml("Dash", state=PrimeItems))
 
@@ -582,7 +587,7 @@ def test_the_export_is_of_the_loaded_scene_and_leaves_it_alone() -> None:
     assert _xml(_live("Dash")) == before
 
 
-def test_writing_a_file_takes_a_safety_copy_of_what_it_replaces(tmp_path: os.PathLike) -> None:
+def test_writing_a_file_takes_a_safety_copy_of_what_it_replaces(tmp_path: Path) -> None:
     target = tmp_path / "Dash.scn.xml"
     target.write_text("<old/>", encoding="utf-8")
 
@@ -593,7 +598,7 @@ def test_writing_a_file_takes_a_safety_copy_of_what_it_replaces(tmp_path: os.Pat
         assert copy_.read() == "<old/>"
 
 
-def test_nothing_is_written_for_a_scene_that_is_gone(tmp_path: os.PathLike) -> None:
+def test_nothing_is_written_for_a_scene_that_is_gone(tmp_path: Path) -> None:
     target = tmp_path / "x.scn.xml"
 
     with pytest.raises(ValueError, match="no longer exists"):
@@ -605,7 +610,7 @@ def test_saving_to_android_uploads_the_rendered_scene(monkeypatch: pytest.Monkey
     seen = {}
 
     def upload(
-        kind: editcommon.EditorKind, ip: str, port: str, name: str, render_bytes: object
+        kind: editcommon.EditorKind, ip: str, port: str, name: str, render_bytes: Callable[[], bytes]
     ) -> tuple[int, str, bytes]:
         seen.update(kind=kind, ip=ip, port=port, name=name, body=render_bytes())
         return 0, "/Tasker/scenes/Dash.scn.xml", b""

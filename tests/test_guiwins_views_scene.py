@@ -27,7 +27,7 @@ from nicegui import core, ui
 from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
 
-from tests.doubles import expect, fake_window, required
+from tests.doubles import expect, fake_window, no_error, required, stand_in
 from tests.nicegui_harness import all_elements
 from tests.test_mapswap import _load
 
@@ -147,17 +147,19 @@ def _window() -> MyGui:
 
 def test_previewing_marks_the_session_suspended_but_only_for_the_dialog_that_stepped_aside() -> None:
     gui = _window()
-    guiwins_sceneview.suspend_scene_editor_session(gui, "OTHER")
+    guiwins_sceneview.suspend_scene_editor_session(gui, stand_in("OTHER"))
     assert _session(gui)["suspended"] is False
-    guiwins_sceneview.suspend_scene_editor_session(gui, "D")
+    guiwins_sceneview.suspend_scene_editor_session(gui, stand_in("D"))
     assert _session(gui)["suspended"] is True
-    guiwins_sceneview.suspend_scene_editor_session(fake_window(), "D")  # a window with no session: nothing to mark
+    guiwins_sceneview.suspend_scene_editor_session(
+        fake_window(), stand_in("D")
+    )  # a window with no session: nothing to mark
 
 
 def test_a_suspended_editor_is_handed_back_once_and_only_for_its_own_scene() -> None:
     gui = _window()
     assert guiwins_sceneview.suspended_scene_editor(gui, "Panel") is None, "nothing is suspended yet"
-    guiwins_sceneview.suspend_scene_editor_session(gui, "D")
+    guiwins_sceneview.suspend_scene_editor_session(gui, stand_in("D"))
     assert guiwins_sceneview.suspended_scene_editor(gui, "Other") is None
     assert guiwins_sceneview.suspended_scene_editor(gui, "Panel") == "D"
     assert guiwins_sceneview.suspended_scene_editor(gui, "Panel") is None, "marked resumed, so not handed back twice"
@@ -166,10 +168,10 @@ def test_a_suspended_editor_is_handed_back_once_and_only_for_its_own_scene() -> 
 
 def test_going_back_to_the_editor_clears_the_mark() -> None:
     gui = _window()
-    guiwins_sceneview.suspend_scene_editor_session(gui, "D")
-    guiwins_sceneview._resume_scene_editor_session(gui, "D")
+    guiwins_sceneview.suspend_scene_editor_session(gui, stand_in("D"))
+    guiwins_sceneview._resume_scene_editor_session(gui, stand_in("D"))
     assert _session(gui)["suspended"] is False
-    guiwins_sceneview._resume_scene_editor_session(gui, "OTHER")  # someone else's dialog: left alone
+    guiwins_sceneview._resume_scene_editor_session(gui, stand_in("OTHER"))  # someone else's dialog: left alone
 
 
 @pytest.mark.asyncio
@@ -183,7 +185,7 @@ async def test_closing_the_dialog_repaints_only_the_previews_it_launched_and_sto
         repainted = []
         view.render = lambda: repainted.append(True)
 
-        guiwins_sceneview.scene_dialog_closed(gui, dialog, field_refs, SimpleNamespace(value=False))
+        guiwins_sceneview.scene_dialog_closed(gui, dialog, field_refs, stand_in(SimpleNamespace(value=False)))
 
         assert field_refs == {"other": 3}, "its handlers outlive the dialog and would take drags into a finished editor"
         assert repainted == [True]
@@ -197,11 +199,11 @@ async def test_opening_the_dialog_or_hiding_it_for_a_preview_repaints_nothing() 
         repainted = []
         view.render = lambda: repainted.append(True)
         field_refs = {"legacy_edit": {}}
-        guiwins_sceneview.scene_dialog_closed(gui, dialog, field_refs, SimpleNamespace(value=True))
+        guiwins_sceneview.scene_dialog_closed(gui, dialog, field_refs, stand_in(SimpleNamespace(value=True)))
         assert repainted == [] and "legacy_edit" in field_refs, "opening is not closing"
 
         gui.scene_editor_session = {"dialog": dialog, "name": "Panel", "suspended": True}
-        guiwins_sceneview.scene_dialog_closed(gui, dialog, field_refs, SimpleNamespace(value=False))
+        guiwins_sceneview.scene_dialog_closed(gui, dialog, field_refs, stand_in(SimpleNamespace(value=False)))
         assert repainted == [] and "legacy_edit" in field_refs, "a preview is holding it hidden: that is not the end"
 
 
@@ -460,8 +462,11 @@ async def test_a_layout_that_cannot_be_read_says_so_instead_of_drawing_nothing()
     def page() -> None:
         _built["gui"] = SimpleNamespace(font="x", dark_mode=False, state=PrimeItems, content_container=ui.column())
         edited = sceneedit.create_new_scene("Broken", scenemodel.SCENE_VERSION_V2, state=PrimeItems)
+        edited = no_error(edited)
         required(edited.scene_element.find("lj")).text = "garbage"
-        _built["view"] = NiceGuiSceneView(_built["gui"], expect(edited, EditableScene), _built["field_refs"], None)
+        _built["view"] = NiceGuiSceneView(
+            stand_in(_built["gui"]), expect(edited, EditableScene), _built["field_refs"], None
+        )
 
     async with _open(page) as user:
         assert any("could not be read, so there is nothing to draw" in text for text in _texts(user))

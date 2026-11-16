@@ -1,3 +1,5 @@
+# pyright: reportPrivateUsage=false
+# (this test checks private helpers on purpose)
 """MapTasker Task Stepper, walking into a Perform Task (taskstep) Unit Tests
 
 A call is where a dry run most easily lies, so what is tested is the contract Tasker keeps between two Tasks: what the

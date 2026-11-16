@@ -14,6 +14,7 @@ the user is shown.
 
 from __future__ import annotations
 
+from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
@@ -24,7 +25,7 @@ from maptasker.src.core.sysconst import NOTIFY_TIMEOUT_DEFAULT, VIEW_LIMIT_DEFAU
 from maptasker.src.gui import userintr_settings
 from maptasker.src.gui.userintr_settings import SettingsEventHandlers
 
-from tests.doubles import fake_window, required
+from tests.doubles import fake_window, required, stand_in
 
 
 class _Handlers(SettingsEventHandlers):
@@ -209,7 +210,7 @@ def test_a_twisty_at_a_sensible_level_says_nothing_more(handlers: _Handlers, gui
 def test_a_font_is_taken_from_an_event_kept_and_shown(handlers: _Handlers, gui: MagicMock) -> None:
     """The setting, the pulldown (without echoing back), the label on the toolbar, and the message."""
     gui.font_optionmenu.value = "Courier"
-    handlers.font_event(SimpleNamespace(value="Monaco"))
+    handlers.font_event(stand_in(SimpleNamespace(value="Monaco")))
 
     assert gui.font == "Monaco"
     assert gui.font_optionmenu.value == "Monaco"
@@ -222,7 +223,7 @@ def test_a_font_is_taken_from_an_event_kept_and_shown(handlers: _Handlers, gui: 
 def test_an_empty_font_choice_changes_nothing(handlers: _Handlers, gui: MagicMock, given: object) -> None:
     """An empty selection is what a pulldown sends when it is cleared."""
     gui.font = "Monaco"
-    handlers.font_event(given)
+    handlers.font_event(stand_in(given))
     assert gui.font == "Monaco"
     assert _said(gui) == []
 
@@ -253,7 +254,7 @@ def test_the_indent_is_kept_as_a_number_and_shown_as_text(handlers: _Handlers, g
 
 def test_the_task_action_limit_follows_the_slider_and_labels_itself(handlers: _Handlers, gui: MagicMock) -> None:
     """From an event or a bare number, to the setting, the label and the knob."""
-    handlers.tasklimit_event(SimpleNamespace(value=45))
+    handlers.tasklimit_event(stand_in(SimpleNamespace(value=45)))
     assert gui.task_action_warning_limit == 45
     assert gui.task_action_label.text == "Task Action Limit: 45"
     assert gui.task_action_limit.value == 45
@@ -346,7 +347,7 @@ def test_unlimited_is_a_very_large_number_and_shown_as_a_word(
 
 def test_a_numeric_limit_is_kept_as_a_number(handlers: _Handlers, gui: MagicMock) -> None:
     """The pulldown's strings, the setting's int."""
-    handlers.viewlimit_event(SimpleNamespace(value="250"))
+    handlers.viewlimit_event(stand_in(SimpleNamespace(value="250")))
     assert gui.view_limit == 250
     assert gui.viewlimit_optionmenu.value == "250"
     assert gui.is_updating is False
@@ -381,7 +382,7 @@ def test_choosing_another_language_switches_it_and_schedules_a_rebuild(
     monkeypatch.setattr(userintr_settings.ui, "timer", lambda *args, **kwargs: timers.append((args, kwargs)))
     handlers.language_set_event = MagicMock()
 
-    handlers.language_selected_event(SimpleNamespace(value=" French "))
+    handlers.language_selected_event(stand_in(SimpleNamespace(value=" French ")))
 
     handlers.language_set_event.assert_called_once_with("French")
     assert gui.displaying_extended_list is None
@@ -408,7 +409,7 @@ def test_a_new_output_folder_is_made_remembered_saved_and_announced(
     handlers: _Handlers,
     gui: MagicMock,
     folder_saved: list,
-    tmp_path: object,
+    tmp_path: Path,
 ) -> None:
     """A folder that does not exist yet is made, stored absolute, and written to the settings at once."""
     gui.output_directory = ""

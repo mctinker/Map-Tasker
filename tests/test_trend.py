@@ -14,6 +14,7 @@ from __future__ import annotations
 import gzip
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any, cast
 
 import pytest
 from maptasker.src.analysis import healthck, timecomp
@@ -21,7 +22,7 @@ from maptasker.src.core import timeline
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.mapops import trend
 
-from tests.doubles import required
+from tests.doubles import required, stand_in
 from tests.shared_fixtures import _load_local
 from tests.test_taskstep import _act, _i, _s, disabled, end_for, end_if, flash, for_, if_, set_
 
@@ -195,14 +196,14 @@ def test_the_check_for_plugins_missing_from_the_device_is_left_out_because_it_as
 
     def spy(skip: object = (), *, state: object) -> object:
         asked.append(skip)
-        return real(skip, state=state)
+        return real(stand_in(skip), state=stand_in(state))
 
     monkeypatch.setattr(trend.healthck, "collect_findings", spy)
 
     measure(tmp_path, Home={"A": (flash("a"),)})
 
     assert asked
-    assert set(asked[0]) == set(trend.plugchk.TAGS | trend.resrefs.TAGS)
+    assert set(stand_in(asked[0])) == set(trend.plugchk.TAGS | trend.resrefs.TAGS)
 
 
 def test_what_is_found_is_the_same_each_time_it_is_measured(tmp_path: Path) -> None:
@@ -373,7 +374,7 @@ def test_project_names_and_a_project_that_was_not_always_there(tmp_path: Path) -
 
 
 def _m(**values: int) -> trend.Measures:
-    return trend.Measures(**values)
+    return trend.Measures(**cast("Any", values))
 
 
 def test_everything_that_fell_and_nothing_that_rose_is_healthier() -> None:

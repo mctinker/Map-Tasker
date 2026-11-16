@@ -28,7 +28,7 @@ from maptasker.src.core.mtexcept import MapTaskerError
 from maptasker.src.core.primitem import RunState
 from maptasker.src.core.sysconst import TYPES_OF_COLORS
 
-from tests.doubles import fake_namespace
+from tests.doubles import fake_namespace, stand_in
 
 
 class _Stop(Exception):
@@ -88,12 +88,12 @@ def _args(**given: Any) -> argparse.Namespace:
     [([6], 6), (["6"], 6), (4, 4), ("5", 5), ([0], 0), (None, None), ([], []), ("", "")],
 )
 def test_a_number_may_come_as_a_list_a_value_or_nothing(given: object, expected: object) -> None:
-    assert runcli.get_arg_if_in_list(SimpleNamespace(i=given), "i") == expected
+    assert runcli.get_arg_if_in_list(stand_in(SimpleNamespace(i=given)), "i") == expected
 
 
 def test_a_zero_in_a_list_is_taken_as_asked_for() -> None:
     """The list is truthy though its number is not: -i 0 means no indentation, not 'not given'."""
-    assert runcli.get_arg_if_in_list(SimpleNamespace(i=[0]), "i") == 0
+    assert runcli.get_arg_if_in_list(stand_in(SimpleNamespace(i=[0])), "i") == 0
 
 
 # ##################################################################################
@@ -112,7 +112,7 @@ def test_a_boolean_option_turns_its_setting_on_and_cannot_turn_it_off(state: Run
 
 
 def test_a_namespace_missing_an_option_is_not_an_error(state: RunState) -> None:
-    runcli.get_and_set_booleans(SimpleNamespace(conditions=True), state=state)
+    runcli.get_and_set_booleans(stand_in(SimpleNamespace(conditions=True)), state=state)
 
     assert state.program_arguments.conditions is True
     assert state.program_arguments.pretty is False
@@ -130,7 +130,7 @@ def test_a_namespace_missing_an_option_is_not_an_error(state: RunState) -> None:
 def test_name_attributes_are_turned_on_one_by_one_and_junk_is_ignored(
     state: RunState, given: object, attributes: set[str]
 ) -> None:
-    runcli.get_name_attributes(given, state=state)
+    runcli.get_name_attributes(stand_in(given), state=state)
 
     turned_on = {name for name in ("bold", "highlight", "underline", "italicize") if state.program_arguments[name]}
     assert turned_on == attributes
@@ -419,7 +419,7 @@ def test_a_colors_entry_with_no_key_is_ignored(state: RunState, monkeypatch: pyt
 # ##################################################################################
 # The test namespace.
 # ##################################################################################
-def _unit_test(monkeypatch: pytest.MonkeyPatch, *arguments: str) -> SimpleNamespace:
+def _unit_test(monkeypatch: pytest.MonkeyPatch, *arguments: str) -> argparse.Namespace:
     monkeypatch.setattr(sys, "argv", ["maptasker", "-test=yes", *arguments])
     monkeypatch.setattr(console, "say", lambda *_: None)
     return runcli.unit_test()

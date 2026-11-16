@@ -16,6 +16,7 @@ from __future__ import annotations
 import os
 import xml.etree.ElementTree as ET
 from collections.abc import Iterator
+from pathlib import Path
 
 import pytest
 from maptasker.src.core.initparg import ProgramArguments
@@ -62,7 +63,7 @@ def _load(xml_text: str) -> None:
 
 
 @pytest.fixture(autouse=True)
-def _loaded(tmp_path, monkeypatch) -> Iterator[None]:
+def _loaded(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     """A loaded configuration, plain settings, and a Map file of our own to point at."""
     monkeypatch.chdir(tmp_path)
     _load(_XML)
@@ -73,7 +74,7 @@ def _loaded(tmp_path, monkeypatch) -> Iterator[None]:
     mapcache.forget()
 
 
-def _map_file(tmp_path, text: str = "<html>a Map</html>") -> str:
+def _map_file(tmp_path: Path, text: str = "<html>a Map</html>") -> str:
     """A stand-in for MapTasker.html, written where a build would have written it."""
     path = tmp_path / "MapTasker.html"
     path.write_text(text, encoding="utf-8")
@@ -83,7 +84,7 @@ def _map_file(tmp_path, text: str = "<html>a Map</html>") -> str:
 # ##################################################################################
 # Nothing has changed: the Map that was built is the Map that would be built.
 # ##################################################################################
-def test_a_map_nothing_has_disturbed_is_current(tmp_path) -> None:
+def test_a_map_nothing_has_disturbed_is_current(tmp_path: Path) -> None:
     """The whole point: same configuration, same settings, same file."""
     path = _map_file(tmp_path)
     mapcache.remember(path, 1234, mapcache.digests(state=PrimeItems))
@@ -98,7 +99,7 @@ def test_nothing_is_current_before_anything_has_been_remembered() -> None:
     assert mapcache.output_lines() == 0
 
 
-def test_forgetting_gives_up_the_record(tmp_path) -> None:
+def test_forgetting_gives_up_the_record(tmp_path: Path) -> None:
     """After forget() the next Map is built from scratch."""
     path = _map_file(tmp_path)
     mapcache.remember(path, 10, mapcache.digests(state=PrimeItems))
@@ -110,7 +111,7 @@ def test_forgetting_gives_up_the_record(tmp_path) -> None:
 # ##################################################################################
 # The configuration moves.  Every one of these has to be refused.
 # ##################################################################################
-def test_renaming_a_task_is_not_the_same_configuration(tmp_path) -> None:
+def test_renaming_a_task_is_not_the_same_configuration(tmp_path: Path) -> None:
     """A name shows in the Map, so a Map built before the rename is the wrong Map."""
     path = _map_file(tmp_path)
     mapcache.remember(path, 10, mapcache.digests(state=PrimeItems))
@@ -121,7 +122,7 @@ def test_renaming_a_task_is_not_the_same_configuration(tmp_path) -> None:
     assert not mapcache.is_current(path, mapcache.digests(state=PrimeItems))
 
 
-def test_changing_an_action_argument_is_not_the_same_configuration(tmp_path) -> None:
+def test_changing_an_action_argument_is_not_the_same_configuration(tmp_path: Path) -> None:
     """The change the Map is most likely to be asked to show: an edit inside an action."""
     path = _map_file(tmp_path)
     mapcache.remember(path, 10, mapcache.digests(state=PrimeItems))
@@ -132,7 +133,7 @@ def test_changing_an_action_argument_is_not_the_same_configuration(tmp_path) -> 
     assert not mapcache.is_current(path, mapcache.digests(state=PrimeItems))
 
 
-def test_changing_an_attribute_is_not_the_same_configuration(tmp_path) -> None:
+def test_changing_an_attribute_is_not_the_same_configuration(tmp_path: Path) -> None:
     """Attributes carry meaning here -- an action's 'sr' is its position in the Task."""
     path = _map_file(tmp_path)
     mapcache.remember(path, 10, mapcache.digests(state=PrimeItems))
@@ -142,7 +143,7 @@ def test_changing_an_attribute_is_not_the_same_configuration(tmp_path) -> None:
     assert not mapcache.is_current(path, mapcache.digests(state=PrimeItems))
 
 
-def test_the_derived_name_of_an_object_counts_as_the_configuration(tmp_path) -> None:
+def test_the_derived_name_of_an_object_counts_as_the_configuration(tmp_path: Path) -> None:
     """An unnamed Profile is given a name to display; that name is part of what is drawn."""
     path = _map_file(tmp_path)
     mapcache.remember(path, 10, mapcache.digests(state=PrimeItems))
@@ -152,7 +153,7 @@ def test_the_derived_name_of_an_object_counts_as_the_configuration(tmp_path) -> 
     assert not mapcache.is_current(path, mapcache.digests(state=PrimeItems))
 
 
-def test_a_change_outside_the_four_tables_still_counts(tmp_path) -> None:
+def test_a_change_outside_the_four_tables_still_counts(tmp_path: Path) -> None:
     """A global variable's value is listed in the Map, and it lives in none of the tables."""
     path = _map_file(tmp_path)
     mapcache.remember(path, 10, mapcache.digests(state=PrimeItems))
@@ -162,7 +163,7 @@ def test_a_change_outside_the_four_tables_still_counts(tmp_path) -> None:
     assert not mapcache.is_current(path, mapcache.digests(state=PrimeItems))
 
 
-def test_deleting_an_object_is_not_the_same_configuration(tmp_path) -> None:
+def test_deleting_an_object_is_not_the_same_configuration(tmp_path: Path) -> None:
     """Fewer Tasks, fewer Tasks drawn."""
     path = _map_file(tmp_path)
     mapcache.remember(path, 10, mapcache.digests(state=PrimeItems))
@@ -172,7 +173,7 @@ def test_deleting_an_object_is_not_the_same_configuration(tmp_path) -> None:
     assert not mapcache.is_current(path, mapcache.digests(state=PrimeItems))
 
 
-def test_putting_the_configuration_back_makes_the_map_current_again(tmp_path) -> None:
+def test_putting_the_configuration_back_makes_the_map_current_again(tmp_path: Path) -> None:
     """Undo included: the test that the digest reads content and not merely 'something happened'."""
     path = _map_file(tmp_path)
     mapcache.remember(path, 10, mapcache.digests(state=PrimeItems))
@@ -188,7 +189,7 @@ def test_putting_the_configuration_back_makes_the_map_current_again(tmp_path) ->
 # ##################################################################################
 # The settings move.  The configuration is untouched, and it still has to be refused.
 # ##################################################################################
-def test_a_changed_setting_is_a_different_map(tmp_path) -> None:
+def test_a_changed_setting_is_a_different_map(tmp_path: Path) -> None:
     """Display detail level decides how much of each Task is drawn."""
     path = _map_file(tmp_path)
     mapcache.remember(path, 10, mapcache.digests(state=PrimeItems))
@@ -210,7 +211,7 @@ def _something_else(value: object) -> object:
 
 
 @pytest.mark.parametrize("name", ProgramArguments.NAMES)
-def test_every_setting_is_part_of_what_was_built(tmp_path, name) -> None:
+def test_every_setting_is_part_of_what_was_built(tmp_path: Path, name) -> None:
     """The settings are not a curated list: every one counts, including one added later,
     without being named here."""
     path = _map_file(tmp_path)
@@ -221,7 +222,7 @@ def test_every_setting_is_part_of_what_was_built(tmp_path, name) -> None:
     assert not mapcache.is_current(path, mapcache.digests(state=PrimeItems))
 
 
-def test_a_changed_colour_is_a_different_map(tmp_path) -> None:
+def test_a_changed_colour_is_a_different_map(tmp_path: Path) -> None:
     """Colours are written into the Map itself, so they are part of what was built."""
     path = _map_file(tmp_path)
     mapcache.remember(path, 10, mapcache.digests(state=PrimeItems))
@@ -234,7 +235,7 @@ def test_a_changed_colour_is_a_different_map(tmp_path) -> None:
 # ##################################################################################
 # The file itself.  Nothing may be handed back that is not still there as it was.
 # ##################################################################################
-def test_a_map_file_that_has_been_written_to_since_is_refused(tmp_path) -> None:
+def test_a_map_file_that_has_been_written_to_since_is_refused(tmp_path: Path) -> None:
     """Something else wrote to it, so what is on disk is no longer what was built."""
     path = _map_file(tmp_path)
     mapcache.remember(path, 10, mapcache.digests(state=PrimeItems))
@@ -244,7 +245,7 @@ def test_a_map_file_that_has_been_written_to_since_is_refused(tmp_path) -> None:
     assert not mapcache.is_current(path, mapcache.digests(state=PrimeItems))
 
 
-def test_a_map_file_that_has_gone_is_refused(tmp_path) -> None:
+def test_a_map_file_that_has_gone_is_refused(tmp_path: Path) -> None:
     """Deleted from under us between one Map and the next."""
     path = _map_file(tmp_path)
     mapcache.remember(path, 10, mapcache.digests(state=PrimeItems))
@@ -254,7 +255,7 @@ def test_a_map_file_that_has_gone_is_refused(tmp_path) -> None:
     assert not mapcache.is_current(path, mapcache.digests(state=PrimeItems))
 
 
-def test_a_different_path_is_refused(tmp_path) -> None:
+def test_a_different_path_is_refused(tmp_path: Path) -> None:
     """The record is about one file, not about any Map anywhere."""
     path = _map_file(tmp_path)
     mapcache.remember(path, 10, mapcache.digests(state=PrimeItems))
@@ -262,7 +263,7 @@ def test_a_different_path_is_refused(tmp_path) -> None:
     assert not mapcache.is_current(str(tmp_path / "Somewhere Else.html"), mapcache.digests(state=PrimeItems))
 
 
-def test_remembering_a_file_that_was_never_written_records_nothing(tmp_path) -> None:
+def test_remembering_a_file_that_was_never_written_records_nothing(tmp_path: Path) -> None:
     """A build that failed before writing leaves nothing to hand back."""
     mapcache.remember(str(tmp_path / "never written.html"), 10, mapcache.digests(state=PrimeItems))
 
@@ -275,7 +276,7 @@ def test_remembering_a_file_that_was_never_written_records_nothing(tmp_path) -> 
 _SYNTHETIC_BACKUP = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "synthetic_backup.xml")
 
 
-def _build_a_map(tmp_path) -> tuple[float, int]:
+def _build_a_map(tmp_path: Path) -> tuple[float, int]:
     """Build the Map the way the GUI does, and report (the file's mtime, its line count)."""
     from maptasker.src.core.runcfg import current_config
     from maptasker.src.mapgen.bildhtml import build_html
@@ -289,7 +290,7 @@ def _build_a_map(tmp_path) -> tuple[float, int]:
 
 
 @pytest.fixture
-def _a_real_configuration(tmp_path, monkeypatch) -> Iterator[None]:
+def _a_real_configuration(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     """A whole loaded configuration and a GUI to build a Map for, in a directory of our own."""
     from maptasker.src.core.actionc import load_arg_specs
     from maptasker.src.core.colrmode import set_color_mode
@@ -314,7 +315,7 @@ def _a_real_configuration(tmp_path, monkeypatch) -> Iterator[None]:
 
 
 @pytest.mark.usefixtures("_a_real_configuration")
-def test_an_unchanged_map_is_not_built_a_second_time(tmp_path) -> None:
+def test_an_unchanged_map_is_not_built_a_second_time(tmp_path: Path) -> None:
     """The whole feature, end to end: the third build leaves the file exactly where it was.
 
     The third and not the second, because the first build of a session settles the
@@ -332,7 +333,7 @@ def test_an_unchanged_map_is_not_built_a_second_time(tmp_path) -> None:
 
 
 @pytest.mark.usefixtures("_a_real_configuration")
-def test_an_edited_configuration_is_built_again(tmp_path) -> None:
+def test_an_edited_configuration_is_built_again(tmp_path: Path) -> None:
     """The other half: a Map that is no longer right is not handed back."""
     _build_a_map(tmp_path)
     _build_a_map(tmp_path)
@@ -349,7 +350,7 @@ def test_an_edited_configuration_is_built_again(tmp_path) -> None:
 # A Map built ahead of time: the very next request is the one that must find it.
 # ##################################################################################
 @pytest.mark.usefixtures("_a_real_configuration")
-def test_a_map_built_ahead_of_time_is_found_by_the_first_request(tmp_path) -> None:
+def test_a_map_built_ahead_of_time_is_found_by_the_first_request(tmp_path: Path) -> None:
     """Without settle() the request after the first build builds again; with it, it is the third that waited for nothing."""
     first_mtime, first_lines = _build_a_map(tmp_path)
     assert mapcache.settle(str(tmp_path / "MapTasker.html"), mapcache.digests(state=PrimeItems))
@@ -361,7 +362,7 @@ def test_a_map_built_ahead_of_time_is_found_by_the_first_request(tmp_path) -> No
 
 
 @pytest.mark.usefixtures("_a_real_configuration")
-def test_a_request_is_still_built_when_the_map_was_not_built_ahead_of_time(tmp_path) -> None:
+def test_a_request_is_still_built_when_the_map_was_not_built_ahead_of_time(tmp_path: Path) -> None:
     """The cost the feature removes: the second build of a session is a real one."""
     first_mtime, _ = _build_a_map(tmp_path)
 
@@ -371,7 +372,7 @@ def test_a_request_is_still_built_when_the_map_was_not_built_ahead_of_time(tmp_p
 
 
 @pytest.mark.usefixtures("_a_real_configuration")
-def test_an_edit_after_a_map_built_ahead_of_time_is_built_again(tmp_path) -> None:
+def test_an_edit_after_a_map_built_ahead_of_time_is_built_again(tmp_path: Path) -> None:
     """Settling vouches for the configuration the build left, not for whatever comes after."""
     first_mtime, _ = _build_a_map(tmp_path)
     mapcache.settle(str(tmp_path / "MapTasker.html"), mapcache.digests(state=PrimeItems))
@@ -383,11 +384,11 @@ def test_an_edit_after_a_map_built_ahead_of_time_is_built_again(tmp_path) -> Non
     assert rebuilt_mtime != first_mtime
 
 
-def test_there_is_nothing_to_settle_before_a_map_has_been_remembered(tmp_path) -> None:
+def test_there_is_nothing_to_settle_before_a_map_has_been_remembered(tmp_path: Path) -> None:
     assert not mapcache.settle(_map_file(tmp_path), mapcache.digests(state=PrimeItems))
 
 
-def test_a_map_file_that_has_been_written_to_since_is_not_settled(tmp_path) -> None:
+def test_a_map_file_that_has_been_written_to_since_is_not_settled(tmp_path: Path) -> None:
     path = _map_file(tmp_path)
     mapcache.remember(path, 10, mapcache.digests(state=PrimeItems))
     _map_file(tmp_path, "<html>something else wrote this</html>")
@@ -396,7 +397,7 @@ def test_a_map_file_that_has_been_written_to_since_is_not_settled(tmp_path) -> N
     assert not mapcache.is_current(path, mapcache.digests(state=PrimeItems))
 
 
-def test_a_different_file_is_not_settled(tmp_path) -> None:
+def test_a_different_file_is_not_settled(tmp_path: Path) -> None:
     path = _map_file(tmp_path)
     mapcache.remember(path, 10, mapcache.digests(state=PrimeItems))
     other = tmp_path / "Other.html"
@@ -405,7 +406,7 @@ def test_a_different_file_is_not_settled(tmp_path) -> None:
     assert not mapcache.settle(str(other), mapcache.digests(state=PrimeItems))
 
 
-def test_settling_keeps_the_settings_the_map_was_built_from(tmp_path) -> None:
+def test_settling_keeps_the_settings_the_map_was_built_from(tmp_path: Path) -> None:
     """A changed setting is still a different Map, settled or not."""
     path = _map_file(tmp_path)
     mapcache.remember(path, 10, mapcache.digests(state=PrimeItems))
@@ -435,7 +436,7 @@ def _task_lines_with_nothing_above(text: str) -> list[str]:
 
 
 @pytest.mark.usefixtures("_a_real_configuration")
-def test_every_task_has_a_blank_line_above_it(tmp_path) -> None:
+def test_every_task_has_a_blank_line_above_it(tmp_path: Path) -> None:
     """The whole Map, end to end: no Task is flush against the line above, and the writer's marker is gone.
 
     This configuration's Tasks already had a gap above them, so what this holds is that the blank line asked for
@@ -456,7 +457,7 @@ def test_every_task_has_a_blank_line_above_it(tmp_path) -> None:
 # The Map's table of variables belongs to the build that made it.
 # ##################################################################################
 @pytest.mark.usefixtures("_a_real_configuration")
-def test_a_variable_left_by_an_earlier_backup_is_not_in_the_map_of_this_one(tmp_path) -> None:
+def test_a_variable_left_by_an_earlier_backup_is_not_in_the_map_of_this_one(tmp_path: Path) -> None:
     """Nothing emptied the table, so a backup picked after another listed the other's globals as its own.
 
     A variable deleted from the file stayed in the Map for as long as the program ran: %Kaka1 to %Kaka89 were
@@ -471,7 +472,7 @@ def test_a_variable_left_by_an_earlier_backup_is_not_in_the_map_of_this_one(tmp_
 
 
 @pytest.mark.usefixtures("_a_real_configuration")
-def test_the_variables_the_loaded_backup_uses_are_still_in_its_map(tmp_path) -> None:
+def test_the_variables_the_loaded_backup_uses_are_still_in_its_map(tmp_path: Path) -> None:
     """The table is emptied before the build fills it, not after: what the file names is there."""
     PrimeItems.variables["%Kaka1"] = {"value": "left over", "project": [], "verified": True}
 

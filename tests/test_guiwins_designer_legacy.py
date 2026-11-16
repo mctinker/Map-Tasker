@@ -13,6 +13,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import copy
+import xml.etree.ElementTree as ET
 from types import SimpleNamespace
 from typing import TYPE_CHECKING, Any
 
@@ -27,7 +28,7 @@ from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
 
 from tests.doubles import fake_window, required
-from tests.nicegui_harness import all_elements, idle
+from tests.nicegui_harness import all_elements, child_text, idle
 from tests.test_mapswap import _load
 
 if TYPE_CHECKING:
@@ -111,7 +112,7 @@ def _texts(user: User) -> list[str]:
     return [e.text for e in all_elements(user) if isinstance(e, ui.label)]
 
 
-def _scene() -> object:
+def _scene() -> ET.Element:
     return _built["edited"].scene_element
 
 
@@ -200,7 +201,7 @@ async def test_clicking_a_row_selects_it_and_shows_its_properties() -> None:
         assert _button(user, "Duplicate").enabled
 
 
-def _row_click(designer: object, label: str, **modifiers: bool) -> None:
+def _row_click(designer: Any, label: str, **modifiers: bool) -> None:
     designer.click_row(SimpleNamespace(args=modifiers), _sr(label))
 
 
@@ -533,7 +534,7 @@ async def test_the_add_sheet_filters_as_you_type_and_enter_picks_the_only_match(
 
 @pytest.mark.asyncio
 async def test_adding_to_an_orientation_with_no_layout_says_so() -> None:
-    _scene().find("widthPort").text = "-1"
+    required(_scene().find("widthPort")).text = "-1"
     async with _open() as user:
         _press(user, "Add")
         _press(user, "Rectangle")
@@ -546,8 +547,8 @@ async def test_adding_to_an_orientation_with_no_layout_says_so() -> None:
 # ##################################################################################
 @pytest.mark.asyncio
 async def test_an_orientation_with_no_size_draws_a_note_instead_of_a_canvas() -> None:
-    _scene().find("widthLand").text = "-1"
-    _scene().find("heightLand").text = "-1"
+    required(_scene().find("widthLand")).text = "-1"
+    required(_scene().find("heightLand")).text = "-1"
     async with _open() as user:
         _built["designer"].set_orientation(True)
         assert any("has no landscape layout" in text for text in _texts(user))
@@ -746,11 +747,7 @@ async def test_a_pending_event_can_be_discarded_and_belongs_only_to_the_element_
 async def test_the_add_event_menu_lists_only_the_events_not_yet_used() -> None:
     async with _open() as user:
         await _select(user, "Button 'Go'")
-        entries = [
-            e.default_slot.children[0].text
-            for e in all_elements(user)
-            if isinstance(e, ui.menu_item) and e.default_slot.children
-        ]
+        entries = [child_text(e) for e in all_elements(user) if isinstance(e, ui.menu_item) and e.default_slot.children]
         assert SCENE_TASK_TYPES["longclickTask"] in entries
         assert SCENE_TASK_TYPES["clickTask"] not in entries, "that event already fires a Task"
 
@@ -894,8 +891,6 @@ _LIST = """<ListElement sr="elements3">
 
 
 def _with_list() -> None:
-    import xml.etree.ElementTree as ET
-
     _scene().append(ET.fromstring(_LIST))
 
 

@@ -26,7 +26,7 @@ from nicegui import core, ui
 from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
 
-from tests.doubles import fake_window
+from tests.doubles import fake_window, stand_in
 from tests.test_livemon import _FIXTURE_XML, _load
 
 if TYPE_CHECKING:
@@ -46,7 +46,7 @@ MORNING = datetime(2026, 10, 19, 6, 30).timestamp() * 1000
 
 def _window(*looks: tuple[float, str, str, str]) -> devicemonitor.Window:
     text = "".join(
-        livemon.FIELD_SEPARATOR.join(str(int(field)) if isinstance(field, float) else field for field in look)
+        livemon.FIELD_SEPARATOR.join(stand_in(str(int(field)) if isinstance(field, float) else field for field in look))
         + livemon.SAMPLE_SEPARATOR
         for look in looks
     )

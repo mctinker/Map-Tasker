@@ -28,6 +28,7 @@ import json
 import re
 from datetime import timedelta
 from pathlib import Path
+from typing import Any
 
 import httpx
 import pytest
@@ -36,7 +37,7 @@ from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.edit import sessundo
 from maptasker.src.mapops import maprestore, tnupdate
 
-from tests.doubles import required
+from tests.doubles import required, stand_in
 from tests.shared_fixtures import _load_local
 
 pytestmark = pytest.mark.usefixtures("_runtime")
@@ -884,7 +885,7 @@ def test_taking_an_update_is_one_press_of_undo() -> None:
     _take(held, "Task", "20")
     assert _live("all_tasks")["20"]["xml"].findtext("Action/Str") == "hello there"
 
-    assert sessundo.undo(state=PrimeItems)
+    assert sessundo.undo(state=PrimeItems)[0]
 
     assert _live("all_tasks")["20"]["xml"].findtext("Action/Str") == "hello"
 
@@ -996,7 +997,7 @@ def test_accepting_takes_every_change_in_one_go_and_in_one_undo() -> None:
     assert _live("all_profiles")["100"]["xml"].findtext("Time/fh") == "7"
     assert _live("all_profiles")["100"]["xml"].findtext("flags") == "10", "still switched on"
 
-    assert sessundo.undo(state=PrimeItems), "one press"
+    assert sessundo.undo(state=PrimeItems)[0], "one press"
 
     names = {entry["name"] for entry in _live("all_tasks").values()}
     assert "Brand New" not in names
@@ -1011,10 +1012,10 @@ def test_a_change_that_cannot_be_made_is_skipped_and_named_and_the_rest_still_go
     held = _review(_V2, accepted=_share())
     real = maprestore.restore
 
-    def refuse_morning(plan: object, state: object) -> tuple[bool, list[str]]:
+    def refuse_morning(plan: Any, state: object) -> tuple[bool, list[str]]:
         if "Morning" in plan.what:
             return False, ["Something stands in the way."]
-        return real(plan, state=state)
+        return real(stand_in(plan), state=stand_in(state))
 
     monkeypatch.setattr(tnupdate.maprestore, "restore", refuse_morning)
 

@@ -24,6 +24,7 @@ import copy
 import dataclasses
 import xml.etree.ElementTree as ET
 from collections.abc import Iterator
+from typing import Any, cast
 
 import pytest
 from maptasker.src.core.dirout import check_profile, check_project, check_scene, check_task
@@ -107,7 +108,7 @@ def test_a_misspelled_setting_is_not_quietly_accepted() -> None:
     with pytest.raises(KeyError):
         _ = RunConfig()["veiw_limit"]
     with pytest.raises(AttributeError):
-        _ = RunConfig().veiw_limit
+        _ = cast("Any", RunConfig()).veiw_limit
 
 
 def test_config_does_not_share_the_list_it_was_built_from() -> None:
@@ -163,7 +164,7 @@ def test_colors_cannot_be_written_through() -> None:
     config = RunConfig(colors={"project_color": "White"})
 
     with pytest.raises(TypeError):
-        config.colors["project_color"] = "Red"
+        cast("dict[str, str]", config.colors)["project_color"] = "Red"
 
     # ...and the source dictionary is copied, not aliased.
     source = {"task_color": "Yellow"}

@@ -101,3 +101,30 @@ def diagram_edge(caller: str, called: str, groups: list[int]) -> DiagramEdge:
 def fake_android_fields(**widgets: object) -> AndroidFields:
     """A Save To Android panel's device fields, built from stand-ins: only the ones a test is about need be given."""
     return cast("AndroidFields", dict(widgets))
+
+
+def stand_in(value: object) -> Any:
+    """`value`, a test double, handed to code that asks for the real thing: a widget, a window or a state it does not need whole.
+
+    For a stand-in that is built on the spot, fake_window / fake_state / fake_config say what it stands in for.  This is
+    for one that already exists -- a recording widget class a test defines, a MagicMock -- where saying which real type
+    it replaces would only repeat the parameter it is passed to.
+    """
+    return value
+
+
+def no_error(value: T | str | list[str]) -> T:
+    """`value`, which the test knows is the object asked for and not the message (or list of messages) that stands in for it.
+
+    The editors' loaders answer with the object or with why they could not make one; a test of the object has nothing to
+    say about the other case, and wants it to fail loudly if it happens.
+    """
+    assert not isinstance(value, (str, list)), f"expected the object, found the error {value!r}"
+    return value
+
+
+def set_attr(target: object, **values: object) -> None:
+    """Set attributes the target's class does not allow a test to give them: no backup loaded (`xml_root=None`), a
+    recording stand-in where the real object goes.  The names are keywords, so a misspelling is at least one place."""
+    for name, value in values.items():
+        setattr(target, name, value)

@@ -9,6 +9,7 @@ registry; loading a configuration (maputils.clear_tasker_data) and a full reset
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from typing import Any, cast
 
 import pytest
@@ -79,7 +80,7 @@ def test_every_cache_the_package_declares_is_registered() -> None:
     [lambda: clear_tasker_data(state=PrimeItems), PrimeItemsReset],
     ids=["new-configuration", "full-reset"],
 )
-def test_loading_another_configuration_empties_every_cache(reset: object) -> None:
+def test_loading_another_configuration_empties_every_cache(reset: Callable[[], None]) -> None:
     """Both ways the program starts over leave nothing of the last configuration behind."""
     cast("Any", globalvr._cross_reference).value = {"%Stale": object()}
     globalvr._cross_reference_key.value = "old configuration"

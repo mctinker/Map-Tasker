@@ -21,7 +21,7 @@ class _Output:
     """The Map's output, as a list of what was added to it."""
 
     def __init__(self) -> None:
-        self.lines: list[tuple[int, str, list]] = []
+        self.lines: list[tuple[int, str, object]] = []
 
     def add_line_to_output(self, level: int, text: str, format_spec: object) -> None:
         self.lines.append((level, text, format_spec))

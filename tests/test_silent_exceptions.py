@@ -1,3 +1,5 @@
+# pyright: reportPrivateUsage=false
+# (this test checks private helpers on purpose)
 """Silent exception handling: what is swallowed, what is narrowed, and what is logged.
 
 Each of these used to hide a real bug behind a handler meant for one expected case:

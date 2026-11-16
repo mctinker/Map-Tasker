@@ -44,6 +44,8 @@ from maptasker.src.mapgen import (
 )
 from maptasker.src.mapgen.lineout import LineOut
 
+from tests.doubles import required
+
 
 @pytest.fixture(autouse=True)
 def _clean_globals() -> None:
@@ -343,7 +345,7 @@ def test_the_two_settings_the_build_writes_are_never_read_from_the_config() -> N
     the modules that now take their settings as a parameter.
     """
     for module in (projects, proclist, profiles, scenes, taskactn, tasks, taskuniq, diagram, outline):
-        source = Path(module.__file__).read_text(encoding="utf-8")
+        source = Path(required(module.__file__)).read_text(encoding="utf-8")
 
         assert "config.single_project_name" not in source, module.__name__
         assert "config.single_profile_name" not in source, module.__name__

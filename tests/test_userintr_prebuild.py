@@ -10,7 +10,7 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Iterator
 from types import SimpleNamespace
-from typing import Any
+from typing import Any, cast
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -95,7 +95,7 @@ async def _look_until_started(handlers: _Handlers) -> None:
     handlers.prebuild_tick()
     handlers.prebuild_tick()
     if _building.task is not None:
-        await _building.task
+        await cast("Any", _building.task)
 
 
 # ##################################################################################
@@ -110,7 +110,7 @@ async def test_a_loaded_configuration_is_built_for_on_the_second_look(seen: Simp
 
     handlers.prebuild_tick()
     assert _building.task is not None
-    await _building.task
+    await cast("Any", _building.task)
     assert seen.built == [""]
 
 
@@ -176,7 +176,7 @@ async def test_a_load_that_changes_under_the_looks_is_waited_out(seen: SimpleNam
 
     handlers.prebuild_tick()
     assert _building.task is not None
-    await _building.task
+    await cast("Any", _building.task)
 
 
 @pytest.mark.asyncio
@@ -290,7 +290,7 @@ async def test_a_selection_still_being_made_is_waited_out(seen: SimpleNamespace)
 
     handlers.prebuild_tick()
     assert _building.task is not None
-    await _building.task
+    await cast("Any", _building.task)
     assert seen.built == [""]
 
 
@@ -449,7 +449,7 @@ async def test_a_wait_that_is_given_up_does_not_stop_the_build() -> None:
 
     assert handlers.prebuild_running(), "giving up the wait cancelled the build"
     release.set()
-    await _building.task
+    await cast("Any", _building.task)
 
 
 def _event_handlers() -> MapTaskerEventHandlers:
@@ -560,7 +560,7 @@ async def test_a_second_set_of_handlers_does_not_build_while_the_first_is_buildi
         second.prebuild_tick()
         started = _building.task
         release.set()
-        await started
+        await cast("Any", started)
 
     assert seen.built == [""], "two windows built the Map at once"
 

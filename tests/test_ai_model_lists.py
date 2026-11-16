@@ -19,7 +19,7 @@ from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.gui import userintr_ai
 from maptasker.src.gui.userintr import MyGui
 
-from tests.doubles import fake_window
+from tests.doubles import fake_window, set_attr
 
 
 def _a_window(*, initialization: bool) -> tuple[MyGui, list[str]]:
@@ -52,7 +52,7 @@ def test_ticking_the_checkbox_hands_back_the_fetch_to_run() -> None:
     assert started == ["fetch"]
 
 
-def test_a_dropped_connection_while_listing_gemini_gives_the_built_in_list(monkeypatch) -> None:
+def test_a_dropped_connection_while_listing_gemini_gives_the_built_in_list(monkeypatch: pytest.MonkeyPatch) -> None:
     """The error from the field: the SSL handshake cut short mid-list.  No traceback."""
 
     class _DroppedConnection:
@@ -94,7 +94,7 @@ def _ollama_package(monkeypatch: pytest.MonkeyPatch) -> None:
     they should not depend on the real one being installed.
     """
     fake = ModuleType("ollama")
-    fake.ResponseError = type("ResponseError", (Exception,), {})
+    set_attr(fake, ResponseError=type("ResponseError", (Exception,), {}))
     monkeypatch.setitem(sys.modules, "ollama", fake)
 
 
@@ -125,8 +125,8 @@ def _an_openai(error: BaseException) -> ModuleType:
             raise error
 
     openai_lib = ModuleType("openai")
-    openai_lib.OpenAI = _Client
-    openai_lib.OpenAIError = _OpenAIError
+    set_attr(openai_lib, OpenAI=_Client)
+    set_attr(openai_lib, OpenAIError=_OpenAIError)
     return openai_lib
 
 
@@ -134,7 +134,7 @@ class _OpenAIError(Exception):
     """Stands in for openai.OpenAIError, the base of everything the SDK raises."""
 
 
-def test_an_openai_error_while_listing_gives_the_built_in_list(monkeypatch) -> None:
+def test_an_openai_error_while_listing_gives_the_built_in_list(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setitem(PrimeItems.ai, "openai_key", "a-key")
     monkeypatch.setattr(aiutils, "import_optional", lambda *_args: _an_openai(_OpenAIError("bad key")))
     reported = []
@@ -144,7 +144,7 @@ def test_an_openai_error_while_listing_gives_the_built_in_list(monkeypatch) -> N
     assert any("bad key" in message for message in reported)
 
 
-def test_a_bug_while_listing_openai_models_is_not_hidden(monkeypatch) -> None:
+def test_a_bug_while_listing_openai_models_is_not_hidden(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setitem(PrimeItems.ai, "openai_key", "a-key")
     monkeypatch.setattr(aiutils, "import_optional", lambda *_args: _an_openai(TypeError("a bug")))
 

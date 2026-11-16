@@ -1,3 +1,5 @@
+# pyright: reportPrivateUsage=false
+# (this test checks private helpers on purpose)
 """Named Tasks that no Profile calls are in the Map's directory.
 
 A Task that no Profile calls and no Project lists is written in its own section at the end of the Map ("Named Tasks that

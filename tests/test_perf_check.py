@@ -1,3 +1,5 @@
+# pyright: reportPrivateUsage=false
+# (this test checks private helpers on purpose)
 """scripts/perf_check.py: the backup it times, and what it makes of the timings.
 
 What is timed has to be a backup MapTasker loads cleanly and whose objects are all there however many copies

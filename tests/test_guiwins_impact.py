@@ -18,7 +18,7 @@ from maptasker.src.gui import guiwins_impact
 from nicegui import core, ui
 from nicegui.testing.user_simulation import user_simulation
 
-from tests.doubles import fake_window
+from tests.doubles import fake_window, stand_in
 
 _drawn: dict = {}
 
@@ -157,7 +157,7 @@ def test_the_wiring_is_installed_by_polling_until_the_browser_has_the_panel(monk
     monkeypatch.setattr(guiwins_impact.ui, "run_javascript", sent.append)
     gui = fake_window()
 
-    guiwins_impact.wire_impact_clicks(gui, SimpleNamespace(id=42))
+    guiwins_impact.wire_impact_clicks(gui, stand_in(SimpleNamespace(id=42)))
 
     assert registered == [gui]
     [(delay, callback, kwargs)] = timers

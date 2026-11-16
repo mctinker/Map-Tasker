@@ -16,8 +16,9 @@ personal backup is needed.
 
 from __future__ import annotations
 
-import os
 import xml.etree.ElementTree as ET
+from collections.abc import Callable
+from pathlib import Path
 
 import pytest
 from maptasker.src.core import editcommon
@@ -126,6 +127,11 @@ def _backup() -> None:
     _load(_XML)
 
 
+def _new(name: str) -> profedit.EditableProfile:
+    """A new Profile of this name, which the test knows can be made."""
+    return expect(profedit.create_new_profile(name, state=PrimeItems), EditableProfile)
+
+
 def _edit(name: str) -> profedit.EditableProfile:
     edited = profedit.load_profile_for_edit(name, state=PrimeItems)
     assert edited is not None
@@ -157,7 +163,7 @@ def _project(name: str) -> ET.Element:
 # Loading, and the copy being the only thing an edit touches.
 # ##################################################################################
 def test_a_profile_is_found_by_its_name() -> None:
-    profile_id, element = profedit.resolve_profile_by_name("Morning", state=PrimeItems)
+    profile_id, element = required(profedit.resolve_profile_by_name("Morning", state=PrimeItems))
 
     assert profile_id == "100"
     assert element is _live("Morning")
@@ -214,7 +220,9 @@ def test_a_new_profile_has_the_metadata_real_ones_have() -> None:
 def test_a_new_profile_needs_a_backup_to_take_an_id_from(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(PrimeItems, "xml_root", None)
 
-    assert "Load a Tasker backup" in profedit.create_new_profile("x", state=PrimeItems)
+    refused = profedit.create_new_profile("x", state=PrimeItems)
+    assert isinstance(refused, str)
+    assert "Load a Tasker backup" in refused
 
 
 # ##################################################################################
@@ -290,9 +298,9 @@ def test_removing_a_condition_that_is_not_there_does_nothing() -> None:
     ],
 )
 def test_a_new_condition_starts_from_sensible_defaults(cond_type: str, children: dict[str, str]) -> None:
-    edited = profedit.create_new_profile("P", state=PrimeItems)
+    edited = _new("P")
 
-    added = profedit.add_condition_to_profile(expect(edited, EditableProfile), cond_type)
+    added = expect(profedit.add_condition_to_profile(edited, cond_type), profedit.EditableCondition)
 
     assert isinstance(added, profedit.EditableCondition)
     assert added.condition_element in list(edited.profile_element)
@@ -302,10 +310,10 @@ def test_a_new_condition_starts_from_sensible_defaults(cond_type: str, children:
 
 
 def test_conditions_added_one_after_another_are_numbered_in_order() -> None:
-    edited = profedit.create_new_profile("P", state=PrimeItems)
+    edited = _new("P")
 
-    first = profedit.add_condition_to_profile(expect(edited, EditableProfile), "Time")
-    second = profedit.add_condition_to_profile(expect(edited, EditableProfile), "Loc")
+    first = expect(profedit.add_condition_to_profile(edited, "Time"), profedit.EditableCondition)
+    second = expect(profedit.add_condition_to_profile(edited, "Loc"), profedit.EditableCondition)
 
     assert (first.cond_index, second.cond_index) == (0, 1)
     assert second.condition_element.get("sr") == "con1"
@@ -313,9 +321,9 @@ def test_conditions_added_one_after_another_are_numbered_in_order() -> None:
 
 @pytest.mark.parametrize("cond_type", ["Event", "State", "Nonsense", ""])
 def test_only_the_flat_condition_types_are_added_by_type_name(cond_type: str) -> None:
-    edited = profedit.create_new_profile("P", state=PrimeItems)
+    edited = _new("P")
 
-    refused = profedit.add_condition_to_profile(expect(edited, EditableProfile), cond_type)
+    refused = profedit.add_condition_to_profile(edited, cond_type)
 
     assert isinstance(refused, list)
     assert "isn't supported here" in refused[0]
@@ -346,9 +354,9 @@ def test_the_list_is_remembered_between_calls() -> None:
 
 
 def test_an_event_is_added_with_a_priority_and_its_arguments() -> None:
-    edited = profedit.create_new_profile("P", state=PrimeItems)
+    edited = _new("P")
 
-    added = profedit.add_event_condition_to_profile(expect(edited, EditableProfile), "7e", state=PrimeItems)
+    added = profedit.add_event_condition_to_profile(edited, "7e", state=PrimeItems)
 
     assert isinstance(added, profedit.EditableCondition)
     assert added.cond_type == "Event"
@@ -359,9 +367,9 @@ def test_an_event_is_added_with_a_priority_and_its_arguments() -> None:
 
 
 def test_a_state_is_added_without_a_priority() -> None:
-    edited = profedit.create_new_profile("P", state=PrimeItems)
+    edited = _new("P")
 
-    added = profedit.add_state_condition_to_profile(expect(edited, EditableProfile), "123s", state=PrimeItems)
+    added = profedit.add_state_condition_to_profile(edited, "123s", state=PrimeItems)
 
     assert isinstance(added, profedit.EditableCondition)
     assert added.cond_type == "State"
@@ -371,14 +379,14 @@ def test_a_state_is_added_without_a_priority() -> None:
 
 
 def test_a_code_that_cannot_be_built_is_refused_and_added_nowhere() -> None:
-    edited = profedit.create_new_profile("P", state=PrimeItems)
+    edited = _new("P")
     refused_key = next(
         row["condition_key"] for row in profedit.list_addable_events(state=PrimeItems) if not row["addable"]
     )
 
     for result in (
-        profedit.add_event_condition_to_profile(expect(edited, EditableProfile), refused_key, state=PrimeItems),
-        profedit.add_event_condition_to_profile(expect(edited, EditableProfile), "999999999e", state=PrimeItems),
+        profedit.add_event_condition_to_profile(edited, refused_key, state=PrimeItems),
+        profedit.add_event_condition_to_profile(edited, "999999999e", state=PrimeItems),
     ):
         assert isinstance(result, list)
         assert result[0]
@@ -402,10 +410,10 @@ def test_linking_a_task_replaces_the_one_before() -> None:
 
 def test_a_new_link_goes_before_the_name_where_tasker_puts_it() -> None:
     """profiles.get_profile_tasks stops at <nme>: a link after it would be silently dropped."""
-    edited = profedit.create_new_profile("P", state=PrimeItems)
+    edited = _new("P")
 
-    profedit.link_task_to_profile(expect(edited, EditableProfile), "20", "Entry")
-    profedit.link_task_to_profile(expect(edited, EditableProfile), "21", "Exit")
+    profedit.link_task_to_profile(edited, "20", "Entry")
+    profedit.link_task_to_profile(edited, "21", "Exit")
 
     tags = [child.tag for child in edited.profile_element]
     assert tags.index("mid0") < tags.index("nme")
@@ -501,8 +509,8 @@ def test_a_time_condition_reads_for_display() -> None:
 
 
 def test_a_time_condition_with_variables_and_no_repeat_reads_for_display() -> None:
-    edited = profedit.create_new_profile("P", state=PrimeItems)
-    condition = profedit.add_condition_to_profile(expect(edited, EditableProfile), "Time")
+    edited = _new("P")
+    condition = expect(profedit.add_condition_to_profile(edited, "Time"), profedit.EditableCondition)
     for tag, text in (("fromvar", "%start"), ("tovar", "%stop")):
         ET.SubElement(condition.condition_element, tag).text = text
 
@@ -515,8 +523,8 @@ def test_a_time_condition_with_variables_and_no_repeat_reads_for_display() -> No
 
 
 def test_garbage_in_the_hour_and_minute_reads_as_midnight() -> None:
-    edited = profedit.create_new_profile("P", state=PrimeItems)
-    condition = profedit.add_condition_to_profile(expect(edited, EditableProfile), "Time")
+    edited = _new("P")
+    condition = expect(profedit.add_condition_to_profile(edited, "Time"), profedit.EditableCondition)
     required(condition.condition_element.find("fh")).text = "soon"
     required(condition.condition_element.find("fm")).text = None
 
@@ -654,8 +662,8 @@ def test_a_day_condition_reads_each_selection() -> None:
 
 
 def test_a_day_selection_ignores_what_is_not_a_number_and_repeats() -> None:
-    edited = profedit.create_new_profile("P", state=PrimeItems)
-    condition = profedit.add_condition_to_profile(expect(edited, EditableProfile), "Day")
+    edited = _new("P")
+    condition = expect(profedit.add_condition_to_profile(edited, "Day"), profedit.EditableCondition)
     for tag, text in (("wday0", "4"), ("wday1", "oops"), ("wday2", "4"), ("wday3", None), ("wday4", "1")):
         ET.SubElement(condition.condition_element, tag).text = text
 
@@ -782,31 +790,27 @@ def test_state_and_event_values_are_written_through_the_argument_machinery() -> 
 
 def test_a_bad_number_in_an_event_is_refused_and_says_which_condition() -> None:
     """Only a plain-number argument can fail: a dropdown or checkbox is whatever the dialog offered."""
-    edited = profedit.create_new_profile("P", state=PrimeItems)
-    event = profedit.add_event_condition_to_profile(
-        expect(edited, EditableProfile), "599e", state=PrimeItems
+    edited = _new("P")
+    event = expect(
+        profedit.add_event_condition_to_profile(edited, "599e", state=PrimeItems), profedit.EditableCondition
     )  # Intent Received
     before = _xml(edited.profile_element)
     priority = profedit.condition_arg_key(event.cond_index, "5")
 
-    errors = profedit.apply_edits_to_profile(
-        expect(edited, EditableProfile), "P", {priority: "urgent"}, state=PrimeItems
-    )
+    errors = profedit.apply_edits_to_profile(edited, "P", {priority: "urgent"}, state=PrimeItems)
 
     assert errors == ["'Priority' must be a whole number. (Event condition 0)"]
     assert _xml(edited.profile_element) == before
 
-    assert (
-        profedit.apply_edits_to_profile(expect(edited, EditableProfile), "P", {priority: "-3"}, state=PrimeItems) == []
-    )
+    assert profedit.apply_edits_to_profile(edited, "P", {priority: "-3"}, state=PrimeItems) == []
     assert required(event.condition_element.find("Int[@sr='arg5']")).get("val") == "-3"
 
 
 def test_a_condition_with_nothing_to_edit_is_skipped() -> None:
-    edited = profedit.create_new_profile("P", state=PrimeItems)
-    profedit.add_state_condition_to_profile(expect(edited, EditableProfile), "100s", state=PrimeItems)
+    edited = _new("P")
+    profedit.add_state_condition_to_profile(edited, "100s", state=PrimeItems)
 
-    assert profedit.apply_edits_to_profile(expect(edited, EditableProfile), "P", {}, state=PrimeItems) == []
+    assert profedit.apply_edits_to_profile(edited, "P", {}, state=PrimeItems) == []
 
 
 # ##################################################################################
@@ -857,7 +861,7 @@ def test_a_name_is_taken_when_a_profile_has_it() -> None:
     assert profedit.profile_name_exists("Fresh", state=PrimeItems) is False
 
 
-def test_an_existing_file_is_noticed(tmp_path: os.PathLike) -> None:
+def test_an_existing_file_is_noticed(tmp_path: Path) -> None:
     target = tmp_path / "x.prf.xml"
     assert profedit.save_path_exists(str(target)) is False
 
@@ -925,7 +929,7 @@ def test_the_export_can_have_its_secrets_taken_out() -> None:
     assert "hunter2" not in redacted
 
 
-def test_writing_a_file_takes_a_safety_copy_of_what_it_replaces(tmp_path: os.PathLike) -> None:
+def test_writing_a_file_takes_a_safety_copy_of_what_it_replaces(tmp_path: Path) -> None:
     target = tmp_path / "Morning.prf.xml"
     target.write_text("<old/>", encoding="utf-8")
 
@@ -937,7 +941,7 @@ def test_writing_a_file_takes_a_safety_copy_of_what_it_replaces(tmp_path: os.Pat
         assert copy.read() == "<old/>"
 
 
-def test_writing_a_new_file_has_nothing_to_copy(tmp_path: os.PathLike) -> None:
+def test_writing_a_new_file_has_nothing_to_copy(tmp_path: Path) -> None:
     target = tmp_path / "New.prf.xml"
 
     safety = profedit.write_standalone_profile_xml(_edit("Morning"), str(target), state=PrimeItems)
@@ -946,7 +950,7 @@ def test_writing_a_new_file_has_nothing_to_copy(tmp_path: os.PathLike) -> None:
     assert target.exists()
 
 
-def test_an_unwritable_path_raises(tmp_path: os.PathLike) -> None:
+def test_an_unwritable_path_raises(tmp_path: Path) -> None:
     with pytest.raises(OSError):
         profedit.write_standalone_profile_xml(
             _edit("Morning"), str(tmp_path / "no" / "such" / "x.xml"), state=PrimeItems
@@ -961,7 +965,7 @@ def test_saving_to_android_uploads_the_rendered_profile(monkeypatch: pytest.Monk
         ip_address: str,
         ip_port: str,
         name: str,
-        render_bytes: object,
+        render_bytes: Callable[[], bytes],
     ) -> tuple[int, str, bytes]:
         seen.update(kind=kind, address=ip_address, port=ip_port, name=name, body=render_bytes())
         return 0, "/Tasker/profiles/Morning.prf.xml", b""

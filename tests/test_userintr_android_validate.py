@@ -9,11 +9,14 @@ The device and the page are faked -- run.io_bound just calls what it is given --
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Callable
 from types import SimpleNamespace
 from typing import Any
 
 import pytest
 from maptasker.src.gui import userintr_android, userintr_android_support
+
+from tests.doubles import stand_in
 
 IP, PORT, FILE = "192.168.0.5", "1821", "/sdcard/backup.xml"
 
@@ -22,7 +25,7 @@ IP, PORT, FILE = "192.168.0.5", "1821", "/sdcard/backup.xml"
 def gui(monkeypatch: pytest.MonkeyPatch) -> SimpleNamespace:
     """A stand-in window that records the messages shown, with run.io_bound calling straight through."""
 
-    async def io_bound(function: object, *arguments: Any, **keywords: Any) -> object:
+    async def io_bound(function: Callable[..., object], *arguments: Any, **keywords: Any) -> object:
         return function(*arguments, **keywords)
 
     monkeypatch.setattr(userintr_android_support, "run", SimpleNamespace(io_bound=io_bound))
@@ -46,7 +49,7 @@ async def test_a_good_file_returns_zero_and_the_same_details(
 ) -> None:
     _device(monkeypatch, fetch=(0, b""), validate=(0, ""))
 
-    result = await userintr_android.validate_or_filelist_xml(gui, IP, PORT, FILE)
+    result = await userintr_android.validate_or_filelist_xml(stand_in(gui), IP, PORT, FILE)
 
     assert result == (0, IP, PORT, FILE)
     assert gui.state.program_arguments.gui is True
@@ -58,7 +61,7 @@ async def test_a_saved_backup_says_where_it_was_saved(gui: SimpleNamespace, monk
     gui.state.backup_fetch_path = "/Users/me/MapTasker/backup.xml"
     _device(monkeypatch, fetch=(0, b""), validate=(0, ""))
 
-    result = await userintr_android.validate_or_filelist_xml(gui, IP, PORT, FILE)
+    result = await userintr_android.validate_or_filelist_xml(stand_in(gui), IP, PORT, FILE)
 
     assert result[0] == 0
     assert gui.shown == [("Backup file saved to /Users/me/MapTasker/backup.xml", "Green")]
@@ -68,7 +71,7 @@ async def test_a_saved_backup_says_where_it_was_saved(gui: SimpleNamespace, monk
 async def test_a_file_that_cannot_be_fetched_returns_one(gui: SimpleNamespace, monkeypatch: pytest.MonkeyPatch) -> None:
     _device(monkeypatch, fetch=(1, b"unreachable"), validate=pytest.fail)
 
-    assert await userintr_android.validate_or_filelist_xml(gui, IP, PORT, FILE) == (1, IP, PORT, FILE)
+    assert await userintr_android.validate_or_filelist_xml(stand_in(gui), IP, PORT, FILE) == (1, IP, PORT, FILE)
 
 
 @pytest.mark.asyncio
@@ -81,12 +84,12 @@ async def test_a_cancelled_fetch_or_check_ends_the_call_quietly(
     _device(monkeypatch, fetch=(0, b""), validate=(0, ""))
     monkeypatch.setattr(userintr_android_support, "http_request", cancelled)
     with pytest.raises(asyncio.CancelledError):
-        await userintr_android.validate_or_filelist_xml(gui, IP, PORT, FILE)
+        await userintr_android.validate_or_filelist_xml(stand_in(gui), IP, PORT, FILE)
 
     _device(monkeypatch, fetch=(0, b""), validate=(0, ""))
     monkeypatch.setattr(userintr_android_support, "validate_xml_file", cancelled)
     with pytest.raises(asyncio.CancelledError):
-        await userintr_android.validate_or_filelist_xml(gui, IP, PORT, FILE)
+        await userintr_android.validate_or_filelist_xml(stand_in(gui), IP, PORT, FILE)
     assert gui.shown == []
 
 
@@ -96,7 +99,7 @@ async def test_a_file_that_is_not_valid_xml_shows_why_in_red_and_returns_one(
 ) -> None:
     _device(monkeypatch, fetch=(0, b""), validate=(3, "not a Tasker backup"))
 
-    assert await userintr_android.validate_or_filelist_xml(gui, IP, PORT, FILE) == (1, IP, PORT, FILE)
+    assert await userintr_android.validate_or_filelist_xml(stand_in(gui), IP, PORT, FILE) == (1, IP, PORT, FILE)
     assert gui.shown == [("not a Tasker backup", "Red")]
 
 
@@ -116,7 +119,7 @@ async def test_no_file_or_an_explicit_list_request_offers_the_list_instead(
     monkeypatch.setattr(userintr_android_support, "_offer_file_list", offer)
     monkeypatch.setattr(userintr_android_support, "_validate_chosen_file", pytest.fail)
 
-    assert await userintr_android.validate_or_filelist_xml(gui, IP, PORT, file) == (2, "", "", "")
+    assert await userintr_android.validate_or_filelist_xml(stand_in(gui), IP, PORT, file) == (2, "", "", "")
     assert asked == [(IP, PORT, file)]
 
 
@@ -130,7 +133,7 @@ async def test_a_listing_that_fails_shows_the_reason_and_returns_one(
         userintr_android_support.devicefiles, "get_list_of_files", lambda *_a, **_k: (1, "device not found")
     )
 
-    result = await userintr_android.validate_or_filelist_xml(gui, IP, PORT, "")
+    result = await userintr_android.validate_or_filelist_xml(stand_in(gui), IP, PORT, "")
 
     assert result == (1, IP, PORT, "")
     assert gui.shown == [("device not found", "Red")]
@@ -148,7 +151,7 @@ async def test_a_listing_that_works_mounts_the_picker_and_suspends_the_fetch(
     )
     monkeypatch.setattr(userintr_android_support, "_mount_file_picker", lambda _gui, files: mounted.append(files))
 
-    result = await userintr_android.validate_or_filelist_xml(gui, IP, PORT, "")
+    result = await userintr_android.validate_or_filelist_xml(stand_in(gui), IP, PORT, "")
 
     assert result == (2, "", "", ""), "2 means: wait for the user to pick a file"
     assert mounted == [["a.xml", "b.xml"]]

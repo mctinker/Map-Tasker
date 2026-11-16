@@ -19,7 +19,7 @@ from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.gui import guiwins_search
 from nicegui import ui
 
-from tests.doubles import required
+from tests.doubles import required, stand_in
 from tests.nicegui_harness import all_elements, idle
 from tests.search_dialog import built, by_text, click, field, labels, links, open_dialog, press_find, select
 from tests.test_mapfind import _FIXTURE_XML, _load
@@ -282,8 +282,8 @@ async def test_ask_with_no_model_chosen_reports_why(monkeypatch: pytest.MonkeyPa
 async def test_a_translated_question_fills_the_boxes_and_runs_the_query(monkeypatch: pytest.MonkeyPatch) -> None:
     translation = mapask.Translation(
         query=mapfind.Query(text="quietly"),
-        unknown=["a thing nobody uses"],
-        surplus=[],
+        unknown=stand_in(["a thing nobody uses"]),
+        surplus=stand_in([]),
         unexpressed="",
     )
 
@@ -306,7 +306,7 @@ async def test_a_translated_question_fills_the_boxes_and_runs_the_query(monkeypa
 @pytest.mark.asyncio
 async def test_a_question_that_comes_back_empty_says_so_and_clears_the_list(monkeypatch: pytest.MonkeyPatch) -> None:
     async def translate(question: str, index: object, settings: object) -> mapask.Translation:
-        return mapask.Translation(query=mapfind.Query(), unknown=[], surplus=[], unexpressed="")
+        return mapask.Translation(query=mapfind.Query(), unknown=stand_in([]), surplus=stand_in([]), unexpressed="")
 
     monkeypatch.setattr(mapask, "model_settings", lambda *_a, **_k: object())
     monkeypatch.setattr(mapask, "translate", translate)

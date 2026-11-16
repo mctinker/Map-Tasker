@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+from typing import Any, cast
 
 import pytest
 from maptasker.src.analysis import diffload
@@ -24,7 +25,7 @@ from maptasker.src.core.sysconst import ERROR_FILE
 from maptasker.src.mapgen import taskerd
 from maptasker.src.mapgen.lineout import LineOut
 
-from tests.doubles import required
+from tests.doubles import required, set_attr, stand_in
 
 _GOOD_XML = """<TaskerData sr="" dvi="1" tv="6.5.6">
   <Project sr="proj0" ve="2"><cdate>1</cdate><id>1</id><name>Loaded</name>
@@ -63,7 +64,7 @@ _MALFORMED_XML = "<TaskerData><Project><name>Unclosed</name>"
 _NOT_TASKER_XML = "<SomethingElse><Project><name>Wrong root</name></Project></SomethingElse>"
 
 
-def _write(tmp_path, name: str, text: str) -> str:
+def _write(tmp_path: Path, name: str, text: str) -> str:
     """Put fixture XML on disk and hand back its path."""
     path = tmp_path / name
     path.write_text(text, encoding="utf-8")
@@ -100,7 +101,7 @@ def _snapshot() -> dict:
 
 
 @pytest.fixture(autouse=True)
-def _runtime(tmp_path, monkeypatch):
+def _runtime(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     """A believable runtime: a loaded configuration, and a working directory of our own.
 
     chdir matters -- record_error writes ERROR_FILE into the current directory, and
@@ -122,7 +123,7 @@ def _runtime(tmp_path, monkeypatch):
 # ##################################################################################
 # The success case, and the round trip that is the whole point of the module.
 # ##################################################################################
-def test_the_other_file_is_actually_parsed(tmp_path) -> None:
+def test_the_other_file_is_actually_parsed(tmp_path: Path) -> None:
     """The returned Configuration holds the OTHER file's objects, not the loaded one's."""
     other = _write(tmp_path, "other.xml", _OTHER_XML)
     configuration, message = diffload.load_for_comparison(other, state=PrimeItems)
@@ -135,7 +136,7 @@ def test_the_other_file_is_actually_parsed(tmp_path) -> None:
     assert required(configuration.root).findtext("Variable/n") == "%other"
 
 
-def test_the_loaded_configuration_is_untouched(tmp_path) -> None:
+def test_the_loaded_configuration_is_untouched(tmp_path: Path) -> None:
     """Nothing about the loaded configuration moves -- same objects, not merely equal ones.
 
     Identity rather than equality on purpose: handing the rest of the program a table
@@ -152,7 +153,7 @@ def test_the_loaded_configuration_is_untouched(tmp_path) -> None:
     assert PrimeItems.tasker_root_elements["all_tasks"]["20"]["name"] == "Runner"
 
 
-def test_a_derived_profile_name_lands_on_the_other_file_not_the_loaded_one(tmp_path) -> None:
+def test_a_derived_profile_name_lands_on_the_other_file_not_the_loaded_one(tmp_path: Path) -> None:
     """The write-back that makes the whole swap necessary, tested end to end.
 
     profiles.conditions_to_name writes an unnamed Profile's derived name into
@@ -171,7 +172,7 @@ def test_a_derived_profile_name_lands_on_the_other_file_not_the_loaded_one(tmp_p
 # ##################################################################################
 # The failure cases.
 # ##################################################################################
-def test_a_malformed_file_reports_and_does_not_exit(tmp_path) -> None:
+def test_a_malformed_file_reports_and_does_not_exit(tmp_path: Path) -> None:
     """A corrupt comparison file must never take the program down.
 
     taskerd raises MapTaskerError for a parse failure.  This test runs with "gui" False
@@ -191,7 +192,7 @@ def test_a_malformed_file_reports_and_does_not_exit(tmp_path) -> None:
         assert _snapshot()[name] is value, f"PrimeItems.{name} was not restored after a bad file"
 
 
-def test_a_non_tasker_file_is_named_as_such(tmp_path) -> None:
+def test_a_non_tasker_file_is_named_as_such(tmp_path: Path) -> None:
     """Valid XML that is not a Tasker backup gets its own message, not "invalid XML"."""
     configuration, message = diffload.load_for_comparison(
         _write(tmp_path, "other.xml", _NOT_TASKER_XML), state=PrimeItems
@@ -200,7 +201,7 @@ def test_a_non_tasker_file_is_named_as_such(tmp_path) -> None:
     assert "not a valid Tasker backup file" in message or "not a Tasker backup file" in message
 
 
-def test_a_missing_file_reports_rather_than_raises(tmp_path) -> None:
+def test_a_missing_file_reports_rather_than_raises(tmp_path: Path) -> None:
     """A file that is not there is a message, not an exception out of the button handler.
 
     And it says the file could not be READ.  Routing it through the parse verdicts would
@@ -221,7 +222,7 @@ def test_a_missing_file_reports_rather_than_raises(tmp_path) -> None:
     ("name", "text"),
     [("bad.xml", _MALFORMED_XML), ("other.xml", _NOT_TASKER_XML), ("nowhere.xml", None)],
 )
-def test_a_failure_message_never_shows_the_temporary_copy(tmp_path, name: str, text: str | None) -> None:
+def test_a_failure_message_never_shows_the_temporary_copy(tmp_path: Path, name: str, text: str | None) -> None:
     """The user is told the file they chose, never the scratch copy that was parsed.
 
     taskerd's error text embeds the path it was handed, which is the temporary copy.  A
@@ -238,14 +239,14 @@ def test_a_failure_message_never_shows_the_temporary_copy(tmp_path, name: str, t
     assert str(tmp_path) in message or message.count(name) >= 1
 
 
-def test_no_file_chosen(tmp_path) -> None:
+def test_no_file_chosen(tmp_path: Path) -> None:
     """Cancelling the file picker hands back an empty path, and is not an error state."""
     configuration, message = diffload.load_for_comparison("", state=PrimeItems)
     assert configuration is None
     assert "No file was chosen" in message
 
 
-def test_an_exception_inside_the_window_still_restores(tmp_path) -> None:
+def test_an_exception_inside_the_window_still_restores(tmp_path: Path) -> None:
     """The restore is in a finally, and that is not decoration.
 
     Raising through the context manager is also the case that would trip a generator
@@ -263,7 +264,7 @@ def test_an_exception_inside_the_window_still_restores(tmp_path) -> None:
 # ##################################################################################
 # The side effects that would outlive the comparison.
 # ##################################################################################
-def test_the_user_file_is_never_the_one_parsed(tmp_path, monkeypatch) -> None:
+def test_the_user_file_is_never_the_one_parsed(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """A copy is parsed, never the file the user picked.
 
     Loading a backup does not write to it, so this is a second line of defence rather than the only one: a
@@ -276,8 +277,8 @@ def test_the_user_file_is_never_the_one_parsed(tmp_path, monkeypatch) -> None:
     real_get_the_xml_data = diffload.get_the_xml_data
 
     def spy(*, state: object) -> None:
-        parsed_paths.append(required(PrimeItems.file_to_get).name)
-        real_get_the_xml_data(state=state)
+        parsed_paths.append(cast("Any", required(PrimeItems.file_to_get)).name)
+        real_get_the_xml_data(state=stand_in(state))
 
     monkeypatch.setattr(diffload, "get_the_xml_data", spy)
     configuration, message = diffload.load_for_comparison(other, state=PrimeItems)
@@ -290,7 +291,7 @@ def test_the_user_file_is_never_the_one_parsed(tmp_path, monkeypatch) -> None:
     assert not os.path.exists(parsed_paths[0])
 
 
-def test_the_original_file_is_left_byte_for_byte(tmp_path) -> None:
+def test_the_original_file_is_left_byte_for_byte(tmp_path: Path) -> None:
     """The obvious companion to the test above, stated in the terms the user cares about."""
     other = _write(tmp_path, "other.xml", _OTHER_XML)
     before = (tmp_path / "other.xml").read_bytes()
@@ -298,7 +299,7 @@ def test_the_original_file_is_left_byte_for_byte(tmp_path) -> None:
     assert (tmp_path / "other.xml").read_bytes() == before
 
 
-def test_a_bad_file_leaves_no_error_file_behind(tmp_path) -> None:
+def test_a_bad_file_leaves_no_error_file_behind(tmp_path: Path) -> None:
     """With "gui" forced True, a failed parse writes ERROR_FILE -- which userintr reads at
     startup to show an error from a previous session.
 
@@ -310,7 +311,7 @@ def test_a_bad_file_leaves_no_error_file_behind(tmp_path) -> None:
     assert not os.path.exists(ERROR_FILE)
 
 
-def test_a_pre_existing_error_file_survives(tmp_path) -> None:
+def test_a_pre_existing_error_file_survives(tmp_path: Path) -> None:
     """A real error waiting to be shown is not collateral damage of a comparison."""
     with open(ERROR_FILE, "wb") as error_file:
         error_file.write(b"a real error\n1\n")
@@ -321,7 +322,7 @@ def test_a_pre_existing_error_file_survives(tmp_path) -> None:
         assert error_file.read() == b"a real error\n1\n"
 
 
-def test_the_directory_list_is_not_polluted(tmp_path) -> None:
+def test_the_directory_list_is_not_polluted(tmp_path: Path) -> None:
     """With "directory" on, conditions_to_name appends every unnamed Profile it names to
     PrimeItems.directory_items -- which belongs to the map of the loaded file.
 
@@ -337,14 +338,14 @@ def test_the_directory_list_is_not_polluted(tmp_path) -> None:
     assert PrimeItems.program_arguments.directory is True
 
 
-def test_output_lines_are_not_polluted(tmp_path) -> None:
+def test_output_lines_are_not_polluted(tmp_path: Path) -> None:
     """A failed parse appends to the running output, which belongs to the loaded file's map."""
     PrimeItems.output_lines.output_lines = ["the loaded file's map"]
     diffload.load_for_comparison(_write(tmp_path, "bad.xml", _MALFORMED_XML), state=PrimeItems)
     assert PrimeItems.output_lines.output_lines == ["the loaded file's map"]
 
 
-def test_a_bad_file_before_any_map_has_been_built(tmp_path) -> None:
+def test_a_bad_file_before_any_map_has_been_built(tmp_path: Path) -> None:
     """PrimeItems.output_lines is None until a map has been rendered, and a comparison can
     happen before that.
 
@@ -352,7 +353,7 @@ def test_a_bad_file_before_any_map_has_been_built(tmp_path) -> None:
     state a malformed file comes back as an AttributeError from inside the error handler
     rather than as a return code.  It still has to reach the user as a message.
     """
-    PrimeItems.output_lines = None
+    set_attr(PrimeItems, output_lines=None)
     before = _snapshot()
 
     configuration, message = diffload.load_for_comparison(_write(tmp_path, "bad.xml", _MALFORMED_XML), state=PrimeItems)
@@ -366,7 +367,7 @@ def test_a_bad_file_before_any_map_has_been_built(tmp_path) -> None:
 # ##################################################################################
 # The current side of the comparison.
 # ##################################################################################
-def test_current_configuration_describes_the_loaded_file(tmp_path) -> None:
+def test_current_configuration_describes_the_loaded_file(tmp_path: Path) -> None:
     """The loaded configuration, as one side of a comparison."""
     configuration = diffload.current_configuration(state=PrimeItems)
 
@@ -392,7 +393,7 @@ def test_loaded_file_path_handles_a_plain_string() -> None:
 # ##################################################################################
 # The pieces the GUI event is built out of.
 # ##################################################################################
-def test_original_of_finds_the_file_a_save_copy_came_from(tmp_path) -> None:
+def test_original_of_finds_the_file_a_save_copy_came_from(tmp_path: Path) -> None:
     """ "Save To Current File" writes backup_20260721_143005.xml next to backup.xml.
 
     Both halves stay on disk, which is what makes "what did my own edit change?"
@@ -404,7 +405,7 @@ def test_original_of_finds_the_file_a_save_copy_came_from(tmp_path) -> None:
     assert diffload.original_of(copy) == original
 
 
-def test_original_of_declines_when_there_is_nothing_to_offer(tmp_path) -> None:
+def test_original_of_declines_when_there_is_nothing_to_offer(tmp_path: Path) -> None:
     """No timestamp suffix, or the original since moved away, means no offer.
 
     Both fall back to the file picker rather than to a path that is not there.
@@ -430,7 +431,7 @@ def test_original_of_uses_the_same_pattern_that_writes_the_names() -> None:
     assert not TIMESTAMP_SUFFIX_RE.search("_2026072_143005")
 
 
-def test_order_by_age_puts_the_older_file_first(tmp_path) -> None:
+def test_order_by_age_puts_the_older_file_first(tmp_path: Path) -> None:
     """Whichever way round the user picked them, "added" means added in the newer file."""
     from datetime import UTC, datetime
 
@@ -457,7 +458,7 @@ def test_order_by_age_keeps_the_given_order_without_timestamps() -> None:
     assert diffload.order_by_age(second, first) == (second, first)
 
 
-def test_write_comparison_report(tmp_path) -> None:
+def test_write_comparison_report(tmp_path: Path) -> None:
     """The report is written to a timestamped file in the output folder, and its path returned."""
     written = Path(diffload.write_comparison_report("a report\n", state=PrimeItems))
 
@@ -467,7 +468,7 @@ def test_write_comparison_report(tmp_path) -> None:
     assert written.read_text(encoding="utf-8") == "a report\n"
 
 
-def test_the_two_sides_compare(tmp_path) -> None:
+def test_the_two_sides_compare(tmp_path: Path) -> None:
     """The point of all of this: two Configurations that xmldiff can actually compare."""
     from maptasker.src.analysis.xmldiff import compare
 

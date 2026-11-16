@@ -29,7 +29,7 @@ from nicegui import core, ui
 from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
 
-from tests.doubles import diagram_node, fake_window, required
+from tests.doubles import diagram_node, fake_window, required, stand_in
 from tests.nicegui_harness import all_elements, idle
 from tests.test_mapfind import _FIXTURE_XML, _load
 
@@ -106,7 +106,7 @@ def _gui(**extra: Any) -> MyGui:
 def _make(title: str, data: object, **kwargs: Any) -> Callable[[], None]:
     def page() -> None:
         _built["gui"] = _gui()
-        _built["view"] = NiceGuiTextView(_built["gui"], title, data, **kwargs)
+        _built["view"] = NiceGuiTextView(_built["gui"], title, stand_in(data), **kwargs)
 
     return page
 
@@ -282,7 +282,7 @@ async def test_the_progress_banner_is_up_until_the_content_is_ready(monkeypatch:
 
     async def held(self: NiceGuiTextView, data: object) -> None:
         await gate.wait()
-        await original(self, data)
+        await original(self, stand_in(data))
 
     monkeypatch.setattr(NiceGuiTextView, "process_data", held)
     async with _open(_make("Misc View", ["x"]), settled=False) as user:
@@ -349,9 +349,9 @@ async def test_a_file_that_names_no_font_leaves_the_runs_own() -> None:
 
 def test_the_first_font_named_in_a_text_is_found_and_stripped_of_quotes() -> None:
     finder = NiceGuiTextView.extract_first_font_name
-    assert finder(None, "a { font-family : 'Fira Code', monospace; }") == "Fira Code"
-    assert finder(None, 'font-family: "Menlo"; x') == "Menlo"
-    assert finder(None, "nothing") == "Font name not found"
+    assert finder(stand_in(None), "a { font-family : 'Fira Code', monospace; }") == "Fira Code"
+    assert finder(stand_in(None), 'font-family: "Menlo"; x') == "Menlo"
+    assert finder(stand_in(None), "nothing") == "Font name not found"
 
 
 @pytest.mark.asyncio

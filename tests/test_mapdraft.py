@@ -26,7 +26,7 @@ from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.edit import taskedit, taskedit_addable, taskedit_apply, taskedit_model, taskedit_save
 from maptasker.src.mapops import mapcards, mapdraft
 
-from tests.doubles import required
+from tests.doubles import required, stand_in
 
 if TYPE_CHECKING:
     from collections.abc import Collection
@@ -1043,7 +1043,7 @@ def test_an_action_that_can_no_longer_be_added_is_said(backup: None, monkeypatch
     real = taskedit.add_action_to_task
 
     def refusing(task: taskedit_model.EditableTask, key: str, position: int | None = None, *, state: object) -> object:
-        return ["Requires something that is gone."] if key == WAIT else real(task, key, position, state=state)
+        return ["Requires something that is gone."] if key == WAIT else real(task, key, position, state=stand_in(state))
 
     monkeypatch.setattr(taskedit, "add_action_to_task", refusing)
     task = _new_task()

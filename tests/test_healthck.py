@@ -19,6 +19,7 @@ from __future__ import annotations
 import os
 import re
 import xml.etree.ElementTree as ET
+from pathlib import Path
 from unittest import mock
 
 import pytest
@@ -669,7 +670,7 @@ def test_clean_configuration_reports_nothing() -> None:
     assert "Nothing to report" in text
 
 
-def test_report_is_written_to_the_runtime_directory(tmp_path: object, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_report_is_written_to_the_runtime_directory(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """The file lands in the current directory, named date-then-time.
 
     The order is asserted rather than just the prefix: it is a stated requirement, and

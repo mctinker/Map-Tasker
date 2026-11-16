@@ -1,3 +1,5 @@
+# pyright: reportPrivateUsage=false
+# (this test checks private helpers on purpose)
 """MapTasker Variable Manager (mapvars) Unit Tests
 
 mapvars is the table of global variables and the plans that change one.  What it counts is varxref's, so the counts

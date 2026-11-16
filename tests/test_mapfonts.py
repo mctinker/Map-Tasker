@@ -11,7 +11,7 @@ import pytest
 from maptasker.src.core import mapfonts
 
 
-def _discovery_that_raises(monkeypatch, error: BaseException) -> None:
+def _discovery_that_raises(monkeypatch: pytest.MonkeyPatch, error: BaseException) -> None:
     """Make every platform's font discovery raise the given error."""
 
     def raise_it(*_args) -> list:
@@ -21,17 +21,17 @@ def _discovery_that_raises(monkeypatch, error: BaseException) -> None:
         monkeypatch.setattr(mapfonts, name, raise_it)
 
 
-def test_an_unreadable_font_directory_means_no_fonts(monkeypatch) -> None:
+def test_an_unreadable_font_directory_means_no_fonts(monkeypatch: pytest.MonkeyPatch) -> None:
     _discovery_that_raises(monkeypatch, PermissionError("no access to the font directory"))
     assert mapfonts._font_files() == []
 
 
-def test_fc_list_output_in_the_wrong_encoding_means_no_fonts(monkeypatch) -> None:
+def test_fc_list_output_in_the_wrong_encoding_means_no_fonts(monkeypatch: pytest.MonkeyPatch) -> None:
     _discovery_that_raises(monkeypatch, UnicodeDecodeError("utf-8", b"\xff", 0, 1, "invalid start byte"))
     assert mapfonts._font_files() == []
 
 
-def test_a_bug_in_font_discovery_is_not_mistaken_for_no_fonts(monkeypatch) -> None:
+def test_a_bug_in_font_discovery_is_not_mistaken_for_no_fonts(monkeypatch: pytest.MonkeyPatch) -> None:
     _discovery_that_raises(monkeypatch, TypeError("a bug"))
     with pytest.raises(TypeError):
         mapfonts._font_files()

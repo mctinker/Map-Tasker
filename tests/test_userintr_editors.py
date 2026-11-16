@@ -12,7 +12,7 @@ nothing typed is lost.
 from __future__ import annotations
 
 from types import SimpleNamespace
-from typing import TYPE_CHECKING, TypeVar
+from typing import IO, TYPE_CHECKING, TypeVar, cast
 from unittest.mock import AsyncMock, MagicMock
 from xml.etree.ElementTree import Element
 
@@ -40,7 +40,7 @@ from maptasker.src.edit.taskedit_model import EditableTask
 from maptasker.src.gui import userintr_fields, userintr_finish
 from maptasker.src.gui.userintr import MapTaskerEventHandlers, MyGui
 
-from tests.doubles import expect, required
+from tests.doubles import expect, no_error, required, set_attr, stand_in
 from tests.editor_modules import EDITOR_MODULES, editor_ui, patch_editors
 from tests.test_mapswap import _load
 
@@ -315,6 +315,7 @@ def test_a_scene_dialog_with_no_size_fields_writes_nothing() -> None:
 
 def test_the_version_2_layout_the_designer_edited_is_written_back_under_the_scenes_current_name() -> None:
     edited = sceneedit.create_new_scene("Fresh", scenemodel.SCENE_VERSION_V2, state=PrimeItems)
+    edited = no_error(edited)
     layout = scenelayout.decode_v2_layout(edited.scene_element)
     required(layout)["root"]["id"] = "renamed_root"
     required(edited.scene_element.find("nme")).text = "Renamed"
@@ -391,13 +392,13 @@ def test_a_scene_name_is_confirmed_against_its_own_pulldown(gui: MagicMock) -> N
 # ##################################################################################
 def test_a_pulldown_option_is_found_by_exact_name_then_by_its_item_type_prefix_then_by_tail() -> None:
     plain = SimpleNamespace(options=["None", "Quiet"])
-    assert userintr_finish._pulldown_option_for_name(plain, "Task", "Quiet") == "Quiet"
+    assert userintr_finish._pulldown_option_for_name(stand_in(plain), "Task", "Quiet") == "Quiet"
     prefixed = SimpleNamespace(options=["None", "Project: Home"])
-    assert userintr_finish._pulldown_option_for_name(prefixed, "Project", "Home") == "Project: Home"
+    assert userintr_finish._pulldown_option_for_name(stand_in(prefixed), "Project", "Home") == "Project: Home"
     other_language = SimpleNamespace(options=["None", "Projekt: Home"])
-    assert userintr_finish._pulldown_option_for_name(other_language, "Project", "Home") == "Projekt: Home"
-    assert userintr_finish._pulldown_option_for_name(prefixed, "Project", "Nowhere") == "Nowhere"
-    assert userintr_finish._pulldown_option_for_name(SimpleNamespace(), "Task", "x") == "x"
+    assert userintr_finish._pulldown_option_for_name(stand_in(other_language), "Project", "Home") == "Projekt: Home"
+    assert userintr_finish._pulldown_option_for_name(stand_in(prefixed), "Project", "Nowhere") == "Nowhere"
+    assert userintr_finish._pulldown_option_for_name(stand_in(SimpleNamespace()), "Task", "x") == "x"
 
 
 def test_selecting_a_renamed_item_points_the_pulldown_at_it_and_runs_the_name_event_with_the_bare_name(
@@ -461,7 +462,7 @@ def test_a_saved_copy_replaces_the_loaded_file_and_the_pulldowns_are_rebuilt_fro
     assert PrimeItems.program_arguments.file == str(copy)
     assert gui.file == str(copy)
     assert shown == [str(copy)] and refreshed == [gui]
-    required(PrimeItems.file_to_get).close()
+    cast("IO[str]", required(PrimeItems.file_to_get)).close()
 
 
 def test_a_copy_that_cannot_be_opened_or_parsed_is_reported_and_leaves_the_window_alone(
@@ -481,7 +482,7 @@ def test_a_copy_that_cannot_be_opened_or_parsed_is_reported_and_leaves_the_windo
     monkeypatch.setattr(userintr_finish, "get_the_xml_data", refuse)
     ok, error = userintr_finish.reload_saved_copy_and_refresh(gui, str(present))
     assert (ok, "code 7" in error) == (False, True)
-    required(PrimeItems.file_to_get).close()
+    cast("IO[str]", required(PrimeItems.file_to_get)).close()
 
 
 @pytest.mark.asyncio
@@ -647,7 +648,7 @@ def test_the_rename_button_prompts_for_a_name_and_the_prompt_confirms_through_th
 ) -> None:
     edited = _edit_task()
     label = _Label()
-    handlers.editors.rename_task_event(edited, _task_fields(), label)
+    handlers.editors.rename_task_event(edited, _task_fields(), stand_in(label))
     ((args, _),) = calls["build_rename_dialog"]
     assert args[:3] == (gui, "Task", "Noisy")
 
@@ -668,7 +669,7 @@ def test_a_valid_rename_is_applied_at_once_and_the_dialog_follows_it(
     label = _Label()
     fields = _task_fields(save_path=taskedit_save.default_save_path("Noisy", PrimeItems))
 
-    handlers.editors.confirm_rename_task_event(edited, fields, label, "Loud", dialog)
+    handlers.editors.confirm_rename_task_event(edited, fields, stand_in(label), "Loud", dialog)
 
     assert "Loud" in PrimeItems.tasker_root_elements["all_tasks_by_name"]
     assert "Noisy" not in PrimeItems.tasker_root_elements["all_tasks_by_name"]
@@ -687,7 +688,7 @@ def test_a_save_path_the_user_typed_is_not_rewritten_by_a_rename(
     notices: _Notices,
 ) -> None:
     fields = _task_fields(save_path="/my/own/place.tsk.xml")
-    handlers.editors.confirm_rename_task_event(_edit_task(), fields, _Label(), "Loud", dialog)
+    handlers.editors.confirm_rename_task_event(_edit_task(), fields, stand_in(_Label()), "Loud", dialog)
     assert fields["save_path"].value == "/my/own/place.tsk.xml"
 
 
@@ -699,7 +700,7 @@ def test_a_rename_to_nothing_or_to_a_taken_name_is_refused_and_the_prompt_stays_
     dialog: MagicMock,
     bad_name: str,
 ) -> None:
-    handlers.editors.confirm_rename_task_event(_edit_task(), _task_fields(), _Label(), bad_name, dialog)
+    handlers.editors.confirm_rename_task_event(_edit_task(), _task_fields(), stand_in(_Label()), bad_name, dialog)
     assert notices.of_type("negative")
     assert "Noisy" in PrimeItems.tasker_root_elements["all_tasks_by_name"]
     dialog.close.assert_not_called()
@@ -943,6 +944,7 @@ def test_a_task_kept_in_the_loaded_configuration_is_registered_if_new_and_writte
     assert _live_task_by_id("20").findtext("nme") == "Edited"
 
     created = taskedit.create_new_task("Brand New", "", state=PrimeItems)
+    created = no_error(created)
     made = []
     handlers.editors.keep_task_in_loaded_config(
         expect(created, EditableTask), "Brand New", is_new_task=True, on_created=made.append
@@ -1019,6 +1021,7 @@ def test_keeping_scene_event_tasks_reports_a_rejected_edit_and_says_the_dialog_m
 ) -> None:
     bound = _edit_task()
     wait = taskedit.add_action_to_task(bound, "30t", state=PrimeItems)  # a Wait, whose MS must be a whole number
+    wait = no_error(wait)
     key = taskedit_apply.arg_key(wait.act_number, "0")
     assert (
         handlers.editors.keep_scene_event_task_edits(
@@ -1059,7 +1062,7 @@ def test_cancelling_when_nothing_was_changed_is_silent(
     assert list(notices) == []
 
 
-def sceneedit_legacy_properties(edited: sceneedit.EditableScene) -> EditableProperties:
+def sceneedit_legacy_properties(edited: sceneedit.EditableScene) -> Element | None:
     from maptasker.src.edit import sceneedit_legacy
 
     sceneedit_legacy.legacy_add_scene_properties(edited.scene_element, state=PrimeItems)
@@ -1081,6 +1084,7 @@ def test_creating_a_scene_events_task_registers_it_binds_it_and_says_so(
     calls: dict,
 ) -> None:
     created = taskedit.create_new_task("Event Task", "", state=PrimeItems)
+    created = no_error(created)
     bound = []
     assert handlers.editors.create_scene_event_task_event(
         expect(created, EditableTask),
@@ -1136,7 +1140,7 @@ def test_add_project_with_no_backup_and_no_file_to_load_says_so(
     notices: _Notices,
     calls: dict,
 ) -> None:
-    PrimeItems.xml_root = None
+    set_attr(PrimeItems, xml_root=None)
     PrimeItems.file_to_get = None
     gui.file = ""
     handlers.editors.open_add_project_dialog_event()
@@ -1150,7 +1154,7 @@ def test_add_project_loads_the_file_the_window_has_open_when_nothing_is_parsed_y
     calls: dict,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    PrimeItems.xml_root = None
+    set_attr(PrimeItems, xml_root=None)
     PrimeItems.file_to_get = None
     gui.file = "backup.xml"
     loaded = []
@@ -1418,7 +1422,7 @@ async def test_project_save_to_current_file_stops_at_an_unapplied_field_a_bad_na
 # ##################################################################################
 # The Properties form
 # ##################################################################################
-def _properties(kind: str = "Project", name: str = "Home") -> tuple[object, dict]:
+def _properties(kind: str = "Project", name: str = "Home") -> tuple[EditableProperties, dict]:
     from maptasker.src.core import objprops
 
     element = _live_project(name)
@@ -1569,7 +1573,7 @@ def test_add_scene_with_no_backup_parsed_and_no_file_says_so(
 ) -> None:
     gui.single_project_name = "Home"
     gui.specific_project_optionmenu = None
-    PrimeItems.xml_root = None
+    set_attr(PrimeItems, xml_root=None)
     PrimeItems.file_to_get = None
     gui.file = ""
     handlers.editors.open_add_scene_dialog_event()
@@ -1944,7 +1948,7 @@ def test_the_profile_rename_prompt_confirms_through_the_handler(
 ) -> None:
     edited = _edit_profile()
     fields, label = _profile_fields(), _Label()
-    handlers.editors.rename_profile_event(edited, fields, label)
+    handlers.editors.rename_profile_event(edited, fields, stand_in(label))
     ((args, _),) = calls["build_rename_dialog"]
     assert args[:3] == (gui, "Profile", "Morning")
     confirmed = []
@@ -1960,7 +1964,7 @@ def test_a_profile_rename_is_applied_at_once_and_the_dialog_follows_it(
     dialog: MagicMock,
 ) -> None:
     fields, label = _profile_fields(save_path=profedit.default_save_path("Morning", PrimeItems)), _Label()
-    handlers.editors.confirm_rename_profile_event(_edit_profile(), fields, label, "Dawn", dialog)
+    handlers.editors.confirm_rename_profile_event(_edit_profile(), fields, stand_in(label), "Dawn", dialog)
     assert "Dawn" in PrimeItems.tasker_root_elements["all_profiles_by_name"]
     assert "Dawn" in label.text
     assert fields["name"].value == "Dawn"
@@ -1976,7 +1980,7 @@ def test_a_profile_rename_to_nothing_is_refused_and_the_prompt_stays(
 ) -> None:
     edited = _edit_profile()
     fields = _profile_fields(edited=edited)
-    handlers.editors.confirm_rename_profile_event(edited, fields, _Label(), "", dialog)
+    handlers.editors.confirm_rename_profile_event(edited, fields, stand_in(_Label()), "", dialog)
     assert notices.of_type("negative") and "Morning" in PrimeItems.tasker_root_elements["all_profiles_by_name"]
     dialog.close.assert_not_called()
 
@@ -2035,7 +2039,7 @@ def test_add_profile_with_no_backup_loaded_says_so(
     calls: dict,
 ) -> None:
     gui.single_project_name = "Home"
-    PrimeItems.xml_root = None
+    set_attr(PrimeItems, xml_root=None)
     PrimeItems.file_to_get = None
     gui.file = ""
     handlers.editors.open_add_profile_dialog_event()
@@ -2119,6 +2123,7 @@ def test_a_third_party_plugin_condition_warns_that_its_setup_is_done_in_tasker(
 
 def test_app_entries_are_added_and_removed_on_the_condition_with_that_index(handlers: MapTaskerEventHandlers) -> None:
     edited = profedit.create_new_profile("", state=PrimeItems)
+    edited = no_error(edited)
     profedit.add_condition_to_profile(expect(edited, EditableProfile), "App")
     before = len(profedit.get_app_entries(edited.conditions[0]))
     handlers.editors.add_app_entry_event(expect(edited, EditableProfile), 0)
@@ -2443,7 +2448,7 @@ def test_add_task_with_no_backup_loaded_says_so(
     calls: dict,
 ) -> None:
     gui.single_project_name = "Home"
-    PrimeItems.xml_root = None
+    set_attr(PrimeItems, xml_root=None)
     PrimeItems.file_to_get = None
     gui.file = ""
     handlers.editors.open_add_task_dialog_event()
@@ -2536,7 +2541,7 @@ def test_a_per_action_condition_is_written_shown_on_its_checkbox_and_closes_the_
     operator = next(iter(taskedit_model.IF_CONDITION_LABEL_TO_CODE))
     checkbox, prompt = MagicMock(), MagicMock()
     handlers.editors.set_action_condition_event(
-        edited, 0, _Widget("%flag"), _Widget(operator), _Widget(" 1 "), prompt, checkbox
+        edited, 0, stand_in(_Widget("%flag")), stand_in(_Widget(operator)), stand_in(_Widget(" 1 ")), prompt, checkbox
     )
     assert taskedit_apply.action_has_condition(edited.actions[0])
     checkbox.set_text.assert_called_once_with(f"If: %flag {operator} 1")
@@ -2553,7 +2558,9 @@ def test_a_per_action_condition_that_fails_validation_leaves_the_prompt_open(
 ) -> None:
     edited = _edit_task()
     checkbox, prompt = MagicMock(), MagicMock()
-    handlers.editors.set_action_condition_event(edited, 0, _Widget(""), _Widget(""), _Widget(""), prompt, checkbox)
+    handlers.editors.set_action_condition_event(
+        edited, 0, stand_in(_Widget("")), stand_in(_Widget("")), stand_in(_Widget("")), prompt, checkbox
+    )
     assert notices.of_type("negative")
     checkbox.set_text.assert_not_called()
     prompt.close.assert_not_called()

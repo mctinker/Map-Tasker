@@ -6,6 +6,8 @@ parsers reject as "not well-formed (invalid token)" and MapTasker reported as in
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import defusedxml.ElementTree as ET
 import pytest
 from maptasker.src.core import xmldata
@@ -30,7 +32,7 @@ def test_separate_attributes_touches_only_tags() -> None:
     assert b'<nme>Say "a"b="c"</nme>' in fixed
 
 
-def test_parse_compact_backup(tmp_path) -> None:
+def test_parse_compact_backup(tmp_path: Path) -> None:
     """A compact backup loads, and the file on disk is left unchanged."""
     backup = tmp_path / "compact.xml"
     backup.write_bytes(COMPACT)
@@ -42,7 +44,7 @@ def test_parse_compact_backup(tmp_path) -> None:
     assert backup.read_bytes() == COMPACT
 
 
-def test_parse_still_rejects_broken_xml(tmp_path) -> None:
+def test_parse_still_rejects_broken_xml(tmp_path: Path) -> None:
     """Genuinely malformed XML is still reported as a parse error."""
     backup = tmp_path / "broken.xml"
     backup.write_bytes(b'<TaskerData sr=""><Task></TaskerData>')

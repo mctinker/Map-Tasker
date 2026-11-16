@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import contextlib
 from types import SimpleNamespace
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 import pytest
 from maptasker.src.core.primitem import PrimeItems
@@ -25,7 +25,7 @@ from nicegui import core, ui
 from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
 
-from tests.doubles import expect, fake_window, required
+from tests.doubles import expect, fake_window, required, stand_in
 from tests.nicegui_harness import all_elements
 from tests.test_mapswap import _load
 from tests.test_profedit import _XML
@@ -134,7 +134,7 @@ def _select(user: User, label: str) -> ui.select:
 
 
 def _inputs(user: User) -> dict[str, ui.input]:
-    return {element.props.get("label"): element for element in user.find(kind=ui.input).elements}
+    return {str(element.props.get("label")): cast("ui.input", element) for element in user.find(kind=ui.input).elements}
 
 
 # ##################################################################################
@@ -171,7 +171,7 @@ async def test_each_edit_button_reports_its_event_with_this_profile() -> None:
 @pytest.mark.asyncio
 async def test_cancel_closes_the_edit_dialog_without_reporting_anything() -> None:
     async with _open(_edit_page, "Morning") as user:
-        dialog = required(next(iter(user.find(kind=ui.card).elements)).parent_slot).parent
+        dialog = cast("ui.dialog", required(next(iter(user.find(kind=ui.card).elements)).parent_slot).parent)
         dialog.open()
         _press(user, "Cancel")
         assert dialog.value is False
@@ -283,7 +283,7 @@ def field_refs(monkeypatch: pytest.MonkeyPatch) -> dict:
 
     def spy(self: object, gui: object, edited_profile: object, refs: dict, parent: object) -> None:
         seen.update(refs=refs)
-        original(self, gui, edited_profile, refs, parent)
+        original(stand_in(self), stand_in(gui), stand_in(edited_profile), refs, stand_in(parent))
 
     monkeypatch.setattr(guiwins_profedit._ProfileEditorBody, "__init__", spy)
     return seen
@@ -390,14 +390,14 @@ def _android_page() -> None:
         gui,
         required(profedit.load_profile_for_edit("Morning", state=PrimeItems)),
         {"name": SimpleNamespace(value="Morning")},
-        SimpleNamespace(),
+        stand_in(SimpleNamespace()),
     )
 
 
 def _delete_page() -> None:
     edited = profedit.load_profile_for_edit("Morning", state=PrimeItems)
     _built["edited"] = edited
-    guiwins_profedit.build_delete_profile_dialog(_gui(), required(edited), SimpleNamespace(name="parent"))
+    guiwins_profedit.build_delete_profile_dialog(_gui(), required(edited), stand_in(SimpleNamespace(name="parent")))
 
 
 def _import_box(user: User) -> ui.checkbox:

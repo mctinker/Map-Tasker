@@ -27,7 +27,7 @@ from maptasker.src.device import deviceinv, deviceresource
 from maptasker.src.device.devicetask import PAYLOAD_JOINER
 from maptasker.src.mapgen import taskerd
 
-from tests.doubles import required
+from tests.doubles import no_error, required
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -176,6 +176,7 @@ def test_the_helper_task_reads_splits_loops_tests_and_writes() -> None:
 
 def test_the_helper_task_writes_a_file_whose_first_write_truncates() -> None:
     built = deviceresource.build_check_task(state=PrimeItems)
+    built = no_error(built)
     writes = [action for action in built.task_element.findall("Action") if action.findtext("code") == "410"]
 
     appends = [required(write.find("Int[@sr='arg2']")).attrib["val"] for write in writes]

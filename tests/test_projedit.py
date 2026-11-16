@@ -11,8 +11,9 @@ Like test_profedit, this works on a fixture built from XML text, so nothing pers
 
 from __future__ import annotations
 
-import os
 import xml.etree.ElementTree as ET
+from collections.abc import Callable
+from pathlib import Path
 
 import pytest
 from maptasker.src.core import editcommon, objprops
@@ -88,6 +89,11 @@ def _live(name: str) -> ET.Element:
     return PrimeItems.tasker_root_elements["all_projects"][name]["xml"]
 
 
+def _new(name: str) -> projedit.EditableProject:
+    """A new Project of this name, which the test knows can be made."""
+    return expect(projedit.create_new_project(name, state=PrimeItems), EditableProject)
+
+
 def _edit(name: str) -> projedit.EditableProject:
     edited = projedit.load_project_for_edit(name, state=PrimeItems)
     assert edited is not None
@@ -133,20 +139,22 @@ def test_a_new_project_is_numbered_after_the_highest_and_given_a_uuid() -> None:
     assert _tags(element) == ["cdate", "id", "mdate", "name"]
     assert element.findtext("name") == "Fresh"
     assert element.findtext("cdate") == element.findtext("mdate")
-    assert len(element.findtext("id")) == 36  # A UUID: never equal to a Task's or Profile's small integer.
-    assert projedit.create_new_project("x", state=PrimeItems).project_element.findtext("id") != element.findtext("id")
+    assert len(required(element.findtext("id"))) == 36  # A UUID: never equal to a Task's or Profile's small integer.
+    assert _new("x").project_element.findtext("id") != element.findtext("id")
 
 
 def test_a_new_project_needs_a_backup(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(PrimeItems, "xml_root", None)
 
-    assert "Load a Tasker backup" in projedit.create_new_project("x", state=PrimeItems)
+    refused = projedit.create_new_project("x", state=PrimeItems)
+    assert isinstance(refused, str)
+    assert "Load a Tasker backup" in refused
 
 
 def test_the_first_project_is_proj1() -> None:
     PrimeItems.tasker_root_elements["all_projects"] = {}
 
-    assert projedit.create_new_project("x", state=PrimeItems).project_element.get("sr") == "proj1"
+    assert _new("x").project_element.get("sr") == "proj1"
 
 
 # ##################################################################################
@@ -194,19 +202,19 @@ def test_renaming_moves_the_table_entry_to_the_new_key() -> None:
 
 
 def test_renaming_a_project_nobody_registered_does_nothing() -> None:
-    edited = projedit.create_new_project("Fresh", state=PrimeItems)
+    edited = _new("Fresh")
     before = list(PrimeItems.tasker_root_elements["all_projects"])
 
-    projedit.rename_project_in_live_tree("Fresh", expect(edited, EditableProject), state=PrimeItems)
+    projedit.rename_project_in_live_tree("Fresh", edited, state=PrimeItems)
 
     assert list(PrimeItems.tasker_root_elements["all_projects"]) == before
 
 
 def test_registering_a_new_project_files_it_under_its_name() -> None:
-    created = projedit.create_new_project("", state=PrimeItems)
-    assert projedit.apply_edits_to_project(expect(created, EditableProject), "Fresh", state=PrimeItems) == []
+    created = _new("")
+    assert projedit.apply_edits_to_project(created, "Fresh", state=PrimeItems) == []
 
-    projedit.register_new_project(expect(created, EditableProject), state=PrimeItems)
+    projedit.register_new_project(created, state=PrimeItems)
 
     assert PrimeItems.tasker_root_elements["all_projects"]["Fresh"]["xml"] is created.project_element
     assert projedit.project_name_exists("Fresh", state=PrimeItems)
@@ -310,9 +318,9 @@ def test_a_toggle_after_a_rename_acts_on_one_element_once() -> None:
 
 
 def test_a_project_not_registered_yet_is_toggled_on_its_copy_alone() -> None:
-    created = projedit.create_new_project("Fresh", state=PrimeItems)
+    created = _new("Fresh")
 
-    projedit.set_project_enabled(expect(created, EditableProject), enabled=False, state=PrimeItems)
+    projedit.set_project_enabled(created, enabled=False, state=PrimeItems)
 
     assert created.project_element.findtext("enbl") == "false"
     assert "Fresh" not in PrimeItems.tasker_root_elements["all_projects"]
@@ -334,7 +342,7 @@ def test_a_property_the_copy_no_longer_has_is_removed_from_the_live_project() ->
     live = _live("Home")
     ET.SubElement(live, "pc").text = "stale"
     edited = _edit("Home")
-    edited.project_element.remove(edited.project_element.find("pc"))
+    edited.project_element.remove(required(edited.project_element.find("pc")))
 
     projedit.apply_properties_to_live_tree(edited, state=PrimeItems)
 
@@ -342,10 +350,10 @@ def test_a_property_the_copy_no_longer_has_is_removed_from_the_live_project() ->
 
 
 def test_properties_on_a_project_nobody_registered_do_nothing() -> None:
-    created = projedit.create_new_project("Fresh", state=PrimeItems)
+    created = _new("Fresh")
     before = _xml(created.project_element)
 
-    projedit.apply_properties_to_live_tree(expect(created, EditableProject), state=PrimeItems)
+    projedit.apply_properties_to_live_tree(created, state=PrimeItems)
 
     assert objprops.KIND_PROJECT  # The kind the mirror is keyed on.
     assert created.project_element.findtext("name") == "Fresh"
@@ -386,7 +394,7 @@ def test_a_project_name_becomes_a_safe_file_name() -> None:
     assert projedit.android_project_path("Home/Work") == "/Tasker/projects/Home_Work.prj.xml"
 
 
-def test_an_existing_file_is_noticed(tmp_path: os.PathLike) -> None:
+def test_an_existing_file_is_noticed(tmp_path: Path) -> None:
     target = tmp_path / "x.prj.xml"
     assert projedit.save_path_exists(str(target)) is False
 
@@ -403,7 +411,7 @@ def test_a_project_without_an_id_or_mdate_is_given_them_in_alphabetical_place() 
     projedit._ensure_project_identity(element)
 
     assert _tags(element) == ["cdate", "id", "mdate", "name", "pids", "Img"]
-    assert len(element.findtext("id")) == 36
+    assert len(required(element.findtext("id"))) == 36
     assert required(element.findtext("mdate")).isdigit()
 
 
@@ -504,7 +512,7 @@ def test_the_export_can_have_its_secrets_taken_out() -> None:
     assert "hunter2" not in projedit.render_standalone_project_xml("Home", state=PrimeItems, redact=True)
 
 
-def test_writing_a_file_takes_a_safety_copy_of_what_it_replaces(tmp_path: os.PathLike) -> None:
+def test_writing_a_file_takes_a_safety_copy_of_what_it_replaces(tmp_path: Path) -> None:
     target = tmp_path / "Home.prj.xml"
     target.write_text("<old/>", encoding="utf-8")
 
@@ -515,7 +523,7 @@ def test_writing_a_file_takes_a_safety_copy_of_what_it_replaces(tmp_path: os.Pat
         assert copy_.read() == "<old/>"
 
 
-def test_nothing_is_written_for_a_project_that_is_gone(tmp_path: os.PathLike) -> None:
+def test_nothing_is_written_for_a_project_that_is_gone(tmp_path: Path) -> None:
     target = tmp_path / "x.prj.xml"
 
     with pytest.raises(ValueError, match="no longer exists"):
@@ -527,7 +535,7 @@ def test_saving_to_android_uploads_the_rendered_project(monkeypatch: pytest.Monk
     seen = {}
 
     def upload(
-        kind: editcommon.EditorKind, ip: str, port: str, name: str, render_bytes: object
+        kind: editcommon.EditorKind, ip: str, port: str, name: str, render_bytes: Callable[[], bytes]
     ) -> tuple[int, str, bytes]:
         seen.update(kind=kind, ip=ip, port=port, name=name, body=render_bytes())
         return 0, "/Tasker/projects/Home.prj.xml", b""

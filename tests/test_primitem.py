@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import ast
 import pathlib
+from typing import cast
 
 import pytest
 from maptasker.src.core import maputils, primitem
@@ -26,6 +27,8 @@ from maptasker.src.core.primitem import (
     reset_attributes,
 )
 from maptasker.src.mapgen import bildhtml, taskerd, taskertables
+
+from tests.doubles import required
 
 # The translation function: installed by translator.set_language and tested for with hasattr,
 # so it has to be missing until then and cannot be declared.
@@ -151,7 +154,7 @@ def _taskerd_tree() -> ast.Module:
         body=[
             statement
             for module in (taskerd, taskertables)
-            for statement in ast.parse(pathlib.Path(module.__file__).read_text(encoding="utf-8")).body
+            for statement in ast.parse(pathlib.Path(required(module.__file__)).read_text(encoding="utf-8")).body
         ],
         type_ignores=[],
     )
@@ -217,7 +220,7 @@ def test_loading_a_backup_sets_nothing_a_comparison_does_not_put_back() -> None:
         for target in targets:
             base = target.value if isinstance(target, ast.Subscript) else target
             if _is_prime_items(base):
-                written.add(base.attr)
+                written.add(cast("ast.Attribute", base).attr)
     assert written
     assert written <= set(primitem.LOADED_CONFIGURATION_ATTRIBUTES)
 

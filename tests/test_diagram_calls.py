@@ -1,3 +1,5 @@
+# pyright: reportPrivateUsage=false
+# (this test checks private helpers on purpose)
 """MapTasker Diagram "Calls" list Unit Tests
 
 A Task's "[Calls ──▶ ...]" list names the Tasks it calls, and a called Task's own name can end in
@@ -12,7 +14,7 @@ import pytest
 from maptasker.src.mapgen import diagarrows, diagclean
 from maptasker.src.mapgen.diagcnst import task_delimeter
 
-from tests.doubles import fake_state
+from tests.doubles import fake_state, required
 
 PLAIN = "Freeze - Long Press Dialog"
 BRACKETED = "Freeze - 🔄 Disable State [Write/Refresh]"
@@ -41,7 +43,7 @@ def test_a_called_task_with_a_bracket_in_its_name_is_found_in_the_list(delimited
 def test_the_list_ends_at_its_own_closing_bracket() -> None:
     line = _caller_line(PLAIN, BRACKETED, delimited=False)
 
-    substrings, _ = diagarrows.get_index_setup(line, BRACKETED)
+    substrings, _ = required(diagarrows.get_index_setup(line, BRACKETED))
 
     assert substrings == [PLAIN, BRACKETED]
 

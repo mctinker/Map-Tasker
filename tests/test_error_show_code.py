@@ -16,6 +16,8 @@ from maptasker.src.core.mtexcept import MapTaskerError
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.gui import guiutils
 
+from tests.doubles import stand_in
+
 
 @pytest.fixture(autouse=True)
 def _gui_run_in_a_scratch_directory(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
@@ -52,7 +54,7 @@ def _the_boxes_after_an_error(**kwargs: bool) -> list[str]:
     """Record an error, then show what the window shows for it on the next run."""
     error.record_error(_raised("Module 'x' not found.", 12, **kwargs), state=PrimeItems)
     window = MyGui()
-    guiutils.display_error_file_and_ai_response(window)
+    guiutils.display_error_file_and_ai_response(stand_in(window))
     return [message for message, _color in window.boxes]
 
 
@@ -101,7 +103,7 @@ def test_the_next_error_shows_its_code_again() -> None:
 def _boxes_for(message: str, code: int) -> list[str]:
     error.record_error(_raised(message, code), state=PrimeItems)
     window = MyGui()
-    guiutils.display_error_file_and_ai_response(window)
+    guiutils.display_error_file_and_ai_response(stand_in(window))
     return [box for box, _color in window.boxes]
 
 

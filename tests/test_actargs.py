@@ -25,6 +25,8 @@ from maptasker.src.mapgen import actargs
 from maptasker.src.mapgen.actionr import get_action_results
 from maptasker.src.mapgen.lineout import LineOut
 
+from tests.doubles import stand_in
+
 SET_TASKER_ICON = "138t"  # Icon(<Img>)=arg0
 NOTIFY = "523t"  # Icon(<Img>)=arg2, with Str/Int arguments around it
 
@@ -189,7 +191,7 @@ def _bundle_result(inner: str, arg: str = "0") -> dict:
     action = ET.fromstring(
         f'<Action sr="act0" ve="7"><code>1</code>{inner}</Action>',
     )
-    return actargs.get_bundle(action, {"returning_something": True}, arg, state=PrimeItems)
+    return actargs.get_bundle(action, {"returning_something": True}, stand_in(arg), state=PrimeItems)
 
 
 def test_a_plugin_blurb_is_read_as_its_configuration() -> None:

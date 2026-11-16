@@ -6,6 +6,8 @@ import pytest
 from maptasker.src.core import clip
 from maptasker.src.core.primitem import PrimeItems
 
+from tests.doubles import stand_in
+
 
 @pytest.fixture(autouse=True)
 def _no_waiting(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -27,7 +29,7 @@ def _no_waiting(monkeypatch: pytest.MonkeyPatch) -> None:
 )
 def test_arguments_that_do_not_make_sense_are_refused(speed: object, cycles: object, color: object) -> None:
     with pytest.raises(clip.ClipError):
-        clip.Clip("folder", speed, cycles, color)
+        clip.Clip("folder", stand_in(speed), stand_in(cycles), stand_in(color))
 
 
 def test_the_arguments_are_kept_and_speed_becomes_a_delay() -> None:

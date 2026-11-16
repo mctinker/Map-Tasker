@@ -17,6 +17,8 @@ still say the same thing afterwards.
 
 from __future__ import annotations
 
+from typing import Any
+
 import pytest
 from maptasker.src.core.dirout import add_directory_item
 from maptasker.src.core.maputils import fix_hyperlink_name
@@ -29,13 +31,13 @@ NAME_WITH_ANGLE_BRACKET = "System >> Say Response"
 UNNAMED_TASK_NAME = "If %new_val > %aab_zone1end.922 (Unnamed)"
 
 
-def written(output_lines: object) -> str:
+def written(output_lines: Any) -> str:
     """Everything put out so far, as one piece of html."""
     return "".join(line[1] if isinstance(line, list) else str(line) for line in output_lines.output_lines)
 
 
 @pytest.fixture(autouse=True)
-def _runtime(monkeypatch) -> None:
+def _runtime(monkeypatch: pytest.MonkeyPatch) -> None:
     """Enough of a run for the two writers below, and the directory turned on."""
     from maptasker.src.core.colrmode import set_color_mode
     from maptasker.src.core.initparg import initialize_runtime_arguments
@@ -126,7 +128,7 @@ def test_a_name_with_a_double_quote_does_not_end_its_own_attribute() -> None:
 # ##################################################################################
 # The 'Tasks With Too Many Actions' list at the foot of the Map.
 # ##################################################################################
-def test_a_warning_points_at_the_task_by_id(monkeypatch) -> None:
+def test_a_warning_points_at_the_task_by_id(monkeypatch: pytest.MonkeyPatch) -> None:
     """Those hotlinks go to the anchor every Task has, not to the one only some have.
 
     A named Task gets a name-keyed anchor from the directory; an unnamed one does not,

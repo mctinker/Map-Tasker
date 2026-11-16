@@ -1,3 +1,5 @@
+# pyright: reportPrivateUsage=false
+# (this test checks private helpers on purpose)
 """The requirements block of a TaskerNet description (readiness.Readiness.as_html and readiness.check_element)
 
 What the Check Readiness report says is tested in test_readiness; here it is the same report written as the block a

@@ -19,6 +19,8 @@ import pytest
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.gui import guiutils
 
+from tests.doubles import stand_in
+
 
 def _event_loop_running() -> bool:
     try:
@@ -46,7 +48,7 @@ def _check(view: SimpleNamespace) -> None:
     """Start the check the way the GUI does -- from synchronous code on the loop -- and wait for it."""
 
     async def page_build() -> None:
-        guiutils.check_new_version(view)
+        guiutils.check_new_version(stand_in(view))
         await view.version_check
 
     asyncio.run(page_build())
@@ -74,7 +76,7 @@ def test_starting_the_check_returns_before_pypi_is_asked(
     monkeypatch.setattr(guiutils, "is_new_version", lambda **_kw: asked.append(True) or False)
 
     async def page_build() -> None:
-        guiutils.check_new_version(view)
+        guiutils.check_new_version(stand_in(view))
         assert asked == []
         await view.version_check
         assert asked == [True]
@@ -102,7 +104,7 @@ def test_after_the_first_run_today_nothing_is_scheduled(view: SimpleNamespace, m
     monkeypatch.setattr(guiutils, "is_first_run_today", lambda: False)
     monkeypatch.setattr(guiutils, "is_new_version", lambda **_kw: pytest.fail("PyPI was asked again the same day"))
 
-    guiutils.check_new_version(view)
+    guiutils.check_new_version(stand_in(view))
 
     assert not hasattr(view, "version_check")
 

@@ -1,3 +1,5 @@
+# pyright: reportPrivateUsage=false
+# (this test checks private helpers on purpose)
 """MapTasker Safe Variable Rename and Scope Fixer (scopecheck, mapscope) Unit Tests
 
 Tasker takes a variable's scope from the case of its name, so what is tested is the evidence a spelling is wrong and

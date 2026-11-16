@@ -16,6 +16,7 @@ import json
 import os
 import unicodedata
 import xml.etree.ElementTree as ET
+from pathlib import Path
 from typing import Any
 
 import pytest
@@ -29,7 +30,7 @@ from maptasker.src.core.sysconst import DIAGRAM_FILE
 from maptasker.src.gui import guiwins_diagram, guiwins_search, guiwins_views, userintr_views
 from maptasker.src.mapgen import diagarrows, diagintr, diagram, diagrecord, taskerd
 
-from tests.doubles import diagram_node, required
+from tests.doubles import diagram_node, required, set_attr
 
 _PROFILE = Target(kind=PROFILE, key="10", name="Wake Up")
 _OTHER_PROFILE = Target(kind=PROFILE, key="11", name="Wind Down")
@@ -266,7 +267,7 @@ def _load(xml: str, calls: dict) -> dict:
     root = ET.fromstring(xml)
     PrimeItems.xml_root = root
     PrimeItems.slash = "/"
-    PrimeItems.output_lines = _Output()
+    set_attr(PrimeItems, output_lines=_Output())
     PrimeItems.program_arguments = ProgramArguments(
         language="English",
         profiles_per_line=6,
@@ -302,7 +303,7 @@ def _load(xml: str, calls: dict) -> dict:
     return tables
 
 
-def _render(tmp_path: object, network: dict, config: RunConfig | None = None) -> list[str]:
+def _render(tmp_path: Path, network: dict, config: RunConfig | None = None) -> list[str]:
     """Draw the diagram and hand back the file it wrote, line by line.
 
     The settings are the ones _load put on PrimeItems unless a config is given, which is
@@ -318,7 +319,7 @@ def _render(tmp_path: object, network: dict, config: RunConfig | None = None) ->
         os.chdir(here)
 
 
-def _drawn(tmp_path: object) -> list[str]:
+def _drawn(tmp_path: Path) -> list[str]:
     """Build a real diagram from the fixture and hand back the file it wrote, line by line."""
     tables = _load(_DIAGRAM_XML, {"Backup": ["Restore"]})
     return _render(
@@ -339,7 +340,7 @@ def _profile_rows(lines: list[str]) -> set[int]:
     return {row for row, line in enumerate(lines) for name in ("Wake Up", "Wind Down", "Nightly") if name in line}
 
 
-def test_the_diagram_takes_its_profiles_per_line_from_the_config_it_is_given(tmp_path: object) -> None:
+def test_the_diagram_takes_its_profiles_per_line_from_the_config_it_is_given(tmp_path: Path) -> None:
     """The setting comes in as a parameter: the global says six to a row, the config says one."""
     tables = _load(_DIAGRAM_XML, {"Backup": ["Restore"]})
     network = {
@@ -370,7 +371,7 @@ def _span(lines: list[str], placement: tuple[int, int, int]) -> str:
 
 
 @pytest.fixture
-def drawn(tmp_path: object) -> list[str]:
+def drawn(tmp_path: Path) -> list[str]:
     """The diagram the fixture draws, as its rendered lines."""
     return _drawn(tmp_path)
 
@@ -525,7 +526,7 @@ _SHARED = Target(kind=TASK, key="24", name="Shared Menu")  # Drawn under two Pro
 
 
 @pytest.fixture
-def modelled(tmp_path: object) -> tuple[list[str], DiagramModel]:
+def modelled(tmp_path: Path) -> tuple[list[str], DiagramModel]:
     """A three-Project diagram, as its rendered lines and the model built from them."""
     tables = _load(_MODEL_XML, {"Backup": ["Restore"], "Restore": ["Notify Team"]})
     lines = _render(
@@ -1059,7 +1060,7 @@ def test_the_interaction_script_carries_the_model_and_its_class_names() -> None:
 
 
 @pytest.mark.parametrize("restored", ["\U0001f3d8", "\u21a9\ufe0f", "\u6ed1\u52a8\u62fc\u56fe"])
-def test_connectors_stay_in_line_on_rows_that_carry_icons(tmp_path: object, restored: str) -> None:
+def test_connectors_stay_in_line_on_rows_that_carry_icons(tmp_path: Path, restored: str) -> None:
     """An icon takes two columns on screen, so a connector after one has to give a blank back.
 
     Names with icons in them go on both ends of a call, and each connector drawn on one of
@@ -1112,7 +1113,7 @@ def _noted_book(*, shown: bool = True) -> None:
 
 
 @pytest.fixture
-def noted(tmp_path: object) -> tuple[list[str], DiagramModel]:
+def noted(tmp_path: Path) -> tuple[list[str], DiagramModel]:
     """The three-Project diagram, drawn with notes saved first, as its rendered lines and its model."""
     _noted_book()
     tables = _load(_MODEL_XML, {"Backup": ["Restore"], "Restore": ["Notify Team"]})
@@ -1179,7 +1180,7 @@ def test_the_tags_the_diagram_offers_are_those_of_objects_it_draws_counted_by_ob
     assert list(model["tags"]) == ["flaky", "family", "needs-rewrite"]
 
 
-def test_notes_switched_off_leave_the_diagram_as_it_was(tmp_path: object) -> None:
+def test_notes_switched_off_leave_the_diagram_as_it_was(tmp_path: Path) -> None:
     _noted_book(shown=False)
     tables = _load(_MODEL_XML, {})
     _render(tmp_path, {"Home": {"Wake Up": [{"xml": tables["all_tasks"]["20"]["xml"], "name": "Backup"}]}})
@@ -1260,7 +1261,7 @@ def test_a_tag_is_sent_to_the_browser_as_text() -> None:
 # ##################################################################################
 # Unnamed Tasks are drawn like any other.
 # ##################################################################################
-def test_an_unnamed_task_is_drawn_in_its_profile_like_a_named_one(tmp_path: object) -> None:
+def test_an_unnamed_task_is_drawn_in_its_profile_like_a_named_one(tmp_path: Path) -> None:
     """The 'List Unnamed Items' checkbox is about what the pulldowns offer; the Diagram is not one of them.
 
     It used to leave out every Task whose name is the one made up for it, so a configuration full of them
@@ -1287,7 +1288,7 @@ def test_an_unnamed_task_is_drawn_in_its_profile_like_a_named_one(tmp_path: obje
 
 
 def test_an_unnamed_task_the_table_of_tasks_does_not_know_by_that_name_does_not_break_the_diagram(
-    tmp_path: object,
+    tmp_path: Path,
 ) -> None:
     """A Profile lists an unnamed Task as 'Unnamed<id>' -- see tasks.entry_or_exit_task -- which the table does not hold."""
     tables = _load(_MODEL_XML, {})
@@ -1302,7 +1303,7 @@ def test_an_unnamed_task_the_table_of_tasks_does_not_know_by_that_name_does_not_
 
 
 @pytest.mark.parametrize("checkbox", [True, False])
-def test_the_checkbox_makes_no_difference_to_the_diagram(tmp_path: object, checkbox: bool) -> None:
+def test_the_checkbox_makes_no_difference_to_the_diagram(tmp_path: Path, checkbox: bool) -> None:
     tables = _load(_MODEL_XML, {})
     PrimeItems.program_arguments.list_unnamed_items = checkbox
     made_up = "Flash Text=hi.99 (Unnamed)"

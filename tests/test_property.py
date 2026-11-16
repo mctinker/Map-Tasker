@@ -31,6 +31,8 @@ from maptasker.src.core import property as prop
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.core.runcfg import current_config
 
+from tests.doubles import stand_in
+
 # The Atest2 export, trimmed to its properties and one condition: a repeat count of 5 and
 # <flags>12</flags>, which is Delete After Disable (mask 4) plus the Ignore Settings bit
 # (mask 8) that Tasker puts on every Profile it makes, and neither of the other two.  <clp> is kept because it is a real child of 462 sample
@@ -112,7 +114,7 @@ def test_a_profile_at_every_default_reports_none_of_them() -> None:
     value Tasker gives a new Profile: mask 2, which no field reads, and the mask 8 that
     Restore Settings reads as the state Tasker left it in.
     """
-    profile = _profile(repeats=None, flags="10")
+    profile = _profile(repeats=stand_in(None), flags="10")
     assert prop.profile_properties(profile) == []
 
 
@@ -123,7 +125,7 @@ def test_a_profile_with_no_flags_at_all_has_its_settings_read_from_the_absence()
     switched on is worth saying: Tasker sets that bit on every Profile it creates, so a
     Profile without it is one whose owner turned the setting on.
     """
-    assert prop.profile_properties(_profile(repeats=None, flags=None)) == ["Restore Settings:true"]
+    assert prop.profile_properties(_profile(repeats=stand_in(None), flags=stand_in(None))) == ["Restore Settings:true"]
 
 
 def test_an_unreadable_flags_value_reports_no_bit_at_all() -> None:
@@ -131,7 +133,7 @@ def test_an_unreadable_flags_value_reports_no_bit_at_all() -> None:
     least of all about Restore Settings, which an unreadable value would otherwise report as
     switched on, every bit reading as clear (objprops.bitfield_is_readable).
     """
-    assert prop.profile_properties(_profile(repeats=None, flags="not a number")) == []
+    assert prop.profile_properties(_profile(repeats=stand_in(None), flags="not a number")) == []
 
 
 def test_the_labels_are_the_ones_the_properties_editor_shows() -> None:
@@ -149,7 +151,7 @@ def test_the_labels_are_the_ones_the_properties_editor_shows() -> None:
 
 
 @pytest.fixture
-def captured_output(monkeypatch):
+def captured_output(monkeypatch: pytest.MonkeyPatch):
     """The Map's output lines, captured instead of written."""
     from unittest.mock import MagicMock
 

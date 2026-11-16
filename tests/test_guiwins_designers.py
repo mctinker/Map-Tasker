@@ -22,7 +22,7 @@ from maptasker.src.gui import guiwins_designer_legacy, guiwins_designer_v2, guiw
 from nicegui import core, ui
 from nicegui.testing.user_simulation import user_simulation
 
-from tests.doubles import fake_window
+from tests.doubles import fake_window, stand_in
 
 _LEGACY = ET.fromstring(
     '<Scene sr="sceneOld"><nme>Old</nme><widthPort>640</widthPort><heightPort>480</heightPort>'
@@ -48,7 +48,7 @@ def _page() -> None:
     _built["designer"] = designer
     designer.build_body(
         fake_window(),
-        SimpleNamespace(scene_element=_built["scene"]),
+        stand_in(SimpleNamespace(scene_element=_built["scene"])),
         _built["field_refs"],
         _built.get("dialog"),
         RunState(),

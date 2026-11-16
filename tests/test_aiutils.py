@@ -8,7 +8,7 @@ from typing import Any
 import pytest
 from maptasker.src.core import aiutils
 
-from tests.doubles import fake_state
+from tests.doubles import fake_state, set_attr
 
 
 @pytest.fixture(autouse=True)
@@ -302,8 +302,8 @@ def _openai(models: list[str] | Exception) -> ModuleType:
                 raise OpenAIError(str(models))
             return SimpleNamespace(data=[SimpleNamespace(id=name) for name in models])
 
-    package.OpenAIError = OpenAIError
-    package.OpenAI = Client
+    set_attr(package, OpenAIError=OpenAIError)
+    set_attr(package, OpenAI=Client)
     return package
 
 
@@ -353,8 +353,8 @@ def _anthropic(ids: list[str] | Exception) -> ModuleType:
                 raise AnthropicError(str(ids))
             return [SimpleNamespace(id=name) for name in ids]
 
-    package.AnthropicError = AnthropicError
-    package.Anthropic = Client
+    set_attr(package, AnthropicError=AnthropicError)
+    set_attr(package, Anthropic=Client)
     return package
 
 
@@ -396,7 +396,7 @@ def _genai(names: list[tuple[str, list[str]]] | Exception | None) -> ModuleType:
                 _page=[SimpleNamespace(name=f"models/{name}", supported_actions=actions) for name, actions in names],
             )
 
-    package.Client = Client
+    set_attr(package, Client=Client)
     return package
 
 

@@ -19,6 +19,7 @@ from __future__ import annotations
 import os
 import tempfile
 import xml.etree.ElementTree as ET
+from pathlib import Path
 
 import pytest
 from maptasker.src.core.colrmode import set_color_mode
@@ -36,7 +37,7 @@ ANCHOR = '<Action sr="act0"><code>300</code><label>Top of loop</label></Action>'
 
 
 @pytest.fixture(autouse=True)
-def _prime_items(tmp_path, monkeypatch) -> None:
+def _prime_items(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """The globals taskerd writes into: the settings it reads, and somewhere to put lines.
 
     In a working directory of our own, because a successful load now writes the

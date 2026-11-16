@@ -8,6 +8,7 @@ returns them; and that asking for a window clamps what it asks and passes the an
 
 from __future__ import annotations
 
+import xml.etree.ElementTree as ET
 from typing import Any
 
 import pytest
@@ -17,6 +18,7 @@ from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.device import devicemonitor
 from maptasker.src.device.devicetask import TaskRunResult
 
+from tests.doubles import required
 from tests.test_deviceresource import _FIXTURE_XML, _load
 
 
@@ -26,8 +28,8 @@ def _configuration(monkeypatch: pytest.MonkeyPatch) -> None:
     _load(_FIXTURE_XML)
 
 
-def _action(task: object, code: str, position: int = 0) -> object:
-    return [a for a in task.task_element.findall("Action") if a.findtext("code") == code][position]  # type: ignore[attr-defined]
+def _action(task: Any, code: str, position: int = 0) -> ET.Element:
+    return [a for a in task.task_element.findall("Action") if a.findtext("code") == code][position]
 
 
 def test_the_helper_task_clears_loops_looks_waits_and_returns() -> None:
@@ -47,13 +49,13 @@ def test_each_look_records_the_moment_what_is_running_what_is_active_and_the_bat
 
     text = look.findtext("Str[@sr='arg1']")
     assert text == "%TIMEMS|~|%TRUN|~|%PACTIVE|~|%BATT|#|"
-    assert look.find("Int[@sr='arg4']").attrib["val"] == "1", "appended, so every look is kept"
+    assert required(look.find("Int[@sr='arg4']")).attrib["val"] == "1", "appended, so every look is kept"
 
 
 def test_the_looks_are_written_in_the_format_the_reader_expects() -> None:
     """The Task and parse_window share their separators; a drift between them would read nothing."""
     built = devicemonitor.build_monitor_task(state=PrimeItems)
-    text = _action(built, "547", 1).findtext("Str[@sr='arg1']")
+    text = required(_action(built, "547", 1).findtext("Str[@sr='arg1']"))
 
     assert text.count(livemon.FIELD_SEPARATOR) == 3
     assert text.endswith(livemon.SAMPLE_SEPARATOR)
@@ -71,7 +73,7 @@ def test_the_number_of_looks_is_a_parameter_so_the_task_is_installed_once() -> N
 def test_it_waits_between_looks() -> None:
     built = devicemonitor.build_monitor_task(state=PrimeItems)
 
-    assert _action(built, "30").find("Int[@sr='arg0']").attrib["val"] == str(devicemonitor.SAMPLE_WAIT_MS)
+    assert required(_action(built, "30").find("Int[@sr='arg0']")).attrib["val"] == str(devicemonitor.SAMPLE_WAIT_MS)
 
 
 def test_it_returns_the_log_and_stops_there() -> None:
@@ -80,7 +82,7 @@ def test_it_returns_the_log_and_stops_there() -> None:
     action = _action(built, "126")
 
     assert action.findtext("Str[@sr='arg0']") == "%mtmon_log"
-    assert action.find("Int[@sr='arg1']").attrib["val"] == "1"
+    assert required(action.find("Int[@sr='arg1']")).attrib["val"] == "1"
 
 
 def test_the_monitors_own_name_is_the_one_to_leave_out_of_what_is_running() -> None:

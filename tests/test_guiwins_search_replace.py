@@ -10,7 +10,7 @@ closes the dialog and redraws the view it came from.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 import pytest
 from maptasker.src.core.primitem import PrimeItems
@@ -139,7 +139,7 @@ async def test_choosing_a_source_action_stocks_the_targets_with_what_each_would_
         await _replace_tab(user)
         assert _replace_select(user, "...with this one").options == {}
         _replace_select(user, "Replace this action").value = FLASH
-        targets = _replace_select(user, "...with this one").options
+        targets = cast("dict[str, str]", _replace_select(user, "...with this one").options)
         assert NOTIFY in targets
         assert "keeps" in targets[NOTIFY]
 

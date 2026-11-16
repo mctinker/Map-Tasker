@@ -1,3 +1,5 @@
+# pyright: reportPrivateUsage=false
+# (this test checks private helpers on purpose)
 """Plugin Retirement Advisor (retire.py) Unit Tests -- which plugins the file uses that Tasker now does itself
 
 The advisor is plugchk's list of the plugins a configuration uses, set against a short table of the plugins Tasker has

@@ -698,7 +698,7 @@ def test_the_editor_never_touches_the_disabled_marker() -> None:
     for start in ("true", None):
         profile = _atest_profile()
         if start is None:
-            profile.remove(profile.find("limit"))
+            profile.remove(required(profile.find("limit")))
         props, values = _profile_values(profile)
         assert "limit" not in values, "no field may be bound to the disabled marker"
 
@@ -911,7 +911,7 @@ def test_mirroring_replaces_the_targets_properties_wholesale() -> None:
     target = _task("Furnished")
     # Diverge the target the way an un-mirrored live element would be.
     required(target.find("pc")).text = "stale"
-    target.remove(target.find("ProfileVariable"))
+    target.remove(required(target.find("ProfileVariable")))
     required(target.find("stayawake")).text = "true"
 
     props = objprops.load_properties(objprops.KIND_TASK, source)

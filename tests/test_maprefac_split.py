@@ -1,3 +1,5 @@
+# pyright: reportPrivateUsage=false
+# (this test checks private helpers on purpose)
 """Split Project (maprefac_split): some Tasks and Profiles move, with what they need, into a new Project.
 
 The fixture is Project Dependencies' own -- four Projects that use each other in every way the rules care about -- plus

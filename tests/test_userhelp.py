@@ -23,6 +23,8 @@ from maptasker.src.core.sysconst import VERSION
 from maptasker.src.core.translator import T
 from maptasker.src.gui import userhelp, userintr
 
+from tests.doubles import stand_in
+
 # The pieces the GUI's help popups are built from, all of which the catalogs carry.
 # userhelp.COMMAND_REFERENCE_TEXT and OUTPUT_FOLDER_HELP_TEXT are deliberately not among them:
 # they were added to the help screen after the last catalog sync, so they are still English
@@ -117,7 +119,7 @@ def test_display_help_popup_is_translated(german: None, monkeypatch: pytest.Monk
         lambda title, message="", **kwargs: captured.update(title=title, message=message),
     )
 
-    userintr.MapTaskerEventHandlers.query_event(object(), "help")
+    userintr.MapTaskerEventHandlers.query_event(stand_in(object()), "help")
 
     assert translate_string(userhelp.INFO_TEXT) in captured["message"]
     assert userhelp.INFO_TEXT not in captured["message"]

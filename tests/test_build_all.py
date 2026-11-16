@@ -23,6 +23,7 @@ from __future__ import annotations
 import ast
 import importlib
 import pathlib
+from typing import cast
 
 import pytest
 from maptasker.src import mapit
@@ -49,7 +50,7 @@ def test_build_all_is_off() -> None:
         if isinstance(node, ast.Assign) and any(isinstance(t, ast.Name) and t.id == "build_all" for t in node.targets)
     ]
     assert len(assignments) == 1, "expected exactly one 'build_all =' in start_up"
-    assert assignments[0].value.value is False, "build_all must not be committed as True"
+    assert cast("ast.Constant", assignments[0].value).value is False, "build_all must not be committed as True"
 
 
 def test_the_deferred_imports_resolve() -> None:

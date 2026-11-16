@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import IO, Any, cast
 
 import pytest
 from maptasker.src.core.mtexcept import MapTaskerError
@@ -64,9 +64,9 @@ def test_a_named_file_is_opened(tmp_path: Path, monkeypatch: pytest.MonkeyPatch)
     proginit.open_and_get_backup_xml_file(state=PrimeItems)
 
     try:
-        assert required(PrimeItems.file_to_get).read() == "<TaskerData/>"
+        assert cast("IO[str]", required(PrimeItems.file_to_get)).read() == "<TaskerData/>"
     finally:
-        required(PrimeItems.file_to_get).close()
+        cast("IO[str]", required(PrimeItems.file_to_get)).close()
 
 
 def test_a_file_object_is_opened_by_its_name(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -78,9 +78,9 @@ def test_a_file_object_is_opened_by_its_name(tmp_path: Path, monkeypatch: pytest
         monkeypatch.setattr(PrimeItems.program_arguments, "file", handed_over)
         proginit.open_and_get_backup_xml_file(state=PrimeItems)
     try:
-        assert required(PrimeItems.file_to_get).name == str(backup)
+        assert cast("IO[str]", required(PrimeItems.file_to_get)).name == str(backup)
     finally:
-        required(PrimeItems.file_to_get).close()
+        cast("IO[str]", required(PrimeItems.file_to_get)).close()
 
 
 def test_a_file_that_is_not_there_is_an_error(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -140,7 +140,7 @@ def test_a_backup_fetched_from_the_device_is_the_file_used(tmp_path: Path, monke
         assert PrimeItems.program_arguments.file == str(backup)
         assert PrimeItems.file_to_get is not None
     finally:
-        required(PrimeItems.file_to_get).close()
+        cast("IO[str]", required(PrimeItems.file_to_get)).close()
 
 
 def test_a_device_fetch_that_raises_is_not_caught_here(monkeypatch: pytest.MonkeyPatch) -> None:

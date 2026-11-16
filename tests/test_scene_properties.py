@@ -36,6 +36,7 @@ import glob
 import json
 import os
 import xml.etree.ElementTree as ET
+from collections.abc import Callable
 
 import pytest
 from maptasker.src.core.initparg import ProgramArguments
@@ -44,7 +45,7 @@ from maptasker.src.core.sysconst import BASE_PROJECT_NAME
 from maptasker.src.edit import sceneedit, sceneedit_legacy, taskedit, taskedit_apply, taskedit_save
 from maptasker.src.gui import guiwins_sceneprops
 
-from tests.doubles import required
+from tests.doubles import required, stand_in
 
 # The backup the Scene tests load: hand-built, in tests/data, so they run anywhere -- CI included --
 # and hold nobody's configuration (see the comment at the top of the file).  The sweeps below also
@@ -485,13 +486,14 @@ def stub_gui():
     return gui
 
 
-def _scene_with(root: ET.Element, predicate) -> ET.Element:
+def _scene_with(root: ET.Element, predicate: Callable[[ET.Element], bool]) -> ET.Element:
     """The first sample Scene whose <PropertiesElement> satisfies `predicate`."""
     for scene in root.iter("Scene"):
         properties = scene.find("PropertiesElement")
         if properties is not None and predicate(properties):
             return properties
-    return None
+    message = "no sample Scene satisfies the predicate"
+    raise LookupError(message)
 
 
 @pytest.fixture
@@ -602,7 +604,7 @@ def test_an_event_with_no_task_says_so_and_still_offers_the_filter(sample_backup
     ui = pytest.importorskip("nicegui").ui
     root = sample_backup(_SYNTHETIC_BACKUP)
     properties = copy.deepcopy(_scene_with(root, lambda p: p.find(sceneedit_legacy.LEGACY_KEY_TASK_TAG) is not None))
-    properties.remove(properties.find(sceneedit_legacy.LEGACY_KEY_TASK_TAG))
+    properties.remove(required(properties.find(sceneedit_legacy.LEGACY_KEY_TASK_TAG)))
 
     container = _render(
         stub_gui,
@@ -750,7 +752,9 @@ def test_a_scene_that_is_not_an_activity_is_told_so_but_keeps_its_items(sample_b
 # ==========================================
 # 6. APPLYING FROM THE TAB
 # ==========================================
-def test_apply_to_task_puts_the_action_edits_into_the_loaded_configuration(monkeypatch, loaded_tasks):
+def test_apply_to_task_puts_the_action_edits_into_the_loaded_configuration(
+    monkeypatch: pytest.MonkeyPatch, loaded_tasks
+):
     """ "Apply to Task" is the tab's Ok: the working copy replaces the live one in the Task
     tables, so every view built from them shows the edit.
     """
@@ -774,7 +778,7 @@ def test_apply_to_task_puts_the_action_edits_into_the_loaded_configuration(monke
     assert notified[-1][1] == "positive"
 
 
-def test_a_rejected_value_is_reported_and_nothing_is_applied(monkeypatch, loaded_tasks):
+def test_a_rejected_value_is_reported_and_nothing_is_applied(monkeypatch: pytest.MonkeyPatch, loaded_tasks):
     """All-or-nothing, like the Edit Task dialog's Ok: a validation error leaves the loaded
     configuration exactly as it was.
     """
@@ -802,7 +806,7 @@ def test_a_rejected_value_is_reported_and_nothing_is_applied(monkeypatch, loaded
 # ==========================================
 # 7. THE EDITOR THE TWO SURFACES SHARE
 # ==========================================
-def test_the_edit_task_dialog_still_builds_after_the_editor_was_lifted_out_of_it(monkeypatch):
+def test_the_edit_task_dialog_still_builds_after_the_editor_was_lifted_out_of_it(monkeypatch: pytest.MonkeyPatch):
     """build_task_action_editor was cut out of build_edit_task_dialog so the KEY tab could
     render the same thing.  This is the guard on that surgery: the dialog it came from has
     to still build, over real Tasks, with every action listed.
@@ -1048,7 +1052,7 @@ def test_the_placement_follows_taskers_overflow_rules():
     overflow.  Tasker stores none of this, so it is derived or it is invisible.
     """
     make = lambda icon, label: sceneedit_legacy.LegacyActionItem(
-        element=None,
+        element=stand_in(None),
         sr="item0",
         index=0,
         label=label,
@@ -1411,7 +1415,7 @@ def test_a_task_with_no_name_is_left_out_of_the_picker(picker_tables):
 # 12. COMPOSING A NEW TASK UNDER AN EVENT SUB-TAB
 # ==========================================
 @pytest.fixture
-def unbound_event(sample_backup, stub_gui, monkeypatch):
+def unbound_event(sample_backup, stub_gui, monkeypatch: pytest.MonkeyPatch):
     """A Scene's properties with every event binding removed, and the machinery to render
     one of its Event sub-tabs.
 
@@ -1709,7 +1713,7 @@ def test_new_ids_start_clear_of_the_loaded_files_highest():
 # picker's own rows -- "Close System Dialogs (Uncategorized)" is the one that fooled the first
 # attempt at reproducing this -- rather than the button.
 @pytest.fixture
-def scene_properties_dialog(sample_backup, stub_gui, monkeypatch):
+def scene_properties_dialog(sample_backup, stub_gui, monkeypatch: pytest.MonkeyPatch):
     """The real Scene Properties dialog over a sample Scene, opened as often as wanted.
 
     Returns (open_dialog, scene, notified); open_dialog() builds a fresh one over the same

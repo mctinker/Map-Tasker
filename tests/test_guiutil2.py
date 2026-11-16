@@ -11,6 +11,8 @@ import requests
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.gui import guiutil2
 
+from tests.doubles import stand_in
+
 
 @pytest.fixture
 def reported(monkeypatch: pytest.MonkeyPatch) -> list[str]:
@@ -126,27 +128,27 @@ def _frame() -> object:
 
 def test_a_tracer_that_has_not_been_switched_on_writes_nothing(tracing: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(PrimeItems, "trace", False, raising=False)
-    assert guiutil2.my_trace_function(_frame(), "line", None) is guiutil2.my_trace_function
+    assert guiutil2.my_trace_function(stand_in(_frame()), "line", None) is guiutil2.my_trace_function
     assert not tracing.exists()
 
 
 def test_a_line_is_logged_with_its_source(tracing: Path) -> None:
-    assert guiutil2.my_trace_function(_frame(), "line", None) is guiutil2.my_trace_function
+    assert guiutil2.my_trace_function(stand_in(_frame()), "line", None) is guiutil2.my_trace_function
     logged = tracing.read_text(encoding="utf-8")
     assert logged.startswith("LINE: test_guiutil2.py:")
     assert "test_a_line_is_logged_with_its_source" in logged
 
 
 def test_a_call_and_a_return_are_logged(tracing: Path) -> None:
-    guiutil2.my_trace_function(_frame(), "call", None)
-    guiutil2.my_trace_function(_frame(), "return", 42)
+    guiutil2.my_trace_function(stand_in(_frame()), "call", None)
+    guiutil2.my_trace_function(stand_in(_frame()), "return", 42)
     logged = tracing.read_text(encoding="utf-8")
     assert "CALL:" in logged
     assert "(Returned: 42)" in logged
 
 
 def test_an_exception_is_logged_by_type_and_message(tracing: Path) -> None:
-    guiutil2.my_trace_function(_frame(), "exception", (ValueError, ValueError("bad"), None))
+    guiutil2.my_trace_function(stand_in(_frame()), "exception", (ValueError, ValueError("bad"), None))
     assert "ValueError: bad" in tracing.read_text(encoding="utf-8")
 
 
@@ -164,14 +166,14 @@ def test_a_source_file_that_vanished_is_reported_not_fatal(
     def refuse(path: object, *args: Any, **kwargs: Any) -> object:
         if str(path).endswith("test_guiutil2.py"):
             raise OSError("gone")
-        return real_open(path, *args, **kwargs)
+        return real_open(stand_in(path), *args, **kwargs)
 
     monkeypatch.setattr("builtins.open", refuse)
-    guiutil2.my_trace_function(_frame(), "line", None)
+    guiutil2.my_trace_function(stand_in(_frame()), "line", None)
     assert "Could not read source" in reported[0]
     assert "<ERROR READING CODE" in tracing.read_text(encoding="utf-8")
 
 
 def test_an_event_that_is_none_of_these_logs_nothing(tracing: Path) -> None:
-    assert guiutil2.my_trace_function(_frame(), "opcode", None) is guiutil2.my_trace_function
+    assert guiutil2.my_trace_function(stand_in(_frame()), "opcode", None) is guiutil2.my_trace_function
     assert not tracing.exists()

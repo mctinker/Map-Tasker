@@ -1,3 +1,5 @@
+# pyright: reportPrivateUsage=false
+# (this test checks private helpers on purpose)
 """New-phone checklist (newphone.py) Unit Tests -- what is left to set up after restoring a backup
 
 The checklist is readiness.py's answer for the whole backup, mapvars' globals and the Profiles that are switched on,

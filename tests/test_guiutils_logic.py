@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import datetime
+from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
 
@@ -11,7 +12,7 @@ import pytest
 from maptasker.src.gui import guiutils, guiutils_ai
 from maptasker.src.gui.userintr import MyGui
 
-from tests.doubles import fake_state, fake_window
+from tests.doubles import fake_state, fake_window, stand_in
 
 
 # ##################################################################################
@@ -66,21 +67,21 @@ class _Day:
         return datetime.datetime.combine(self.day, datetime.time(12))
 
 
-def test_the_first_check_of_the_day_is_the_first(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_the_first_check_of_the_day_is_the_first(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     marker = str(tmp_path / "last_run.txt")
     monkeypatch.setattr(guiutils, "clock", _Day("2026-10-14"))
     assert guiutils.is_first_run_today(marker) is True
     assert (tmp_path / "last_run.txt").read_text(encoding="utf-8") == "2026-10-14"
 
 
-def test_a_second_check_the_same_day_is_not(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_a_second_check_the_same_day_is_not(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     marker = str(tmp_path / "last_run.txt")
     monkeypatch.setattr(guiutils, "clock", _Day("2026-10-14"))
     guiutils.is_first_run_today(marker)
     assert guiutils.is_first_run_today(marker) is False
 
 
-def test_the_next_day_is_a_first_again(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_the_next_day_is_a_first_again(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     marker = str(tmp_path / "last_run.txt")
     monkeypatch.setattr(guiutils, "clock", _Day("2026-10-14"))
     guiutils.is_first_run_today(marker)
@@ -269,7 +270,7 @@ def _loaded() -> SimpleNamespace:
 
 @pytest.mark.parametrize("none", ["None"])
 def test_none_is_always_a_valid_choice(none: str) -> None:
-    assert guiutils.valid_item(_loaded(), none, "Project", False, "dark") is True
+    assert guiutils.valid_item(stand_in(_loaded()), none, "Project", False, "dark") is True
 
 
 @pytest.mark.parametrize(
@@ -287,20 +288,20 @@ def test_none_is_always_a_valid_choice(none: str) -> None:
     ],
 )
 def test_a_name_is_valid_if_the_backup_has_one_of_that_kind(name: str, kind: str, valid: bool) -> None:
-    assert guiutils.valid_item(_loaded(), name, kind, False, "dark") is valid
+    assert guiutils.valid_item(stand_in(_loaded()), name, kind, False, "dark") is valid
 
 
 def test_the_local_file_is_used_when_the_backup_came_from_the_device() -> None:
     gui = _loaded()
     gui.android_file = "/Tasker/backup.xml"
-    guiutils.valid_item(gui, "Home", "Project", False, "dark")
+    guiutils.valid_item(stand_in(gui), "Home", "Project", False, "dark")
     assert gui.state.program_arguments.file == "backup.xml"
 
 
 def test_the_file_the_user_picked_is_used_otherwise() -> None:
     gui = _loaded()
     gui.file = "picked.xml"
-    guiutils.valid_item(gui, "Home", "Project", False, "dark")
+    guiutils.valid_item(stand_in(gui), "Home", "Project", False, "dark")
     assert gui.state.program_arguments.file == "picked.xml"
 
 
@@ -309,7 +310,7 @@ def test_with_no_file_the_user_is_asked_for_one() -> None:
     gui.file = ""
     asked: list[tuple] = []
     gui.prompt_and_get_file = lambda *args: asked.append(args)
-    guiutils.valid_item(gui, "Home", "Project", False, "dark")
+    guiutils.valid_item(stand_in(gui), "Home", "Project", False, "dark")
     assert asked == [(False, "dark")]
 
 
@@ -323,7 +324,7 @@ def test_a_backup_not_yet_read_is_read_before_the_name_is_checked(monkeypatch: p
         return 0
 
     monkeypatch.setattr(guiutils, "get_xml", read)
-    assert guiutils.valid_item(gui, "Home", "Project", False, "dark") is True
+    assert guiutils.valid_item(stand_in(gui), "Home", "Project", False, "dark") is True
 
 
 @pytest.mark.parametrize(("code", "message"), [(6, "Cancel button pressed."), (3, "")])
@@ -334,6 +335,6 @@ def test_a_backup_that_cannot_be_read_makes_every_name_invalid(
     gui.state.tasker_root_elements = {"all_projects": {}, "all_profiles": {}, "all_tasks": {}, "all_scenes": {}}
     monkeypatch.setattr(guiutils, "get_xml", lambda debug, mode, state: code)
 
-    assert guiutils.valid_item(gui, "Home", "Project", False, "dark") is False
+    assert guiutils.valid_item(stand_in(gui), "Home", "Project", False, "dark") is False
     assert gui.state.error_msg == message
     assert gui.state.error_code == 0

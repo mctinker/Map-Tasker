@@ -9,7 +9,7 @@ drawn is what the walk found.  The dialog is the real one, on a page of NiceGUI'
 from __future__ import annotations
 
 import contextlib
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, TypeVar, cast
 
 import pytest
 from maptasker.src.analysis import taskstep
@@ -22,6 +22,8 @@ from nicegui.testing.user_simulation import user_simulation
 from tests.shared_fixtures import _load_local
 from tests.test_taskstep import _xml, else_, end_if, if_, set_
 from tests.test_taskstep_calls import perform, returning
+
+K = TypeVar("K", bound=ui.element)  # the kind of field a finder was asked for, and so what it hands back
 
 pytestmark = pytest.mark.usefixtures("_runtime")
 
@@ -72,11 +74,11 @@ def _labels(user: User) -> list[str]:
     return [element.text for element in user.find(kind=ui.label).elements]
 
 
-def _field(user: User, kind: type, label: str) -> ui.element:
+def _field(user: User, kind: type[K], label: str) -> K:
     (element,) = [
         e for e in user.find(kind=kind).elements if getattr(e, "props", {}).get("label", "").startswith(label)
     ]
-    return element
+    return cast("K", element)
 
 
 _TASKS = _xml(

@@ -21,7 +21,7 @@ from maptasker.src import mapit
 from maptasker.src.core.primitem import RunState
 from nicegui import app
 
-from tests.doubles import fake_state
+from tests.doubles import fake_state, stand_in
 
 if TYPE_CHECKING:
     from nicegui.client import Client
@@ -222,7 +222,7 @@ async def test_a_real_nicegui_disconnect_reaches_the_handler_with_its_client(mon
             await asyncio.sleep(0.05)
 
             assert client.id in mapit._waiting
-            mapit._on_client_connect(_typed(client))
+            mapit._on_client_connect(_typed(stand_in(client)))
     finally:
         with contextlib.suppress(Exception):
             if core.app.is_started:

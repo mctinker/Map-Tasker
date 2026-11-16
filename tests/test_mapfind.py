@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import os
 import xml.etree.ElementTree as ET
+from pathlib import Path
 
 import pytest
 from maptasker.src.analysis import mapfind
@@ -346,7 +347,7 @@ def test_report_states_what_the_scan_cannot_reach(index: mapfind.FindIndex) -> N
     assert "1 action(s) name a Scene through a %variable" in text
 
 
-def test_report_is_written_to_a_timestamped_file(index: mapfind.FindIndex, tmp_path: object) -> None:
+def test_report_is_written_to_a_timestamped_file(index: mapfind.FindIndex, tmp_path: Path) -> None:
     """The saved file holds the same report the results list shows."""
     query = mapfind.Query(action="HTTP Request")
     rows = mapfind.report_rows(query, *mapfind.run_query(index, query), index)

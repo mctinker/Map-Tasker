@@ -1,3 +1,5 @@
+# pyright: reportPrivateUsage=false
+# (this test checks private helpers on purpose)
 """The Ok button of the Add and Edit panels for Projects, Profiles and Tasks says what it does when hovered.
 
 Ok in these panels is the one button that is easy to misread: it does not save a file and it does not send anything to

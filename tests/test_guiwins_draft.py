@@ -26,7 +26,7 @@ from nicegui import core, ui
 from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
 
-from tests.doubles import expect
+from tests.doubles import expect, no_error
 from tests.test_mapswap import _FIXTURE_XML, _load
 
 if TYPE_CHECKING:
@@ -78,7 +78,7 @@ def _page() -> None:
     gui.indent = 4
     gui.draft_share_names = False
     gui.event_handlers.editors.add_action_to_new_task_event.side_effect = lambda task, key, pos: (
-        taskedit.add_action_to_task(task, key, pos, state=PrimeItems).act_number
+        no_error(taskedit.add_action_to_task(task, key, pos, state=PrimeItems)).act_number
     )
     _built["gui"] = gui
     task = taskedit.create_new_task("", "100", state=PrimeItems)

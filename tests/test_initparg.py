@@ -11,6 +11,7 @@ loads.
 from __future__ import annotations
 
 import copy
+from typing import Any, cast
 
 import pytest
 from maptasker.src.core.initparg import ProgramArguments, initialize_runtime_arguments
@@ -23,7 +24,7 @@ from maptasker.src.core.sysconst import ARGUMENT_NAMES, TRANSIENT_ARGUMENTS
 def test_reading_a_misspelled_attribute_fails() -> None:
     """The case that started it: a misspelled read used to come back as None."""
     with pytest.raises(AttributeError):
-        _ = ProgramArguments().veiw_limit
+        _ = cast("Any", ProgramArguments()).veiw_limit
 
 
 def test_writing_a_misspelled_attribute_fails() -> None:
@@ -31,7 +32,7 @@ def test_writing_a_misspelled_attribute_fails() -> None:
     arguments = ProgramArguments()
 
     with pytest.raises(AttributeError):
-        arguments.ai_analysis = False  # the real one is ai_analyze
+        cast("Any", arguments).ai_analysis = False  # the real one is ai_analyze
 
 
 @pytest.mark.parametrize("operation", ["read", "write"])

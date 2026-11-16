@@ -1,3 +1,5 @@
+# pyright: reportPrivateUsage=false
+# (this test checks private helpers on purpose)
 """The Project dependency graph (projdeps): which Projects use Tasks, Scenes and globals that live in other Projects.
 
 The fixture is four Projects with every shape the rules care about:

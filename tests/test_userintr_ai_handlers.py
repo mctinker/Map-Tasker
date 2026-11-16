@@ -171,7 +171,9 @@ def test_the_dropdown_is_left_alone_when_no_option_matches(seen: SimpleNamespace
 # ##################################################################################
 # The API keys dialog opens
 # ##################################################################################
-def test_the_keys_dialog_is_opened_with_the_key_already_held(seen: SimpleNamespace, monkeypatch) -> None:
+def test_the_keys_dialog_is_opened_with_the_key_already_held(
+    seen: SimpleNamespace, monkeypatch: pytest.MonkeyPatch
+) -> None:
     window = _window()
     dialog = MagicMock()
     monkeypatch.setattr(userintr_ai, "APIKeyDialog", MagicMock(return_value=dialog))

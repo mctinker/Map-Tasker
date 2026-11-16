@@ -15,6 +15,7 @@ from __future__ import annotations
 import json
 import os
 from collections.abc import Iterator
+from pathlib import Path
 
 import pytest
 from maptasker.src.core.actionc import action_codes
@@ -412,7 +413,7 @@ def test_a_row_with_no_code_cannot_be_counted_and_without_a_file_nothing_can(loa
 
 
 def test_the_report_is_saved_where_the_others_are(
-    loaded: None, tmp_path: object, monkeypatch: pytest.MonkeyPatch
+    loaded: None, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.setattr(compat, "output_path", lambda name, state: os.path.join(str(tmp_path), name))
 

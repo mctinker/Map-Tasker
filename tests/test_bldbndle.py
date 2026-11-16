@@ -138,7 +138,7 @@ def test_2099e_regression(tmp_path: Path) -> None:
     assert "888t" in rebuilt, "the backup's own new code was not added"
 
 
-def test_default_output_is_the_file_the_program_imports(tmp_path: Path, monkeypatch) -> None:
+def test_default_output_is_the_file_the_program_imports(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """A rebuild lands in maptasker/assets/json/bundles.json, with no copy to make afterwards.
 
     It used to be written somewhere else and moved across by hand, which is how a

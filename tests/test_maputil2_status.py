@@ -1,3 +1,5 @@
+# pyright: reportPrivateUsage=false
+# (this test checks private helpers on purpose)
 """What the device said, when it answers a request with a status that means no."""
 
 from __future__ import annotations

@@ -44,7 +44,7 @@ from maptasker.src.gui import userintr_android, userintr_android_support
 from maptasker.src.gui.guiwins import AndroidFields
 from maptasker.src.mapgen import taskerd
 
-from tests.doubles import fake_android_fields, required
+from tests.doubles import fake_android_fields, required, stand_in
 
 # One Project owning one Profile, that Profile's Entry Task, a Scene the Project declares,
 # and the Task that Scene's button fires.  Small, but it is every relationship the four
@@ -263,7 +263,7 @@ def test_meaningful_whitespace_inside_a_value_is_not_a_difference() -> None:
 
     assert report.ok, report.detail()
     assert _live("all_tasks", "20").findtext("nme") == "Opener "
-    assert "\t" in required(_live("all_tasks", "20").find("Action/Str")).text
+    assert "\t" in required(required(_live("all_tasks", "20").find("Action/Str")).text)
 
 
 def test_reindenting_the_export_is_not_a_difference() -> None:
@@ -342,7 +342,7 @@ def test_an_unticked_verify_does_not_even_render() -> None:
     never happens -- for a Project export that is every Profile, Scene and Task in it."""
     called = []
 
-    assert userintr_android.round_trip_verified(_panel(ticked=False), lambda: called.append(1))
+    assert userintr_android.round_trip_verified(_panel(ticked=False), stand_in(lambda: called.append(1)))
     assert called == []
 
 

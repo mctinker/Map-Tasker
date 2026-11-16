@@ -5,17 +5,17 @@ from __future__ import annotations
 import asyncio
 import sys
 from pathlib import Path
-from types import SimpleNamespace
+from types import SimpleNamespace, TracebackType
 
 import pytest
 from maptasker.src import mapit
 from maptasker.src.core import console
 from maptasker.src.core.primitem import PrimeItems, RunState
 
-from tests.doubles import fake_state
+from tests.doubles import fake_state, stand_in
 
 
-def _crash() -> tuple[type, BaseException, object]:
+def _crash() -> tuple[type[BaseException], BaseException, TracebackType | None]:
     try:
         raise ValueError("a genuine bug")
     except ValueError as error:
@@ -86,7 +86,7 @@ def test_a_background_failure_is_logged_with_its_exception(monkeypatch: pytest.M
     monkeypatch.setattr(mapit.logger, "error", logged.append)
     monkeypatch.setattr(console, "debug", lambda _text: None)
 
-    mapit.handle_async_exceptions(None, {"exception": RuntimeError("lost the socket")})
+    mapit.handle_async_exceptions(stand_in(None), {"exception": RuntimeError("lost the socket")})
 
     assert logged == ["Async Background Task aborted: lost the socket"]
 
@@ -96,7 +96,7 @@ def test_a_background_failure_with_only_a_message_is_logged_with_that(monkeypatc
     monkeypatch.setattr(mapit.logger, "error", logged.append)
     monkeypatch.setattr(console, "debug", lambda _text: None)
 
-    mapit.handle_async_exceptions(None, {"message": "task was destroyed"})
+    mapit.handle_async_exceptions(stand_in(None), {"message": "task was destroyed"})
 
     assert logged == ["Async Loop Error: task was destroyed"]
 

@@ -11,7 +11,7 @@ from maptasker.src.core.sysconst import ALL_OBJECTS_MESSAGE
 from maptasker.src.gui import userintr_loading
 from maptasker.src.gui.userintr_loading import LoadingEventHandlers
 
-from tests.doubles import fake_window
+from tests.doubles import fake_window, stand_in
 
 
 # ##################################################################################
@@ -25,33 +25,33 @@ def _remembering(directory: str = "", saved: str = "") -> SimpleNamespace:
 
 
 def test_the_picker_opens_where_the_last_file_came_from(tmp_path: Path) -> None:
-    assert userintr_loading.local_xml_start_directory(_remembering(str(tmp_path))) == str(tmp_path)
+    assert userintr_loading.local_xml_start_directory(stand_in(_remembering(str(tmp_path)))) == str(tmp_path)
 
 
 def test_the_saved_setting_is_used_when_this_session_has_not_picked_yet(tmp_path: Path) -> None:
-    assert userintr_loading.local_xml_start_directory(_remembering("", str(tmp_path))) == str(tmp_path)
+    assert userintr_loading.local_xml_start_directory(stand_in(_remembering("", str(tmp_path)))) == str(tmp_path)
 
 
 def test_a_directory_that_is_gone_falls_back_to_home(tmp_path: Path) -> None:
     """Renamed, deleted, or on a drive that is not mounted any more."""
-    assert userintr_loading.local_xml_start_directory(_remembering(str(tmp_path / "gone"))) == "~"
+    assert userintr_loading.local_xml_start_directory(stand_in(_remembering(str(tmp_path / "gone")))) == "~"
 
 
 def test_nothing_remembered_means_home() -> None:
-    assert userintr_loading.local_xml_start_directory(_remembering()) == "~"
+    assert userintr_loading.local_xml_start_directory(stand_in(_remembering())) == "~"
 
 
 def test_a_picked_file_makes_its_folder_the_next_starting_point(monkeypatch: pytest.MonkeyPatch) -> None:
     remembered: list[tuple] = []
     monkeypatch.setattr(userintr_loading, "remember_setting", lambda gui, name, value: remembered.append((name, value)))
     folder = Path("home", "me", "backups")  # Built, not typed, so it has this machine's separators.
-    userintr_loading.remember_local_xml_directory(object(), str(folder / "backup.xml"))
+    userintr_loading.remember_local_xml_directory(stand_in(object()), str(folder / "backup.xml"))
     assert remembered == [("local_xml_directory", str(folder))]
 
 
 def test_no_file_picked_remembers_nothing(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(userintr_loading, "remember_setting", lambda *_a: pytest.fail("nothing was picked"))
-    userintr_loading.remember_local_xml_directory(object(), "")
+    userintr_loading.remember_local_xml_directory(stand_in(object()), "")
 
 
 # ##################################################################################

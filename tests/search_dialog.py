@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import contextlib
 from types import SimpleNamespace
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.gui import guiwins_search
@@ -33,7 +33,7 @@ class View(guiwins_search.TextViewSearch):
         async def view_event(view_type: str) -> None:
             built.setdefault("rebuilt", []).append(view_type)
 
-        self.master_gui = SimpleNamespace(
+        self.master_gui: Any = SimpleNamespace(
             state=PrimeItems,
             ai_name="",
             ai_model="",

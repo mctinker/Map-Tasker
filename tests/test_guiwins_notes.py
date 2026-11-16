@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast
 
 import pytest
@@ -184,7 +185,7 @@ async def test_with_no_file_open_no_note_is_said_to_be_missing_from_it() -> None
 
 
 @pytest.mark.asyncio
-async def test_with_no_notes_the_window_is_empty_and_still_opens(tmp_path: object) -> None:
+async def test_with_no_notes_the_window_is_empty_and_still_opens(tmp_path: Path) -> None:
     objnotes.save(NoteBook())
 
     async with _open() as user:

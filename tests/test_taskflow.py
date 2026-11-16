@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import os
 import xml.etree.ElementTree as ET
+from pathlib import Path
 
 import pytest
 from maptasker.src.analysis import taskflow
@@ -429,7 +430,7 @@ def test_clean_configuration_says_so() -> None:
     assert "Nothing to report" in text_report(rows)
 
 
-def test_report_is_written_to_a_file(tmp_path: object, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_report_is_written_to_a_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """The saved file holds the same text the report renders."""
     _load(_FLOW_XML)
     monkeypatch.chdir(tmp_path)

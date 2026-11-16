@@ -3,7 +3,7 @@
 import asyncio
 import contextlib
 import os
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any, TextIO, cast
 
 from nicegui import run, ui
 
@@ -801,7 +801,7 @@ SINGLE_ITEM_EXPORT_TAGS = (
 )
 
 
-def single_item_export_selection(file_path: str, state: RunState) -> tuple[str, str]:
+def single_item_export_selection(file_path: str | TextIO, state: RunState) -> tuple[str, str]:
     """Work out which single item, if any, a just-loaded XML file selects all by itself.
 
     Args:

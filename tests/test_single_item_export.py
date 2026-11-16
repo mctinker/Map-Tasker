@@ -13,6 +13,7 @@ renamed at any point since Tasker wrote it.
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import cast
 from unittest.mock import MagicMock
 
@@ -109,7 +110,7 @@ def test_no_file_selects_nothing(file_path: str | None) -> None:
     assert single_item_export_selection(cast("str", file_path), state=PrimeItems) == ("", "")
 
 
-def test_an_open_file_object_is_read_the_same_as_a_path(tmp_path) -> None:
+def test_an_open_file_object_is_read_the_same_as_a_path(tmp_path: Path) -> None:
     """PrimeItems.file_to_get is a path string when getxml_event first assigns it and an
     open file object once the load has been through it, and the caller passes whichever
     it finds.  Reading str() of a file object instead of its .name would take the tag out
@@ -141,21 +142,23 @@ def event_handler() -> MapTaskerEventHandlers:
 def test_handler_selects_the_exported_object(event_handler: MapTaskerEventHandlers) -> None:
     """'Get Local XML File' and both Android fetch paths all end in this call."""
     event_handler.loading.select_single_item_export("/backups/Home Automation.prj.xml")
-    event_handler.loading.process_single_name_event.assert_called_once_with("Project", "Home Automation")
+    cast("MagicMock", event_handler.loading.process_single_name_event).assert_called_once_with(
+        "Project", "Home Automation"
+    )
 
 
 def test_handler_reads_an_android_device_path(event_handler: MapTaskerEventHandlers) -> None:
     """The Android paths hand over the file's location on the device rather than a local
     path.  Only the file's own name is read, so the two are the same job."""
     event_handler.loading.select_single_item_export("/storage/emulated/0/Tasker/configs/user/Sunset.prf.xml")
-    event_handler.loading.process_single_name_event.assert_called_once_with("Profile", "Sunset")
+    cast("MagicMock", event_handler.loading.process_single_name_event).assert_called_once_with("Profile", "Sunset")
 
 
 def test_handler_leaves_a_full_backup_alone(event_handler: MapTaskerEventHandlers) -> None:
     """The common case, and the one that must not change: a backup selects nothing, so
     the whole configuration is displayed."""
     event_handler.loading.select_single_item_export("/storage/emulated/0/Tasker/configs/user/backup.xml")
-    event_handler.loading.process_single_name_event.assert_not_called()
+    cast("MagicMock", event_handler.loading.process_single_name_event).assert_not_called()
 
 
 class FakeSelect:

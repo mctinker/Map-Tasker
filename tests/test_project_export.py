@@ -284,7 +284,7 @@ def test_the_elements_come_in_taskers_own_order() -> None:
 
 
 def _task_names(project_name: str) -> set[str]:
-    return {task.findtext("nme") for task in _document(project_name).findall("Task")}
+    return {required(task.findtext("nme")) for task in _document(project_name).findall("Task")}
 
 
 def test_a_scene_button_brings_its_task_with_it() -> None:

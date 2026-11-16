@@ -8,6 +8,7 @@ the day an entry in it changed shape.
 from __future__ import annotations
 
 import xml.etree.ElementTree as ET
+from typing import cast
 
 import pytest
 from maptasker.src.core import prefers
@@ -15,6 +16,8 @@ from maptasker.src.core.mtexcept import MapTaskerError
 from maptasker.src.core.primitem import RunState
 from maptasker.src.core.runcfg import current_config
 from maptasker.src.core.servicec import service_codes
+
+from tests.doubles import set_attr
 
 
 class _Output:
@@ -36,7 +39,7 @@ def _setting(name: str, value: str, kind: str = "s") -> ET.Element:
 
 def _state(*settings: ET.Element) -> RunState:
     state = RunState()
-    state.output_lines = _Output()
+    set_attr(state, output_lines=_Output())
     state.tasker_root_elements = {"all_services": list(settings)}
     return state
 
@@ -133,7 +136,7 @@ def test_get_preferences_prints_each_section_heading_once_in_tasker_order() -> N
     """Sorted by number, with a heading where the section changes."""
     state = _state(_setting("tpEn", "true"), _setting("anm", "true"), _setting("sHapt", "false"))
     prefers.get_preferences(current_config(state), state=state)
-    text = state.output_lines.text()
+    text = cast("_Output", state.output_lines).text()
     assert text.count("Section: UI > General") == 1
     assert text.index("Animations") < text.index("Haptic Feedback") < text.index("Tips")
-    assert state.output_lines.lines[0][1].startswith("Tasker Preferences")
+    assert cast("_Output", state.output_lines).lines[0][1].startswith("Tasker Preferences")

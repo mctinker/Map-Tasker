@@ -17,6 +17,7 @@ import json
 import os
 import re
 import zlib
+from pathlib import Path
 
 import pytest
 from maptasker.src.core import mapfonts
@@ -459,9 +460,7 @@ def test_an_embedded_font_draws_the_diagram_searchably() -> None:
 # ##################################################################################
 # Exporting a view
 # ##################################################################################
-def test_export_view_writes_each_format(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: os.PathLike, no_system_fonts: None
-) -> None:
+def test_export_view_writes_each_format(monkeypatch: pytest.MonkeyPatch, tmp_path: Path, no_system_fonts: None) -> None:
     """Each view, in each format, from the file it is displayed from."""
     monkeypatch.chdir(tmp_path)
     with pytest.raises(mapexport.ExportError):

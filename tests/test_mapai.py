@@ -29,6 +29,8 @@ from maptasker.src.core.primitem import RunState
 from maptasker.src.core.sysconst import ANALYSIS_FILE, ERROR_FILE
 from maptasker.src.gui import mapai
 
+from tests.doubles import set_attr, stand_in
+
 if TYPE_CHECKING:
     from collections.abc import Callable
 
@@ -42,7 +44,7 @@ def state(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> RunState:
     run.program_arguments.ai_name = "Anthropic"
     run.program_arguments.ai_model = "claude-sonnet-5"
     run.program_arguments.ai_apikey = "sk-test"
-    run.output_lines = SimpleNamespace(output_lines=[])
+    set_attr(run, output_lines=SimpleNamespace(output_lines=[]))
     monkeypatch.setattr(mapai, "output_path", lambda name, state: str(tmp_path / name))
     return run
 
@@ -108,7 +110,7 @@ def _fake_genai(*, listing: object) -> SimpleNamespace:
         def list(self) -> object:
             if isinstance(listing, Exception):
                 raise listing
-            return iter(listing)
+            return iter(stand_in(listing))
 
     class Client:
         def __init__(self, api_key: str) -> None:

@@ -1,3 +1,5 @@
+# pyright: reportPrivateUsage=false
+# (this test checks private helpers on purpose)
 """maptext: the text a person reads, pulled into a table, translated, and put back.
 
 Run on the synthetic backup the fuzz tests use (Legacy Scenes with a list in one, Flash actions in the Tasks) and on a Version 2

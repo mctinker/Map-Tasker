@@ -1,3 +1,5 @@
+# pyright: reportPrivateUsage=false
+# (this test checks private helpers on purpose)
 """MapTasker Live Run Monitor model (livemon) Unit Tests
 
 A monitor is trusted to say what ran, so what is tested is that it says no more than it saw.  A sample is read back

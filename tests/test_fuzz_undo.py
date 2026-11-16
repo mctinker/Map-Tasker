@@ -1,3 +1,5 @@
+# pyright: reportPrivateUsage=false
+# (this test checks private helpers on purpose)
 """Undo and Redo restore the configuration exactly: not a configuration like it, the same file, byte for byte.
 
 Every editor, and every bulk operation (Replace, Fix Findings), changes the loaded configuration and leaves a

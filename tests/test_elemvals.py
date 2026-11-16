@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import xml.etree.ElementTree as ET
+from collections.abc import Callable
 from types import SimpleNamespace
 
 import pytest
@@ -17,7 +18,7 @@ def _element(inner: str = "") -> ET.Element:
 
 
 @pytest.mark.parametrize("function", [elemvals.get_collision, elemvals.get_awake])
-def test_no_element_gives_no_flag(function: object) -> None:
+def test_no_element_gives_no_flag(function: Callable[[None], str]) -> None:
     """A Profile or Task that was not found is not an error, just nothing to say."""
     assert function(None) == ""
 

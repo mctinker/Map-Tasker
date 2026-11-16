@@ -37,7 +37,7 @@ from maptasker.src.edit import sessundo
 from maptasker.src.mapgen import taskerd
 from maptasker.src.mapops import mapfix
 
-from tests.doubles import required
+from tests.doubles import required, set_attr
 
 # Codes used below, named so the tests read as prose.
 WAIT = "30"
@@ -481,7 +481,7 @@ def test_timeout_refuses_zero(loaded: None) -> None:
 def test_timeout_is_synthesized_when_the_action_never_carried_one(loaded: None) -> None:
     """An argument that is absent rather than zero is built the way Tasker writes one, and put in order."""
     action = actions_in_map_order(_task("21"))[0]
-    action.remove(action.find("Int[@sr='arg1']"))
+    action.remove(required(action.find("Int[@sr='arg1']")))
 
     plan = mapfix.plan_fixes(state=PrimeItems)
     position, _ = _only(plan, mapfix.NO_TIMEOUT)
@@ -792,7 +792,7 @@ def test_plan_is_empty_and_harmless_with_nothing_loaded() -> None:
         "all_profiles_by_name": {},
         "all_services": [],
     }
-    PrimeItems.xml_root = None
+    set_attr(PrimeItems, xml_root=None)
 
     plan = mapfix.plan_fixes(state=PrimeItems)
 

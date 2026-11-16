@@ -22,6 +22,7 @@ import asyncio
 import contextlib
 import logging
 from collections.abc import AsyncIterator
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pytest
@@ -189,7 +190,7 @@ async def test_choosing_an_indentation_changes_it(caplog: pytest.LogCaptureFixtu
     _no_errors_logged(caplog)
 
 
-async def test_save_settings_writes_what_the_window_shows(tmp_path, caplog: pytest.LogCaptureFixture) -> None:
+async def test_save_settings_writes_what_the_window_shows(tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
     """Pressing Save (Application Settings) puts the window's choices in the settings file, and says so."""
     async with _open_window() as (user, gui):
         _click(user, _checkbox(user, "Italicize"))
@@ -277,7 +278,9 @@ _SAYS_SO = {"empty file", "only the guidance", "no program arguments"}
 
 
 @pytest.mark.parametrize("name", list(_SETTINGS))
-async def test_the_window_opens_on_any_settings_file(name: str, tmp_path, caplog: pytest.LogCaptureFixture) -> None:
+async def test_the_window_opens_on_any_settings_file(
+    name: str, tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
     """Whatever the file holds, the window comes up, with its controls, and nothing is logged as an error."""
     (tmp_path / ARGUMENTS_FILE).write_bytes(_SETTINGS[name])
 
@@ -291,7 +294,7 @@ async def test_the_window_opens_on_any_settings_file(name: str, tmp_path, caplog
         assert _SAID_SO in errors[0]
 
 
-async def test_a_settings_file_without_a_debug_setting_still_restores_the_rest(tmp_path) -> None:
+async def test_a_settings_file_without_a_debug_setting_still_restores_the_rest(tmp_path: Path) -> None:
     """The missing key was read as a missing table, so every other saved setting was thrown away with it."""
     (tmp_path / ARGUMENTS_FILE).write_bytes(_SETTINGS["no debug setting"])
 
@@ -300,7 +303,7 @@ async def test_a_settings_file_without_a_debug_setting_still_restores_the_rest(t
         assert _checkbox(user, "Bold").value is True
 
 
-async def test_a_setting_of_the_wrong_kind_is_left_as_it_was_and_the_rest_is_restored(tmp_path) -> None:
+async def test_a_setting_of_the_wrong_kind_is_left_as_it_was_and_the_rest_is_restored(tmp_path: Path) -> None:
     """'indent = "wide"' raised out of the restore, so the window never opened."""
     (tmp_path / ARGUMENTS_FILE).write_bytes(b'[program_arguments]\ndebug = false\nindent = "wide"\nunderline = true\n')
 
@@ -310,7 +313,7 @@ async def test_a_setting_of_the_wrong_kind_is_left_as_it_was_and_the_rest_is_res
         assert _checkbox(user, "Underline").value is True
 
 
-async def test_a_file_with_one_changed_colour_leaves_every_other_colour_as_the_mode_has_it(tmp_path) -> None:
+async def test_a_file_with_one_changed_colour_leaves_every_other_colour_as_the_mode_has_it(tmp_path: Path) -> None:
     """The GUI saves only the colours that were changed.  Restoring such a file used to find the rest "missing" and
     set every one of them to turquoise, with a message for each."""
     (tmp_path / ARGUMENTS_FILE).write_bytes(
@@ -325,7 +328,9 @@ async def test_a_file_with_one_changed_colour_leaves_every_other_colour_as_the_m
         assert not user.notify.contains("Colors set to defaults.")
 
 
-async def test_a_file_with_no_colours_restores_its_settings_and_says_the_colours_are_the_defaults(tmp_path) -> None:
+async def test_a_file_with_no_colours_restores_its_settings_and_says_the_colours_are_the_defaults(
+    tmp_path: Path,
+) -> None:
     """The GUI saves only the colours that were changed, so an empty table is a file saved with none."""
     (tmp_path / ARGUMENTS_FILE).write_bytes(_SETTINGS["an empty colour table"])
 

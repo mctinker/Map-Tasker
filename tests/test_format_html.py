@@ -19,7 +19,7 @@ from maptasker.src.core import format as fmt
 from maptasker.src.core import htmllabel, htmlsafe, htmlstyle, htmltext, mapwriter
 from maptasker.src.core.sysconst import FormatLine
 
-from tests.doubles import required
+from tests.doubles import required, stand_in
 
 _COLORS = {"background_color": "white", "action_label_color": "Black", "taskernet_color": "Blue"}
 
@@ -688,7 +688,7 @@ def test_a_label_left_open_is_closed_where_it_matters() -> None:
 # ##################################################################################
 def test_the_colon_of_an_action_line_moves_after_its_number() -> None:
     assert fmt.format_line("Action: 5 <b>x</b>") == "5: <b>x</b>"
-    assert fmt.format_line(["ignored", "Action: 12 Flash"]) == "12: Flash"
+    assert fmt.format_line(stand_in(["ignored", "Action: 12 Flash"])) == "12: Flash"
 
 
 def test_a_break_gets_a_carriage_return_after_it() -> None:

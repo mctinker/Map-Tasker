@@ -27,6 +27,7 @@ import re
 import sys
 import time
 import xml.etree.ElementTree as ET
+from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs, unquote, urlparse
 
@@ -47,7 +48,7 @@ from maptasker.src.edit import taskedit, taskedit_addable, taskedit_apply, taske
 from maptasker.src.edit.taskedit_model import EditableTask
 from maptasker.src.mapgen import taskerd
 
-from tests.doubles import expect, required
+from tests.doubles import expect, no_error, required, set_attr
 
 LAUNCH_APP = "20t"  # App=arg0
 KILL_APP = "18t"  # App=arg0
@@ -148,7 +149,7 @@ _FIXTURE_XML = """<TaskerData sr="" dvi="1" tv="6.3.13">
 
 
 @pytest.fixture(autouse=True)
-def _isolated_inventory(monkeypatch: pytest.MonkeyPatch, tmp_path: object) -> None:
+def _isolated_inventory(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """No test in this file may read or write the real MapTasker_Apps.json.
 
     appinv.cache_path() resolves against the current directory, which during a test run
@@ -217,7 +218,7 @@ def _nothing_loaded() -> None:
     """No configuration at all -- what the program starts up with, and what every App and
     Icon argument used to look like permanently.
     """
-    PrimeItems.xml_root = None
+    set_attr(PrimeItems, xml_root=None)
     PrimeItems.tasker_root_elements = initial_tasker_root_elements()
     _load_arg_specs()
 
@@ -432,6 +433,7 @@ def test_a_synthesized_launch_app_writes_the_xml_tasker_writes(loaded: None) -> 
     worth doing rather than just letting the field be typed into.
     """
     edited_task = taskedit.create_new_task("Opener2", "3", state=PrimeItems)
+    edited_task = no_error(edited_task)
     taskedit.add_action_to_task(expect(edited_task, EditableTask), LAUNCH_APP, state=PrimeItems)
 
     errors = taskedit_apply.apply_edits_to_task(
@@ -452,6 +454,7 @@ def test_a_synthesized_launch_app_writes_the_xml_tasker_writes(loaded: None) -> 
 def test_a_synthesized_notify_writes_its_icon(loaded: None) -> None:
     """The Icon counterpart, and the one place the <Img> is built from nothing at all."""
     edited_task = taskedit.create_new_task("Noisy2", "3", state=PrimeItems)
+    edited_task = no_error(edited_task)
     taskedit.add_action_to_task(expect(edited_task, EditableTask), NOTIFY, state=PrimeItems)
 
     errors = taskedit_apply.apply_edits_to_task(
@@ -606,7 +609,7 @@ def test_an_already_installed_helper_task_is_not_imported_again(device: _FakeReq
 
 def _codes(xml_text: str) -> list[str]:
     """The action codes of a rendered Task, in order."""
-    return [action.findtext("code") for action in ET.fromstring(xml_text).findall(".//Action")]
+    return [required(action.findtext("code")) for action in ET.fromstring(xml_text).findall(".//Action")]
 
 
 def test_the_helper_task_maptasker_installs_is_the_one_it_meant_to(device: _FakeRequests) -> None:
@@ -977,7 +980,7 @@ def test_fetched_icons_sort_after_the_ones_already_in_use(device: _FakeRequests)
     deviceinv.fetch_apps_from_device("192.168.0.210", "1821", state=PrimeItems)
 
     kinds = [icon.kind for icon in appinv.icons(state=PrimeItems)]
-    assert kinds == sorted(kinds, key={"builtin": 0, "pack": 1, "app": 2, "var": 3}.get)
+    assert kinds == sorted(kinds, key={"builtin": 0, "pack": 1, "app": 2, "var": 3}.__getitem__)
 
 
 def test_an_icon_argument_stops_being_read_only_once_the_icons_arrive(
@@ -1829,7 +1832,7 @@ def _open_file_args(route: deviceoffer.OfferRoute) -> tuple[str, str]:
     task_xml = ET.fromstring(ET.tostring(built.task_element, encoding="unicode"))
     action = task_xml.find(".//Action[code='102']")
     assert action is not None
-    return action.findtext("Str[@sr='arg0']"), action.findtext("Str[@sr='arg1']")
+    return required(action.findtext("Str[@sr='arg0']")), required(action.findtext("Str[@sr='arg1']"))
 
 
 # ##################################################################################
@@ -3112,10 +3115,12 @@ def test_the_helper_project_carries_every_current_helper_under_its_own_id(loaded
 
     tasks = root.findall("Task")
     assert {task.findtext("nme") for task in tasks} == devicehelpers.current_helper_task_names(state=PrimeItems)
-    ids = [task.findtext("id") for task in tasks]
+    ids = [required(task.findtext("id")) for task in tasks]
     assert len(set(ids)) == len(ids)
     assert all(task.get("sr") == f"task{task.findtext('id')}" for task in tasks)
-    assert sorted(required(project.findtext("tids")).split(","), key=int) == sorted(ids, key=int)
+    assert sorted(required(project.findtext("tids")).split(","), key=lambda text: int(text)) == sorted(
+        ids, key=lambda number: int(number)
+    )
     existing = set(PrimeItems.tasker_root_elements["all_tasks"]) | set(PrimeItems.tasker_root_elements["all_profiles"])
     assert not existing & set(ids)
 
@@ -3140,7 +3145,7 @@ def test_the_helper_project_numbers_past_the_devices_backup(loaded: None) -> Non
 
     root = ET.fromstring(devicehelpers.build_helper_project_xml(device_xml=device_backup, state=PrimeItems))
 
-    ids = [int(task.findtext("id")) for task in root.findall("Task")]
+    ids = [int(required(task.findtext("id"))) for task in root.findall("Task")]
     assert min(ids) == 4100 + taskedit.NEW_OBJECT_ID_HEADROOM + 1
     assert len(set(ids)) == len(ids)
     project = root.find("Project")
@@ -3213,7 +3218,7 @@ def test_the_helper_project_is_uploaded_without_installing_or_running_anything(
     assert {task.findtext("nme") for task in sent.findall("Task")} == devicehelpers.current_helper_task_names(
         state=PrimeItems
     )
-    assert min(int(task.findtext("id")) for task in sent.findall("Task")) > 5000
+    assert min(int(required(task.findtext("id"))) for task in sent.findall("Task")) > 5000
 
 
 def test_helpers_already_on_the_device_are_named_and_nothing_is_written(

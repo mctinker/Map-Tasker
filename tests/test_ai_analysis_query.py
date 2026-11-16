@@ -10,6 +10,7 @@ from __future__ import annotations
 import asyncio
 import os
 from collections.abc import Iterator
+from pathlib import Path
 
 import pytest
 from maptasker.src.core.primitem import PrimeItems, initial_tasker_root_elements
@@ -22,7 +23,7 @@ _SYNTHETIC_BACKUP = os.path.join(os.path.dirname(os.path.abspath(__file__)), "da
 
 
 @pytest.fixture
-def _a_loaded_configuration(tmp_path, monkeypatch) -> Iterator[None]:
+def _a_loaded_configuration(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     """The synthetic backup loaded, with a GUI up, in a directory of our own."""
     from maptasker.src.core.actionc import load_arg_specs
     from maptasker.src.core.colrmode import set_color_mode
@@ -46,7 +47,7 @@ def _a_loaded_configuration(tmp_path, monkeypatch) -> Iterator[None]:
 
 
 @pytest.mark.usefixtures("_a_loaded_configuration")
-def test_the_query_holds_the_selected_task(monkeypatch) -> None:
+def test_the_query_holds_the_selected_task(monkeypatch: pytest.MonkeyPatch) -> None:
     """The selected Task and its actions are in what the model is sent."""
     # The window's settings, as capture_gui_state would copy them: one Task selected.
     monkeypatch.setattr(
@@ -66,7 +67,7 @@ def test_the_query_holds_the_selected_task(monkeypatch) -> None:
 
 
 @pytest.mark.usefixtures("_a_loaded_configuration")
-def test_the_query_is_text_without_blank_lines(monkeypatch) -> None:
+def test_the_query_is_text_without_blank_lines(monkeypatch: pytest.MonkeyPatch) -> None:
     """The model is sent the Map's words: no markup, no entities, no empty lines."""
     monkeypatch.setattr(
         userintr_ai,

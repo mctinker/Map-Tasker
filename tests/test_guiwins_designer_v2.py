@@ -16,7 +16,7 @@ import copy
 import gc
 import weakref
 from types import SimpleNamespace
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, TypeVar
 
 import pytest
 from maptasker.src.core import scenelayout
@@ -27,9 +27,11 @@ from nicegui import core, ui
 from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
 
-from tests.doubles import fake_window, required
-from tests.nicegui_harness import all_elements, idle
+from tests.doubles import fake_window, required, stand_in
+from tests.nicegui_harness import all_elements, child_text, idle
 from tests.test_mapfind import _FIXTURE_XML, _load
+
+K = TypeVar("K", bound=ui.element)  # the kind of element a finder was asked for, and so what it hands back
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator
@@ -74,7 +76,7 @@ def _configuration(monkeypatch: pytest.MonkeyPatch) -> None:
 
 def _page() -> None:
     guiwins_designer_v2._build_v2_designer(
-        SimpleNamespace(scene_name="Dialog"),
+        stand_in(SimpleNamespace(scene_name="Dialog")),
         _built["field_refs"],
         _built["layout"],
         PrimeItems,
@@ -486,14 +488,14 @@ async def test_the_sheet_filters_as_you_type_and_says_when_nothing_matches() -> 
 # ##################################################################################
 # The property sheet
 # ##################################################################################
-def _widget(user: User, kind: type, label: str) -> ui.element:
+def _widget(user: User, kind: type[K], label: str) -> K:
     """The inspector's widget of this kind labelled so, hidden (in a closed section) or not."""
     found = [e for e in all_elements(user) if isinstance(e, kind) and e.props.get("label") == label]
     assert found, f"no {kind.__name__} labelled {label!r}"
     return max(found, key=lambda e: e.id)
 
 
-def _after(user: User, kind: type, label: str, anchor: ui.element) -> ui.element:
+def _after(user: User, kind: type[K], label: str, anchor: ui.element) -> K:
     """The first widget of this kind labelled so that was drawn after `anchor` -- its own, among many alike."""
     found = [
         e for e in all_elements(user) if isinstance(e, kind) and e.props.get("label") == label and e.id > anchor.id
@@ -715,7 +717,7 @@ def _menu_entry(user: User, text: str) -> ui.menu_item:
     found = [
         e
         for e in all_elements(user)
-        if isinstance(e, ui.menu_item) and e.default_slot.children and e.default_slot.children[0].text == text
+        if isinstance(e, ui.menu_item) and e.default_slot.children and child_text(e) == text
     ]
     assert found, f"no menu entry {text!r}"
     return max(found, key=lambda e: e.id)
@@ -922,7 +924,7 @@ async def test_the_icon_picker_replaces_the_field_with_the_icon_chosen() -> None
         assert "Pick an icon" in _texts(user)
         tiles = [e for e in all_elements(user) if isinstance(e, ui.button) and e.props.get("stack") is not None]
         assert 0 < len(tiles) <= guiwins_designer_v2._ICON_PREVIEW_LIMIT
-        name = tiles[0].default_slot.children[1].text
+        name = child_text(tiles[0], 1)
         _click(user, tiles[0])
         assert field.value == sceneedit_v2tree.v2_icon_reference(name)
         assert required(_node(CLOSE_BUTTON))["icon"] == field.value
@@ -947,7 +949,7 @@ async def test_the_icon_picker_narrows_by_name_and_says_when_nothing_is_left() -
         search.value = "close"
         tiles = [e for e in all_elements(user) if isinstance(e, ui.button) and e.props.get("stack") is not None]
         assert tiles
-        assert all("close" in t.default_slot.children[1].text for t in tiles)
+        assert all("close" in child_text(t, 1) for t in tiles)
 
 
 @pytest.mark.asyncio
@@ -1049,7 +1051,7 @@ async def test_a_scene_dialog_closed_for_good_leaves_nothing_of_its_designer_beh
             field_refs: dict = {}
             with _built["column"], ui.dialog() as dialog, ui.card():
                 guiwins_designer_v2.V2Designer().build_body(
-                    fake_window(), _built["scene"], field_refs, dialog, PrimeItems
+                    fake_window(), stand_in(_built["scene"]), field_refs, dialog, PrimeItems
                 )
             dialog.on_value_change(
                 lambda e, d=dialog, f=field_refs: guiwins_sceneview.scene_dialog_closed(gui, d, f, e)

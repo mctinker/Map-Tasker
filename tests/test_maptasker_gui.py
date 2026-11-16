@@ -1,4 +1,6 @@
-from tests.doubles import fake_android_fields, required
+from __future__ import annotations
+
+from tests.doubles import fake_android_fields, required, set_attr, stand_in
 from tests.editor_modules import patch_editors
 
 """MapTasker GUI Event Handlers Unit Tests
@@ -81,13 +83,13 @@ def reset_translation():
         del PrimeItems._
     yield
     if had_translator:
-        PrimeItems._ = previous
+        set_attr(PrimeItems, _=previous)
     elif hasattr(PrimeItems, "_"):
         del PrimeItems._
 
 
 @pytest.fixture(autouse=True)
-def tasker_has_nothing(monkeypatch):
+def tasker_has_nothing(monkeypatch: pytest.MonkeyPatch):
     """Every device write asks Tasker what it already has (userintr_android.what_tasker_already_has),
     which is a real request.  Stubbed to 'nothing there' so each test sees only the prompt it is
     about; the tests of that check replace this with an answer of their own.
@@ -100,7 +102,7 @@ def tasker_has_nothing(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
-def settings_file_untouched(monkeypatch):
+def settings_file_untouched(monkeypatch: pytest.MonkeyPatch):
     """Every Android dialog writes the address it was given to the settings file
     (guiutils_android.remember_android_address), which is the real file in the working directory.
     Stubbed out; the test of that write replaces this with a recorder of its own.
@@ -201,7 +203,7 @@ def gui_with_selection():
 
     yield gui
 
-    PrimeItems.program_arguments.update(saved_args)
+    PrimeItems.program_arguments.update(stand_in(saved_args))
     PrimeItems.found_named_items.clear()
     PrimeItems.found_named_items.update(saved_found)
 
@@ -419,7 +421,9 @@ def test_font_extraction_handles_fallback_stacks(font_extractor, css, expected):
 # ==========================================
 # 2. SYNCHRONOUS ROUTINE HANDLERS
 # ==========================================
-def test_report_issue_opens_the_issues_page_and_says_what_to_do(event_handler, mock_gui_instance, monkeypatch):
+def test_report_issue_opens_the_issues_page_and_says_what_to_do(
+    event_handler, mock_gui_instance, monkeypatch: pytest.MonkeyPatch
+):
     """The message is one string -- a stray trailing comma once made half of it a tuple, and
     the button raised TypeError instead of saying anything."""
     from maptasker.src.gui import userintr
@@ -509,7 +513,7 @@ def test_a_limit_from_the_command_line_beats_the_restored_one(mock_gui_instance,
     mock_gui_instance.viewlimit_optionmenu = FakeSelect("30000")
     mock_gui_instance.event_handlers = MapTaskerEventHandlers(mock_gui_instance)
     mock_gui_instance.view_limit = 30000  # As just restored from the settings file.
-    PrimeItems.cli_view_limit = 250
+    set_attr(PrimeItems, cli_view_limit=250)
 
     MyGui.seed_view_limit_from_command_line(mock_gui_instance)
 
@@ -522,7 +526,7 @@ def test_the_command_line_limit_is_only_seeded_once(mock_gui_instance, command_l
     mock_gui_instance.is_updating = False
     mock_gui_instance.viewlimit_optionmenu = FakeSelect("10000")
     mock_gui_instance.event_handlers = MapTaskerEventHandlers(mock_gui_instance)
-    PrimeItems.cli_view_limit = 250
+    set_attr(PrimeItems, cli_view_limit=250)
 
     MyGui.seed_view_limit_from_command_line(mock_gui_instance)
     mock_gui_instance.view_limit = 30000  # The user picks their own limit.
@@ -611,7 +615,7 @@ async def test_view_event_map_execution_flow(
 @patch("nicegui.run.io_bound", new_callable=AsyncMock)
 async def test_view_event_map_requires_loaded_xml(mock_io_bound, _mock_ui, event_handler, mock_gui_instance):
     """With no XML loaded the Map view must refuse rather than build against nothing."""
-    PrimeItems.xml_root = None
+    set_attr(PrimeItems, xml_root=None)
 
     await event_handler.views.view_event("map")
 
@@ -1172,7 +1176,7 @@ def profile_dialog_refs():
     )
 
 
-def _patch_import_path(monkeypatch, results: list, exists: bool | None = False) -> dict:
+def _patch_import_path(monkeypatch: pytest.MonkeyPatch, results: list, exists: bool | None = False) -> dict:
     """Point the handler's collaborators at fakes and record what it did.
 
     `results` is what run.io_bound returns, in order: the pre-check (see
@@ -1289,7 +1293,9 @@ def _patch_import_path(monkeypatch, results: list, exists: bool | None = False) 
 
 
 @pytest.mark.asyncio
-async def test_a_new_profile_is_waited_for_before_anything_is_claimed(monkeypatch, event_handler, profile_dialog_refs):
+async def test_a_new_profile_is_waited_for_before_anything_is_claimed(
+    monkeypatch: pytest.MonkeyPatch, event_handler, profile_dialog_refs
+):
     """Two phases, and the second one is the one that counts.
 
     The offer only opens a screen on the phone -- deviceoffer.offer_to_tasker is called
@@ -1327,7 +1333,9 @@ async def test_a_new_profile_is_waited_for_before_anything_is_claimed(monkeypatc
 
 
 @pytest.mark.asyncio
-async def test_a_file_already_on_the_device_is_asked_about_first(monkeypatch, event_handler, profile_dialog_refs):
+async def test_a_file_already_on_the_device_is_asked_about_first(
+    monkeypatch: pytest.MonkeyPatch, event_handler, profile_dialog_refs
+):
     """The import writes exactly where 'Save As File' writes now, so it can land on a
     Watched.prf.xml the user saved by hand -- and they are asked before it does, in the same
     words that button uses.
@@ -1359,7 +1367,9 @@ async def test_a_file_already_on_the_device_is_asked_about_first(monkeypatch, ev
 
 
 @pytest.mark.asyncio
-async def test_a_destination_that_cannot_be_checked_still_asks(monkeypatch, event_handler, profile_dialog_refs):
+async def test_a_destination_that_cannot_be_checked_still_asks(
+    monkeypatch: pytest.MonkeyPatch, event_handler, profile_dialog_refs
+):
     """read_android_file's existence answer is tri-state and None is 'could not tell'.  The
     honest thing is still a prompt -- 'this might overwrite something' -- rather than a
     silent write on exactly the flaky-connection case a user most wants asking about."""
@@ -1380,7 +1390,7 @@ async def test_a_destination_that_cannot_be_checked_still_asks(monkeypatch, even
 
 @pytest.mark.asyncio
 async def test_confirming_the_overwrite_copies_the_file_it_replaces(
-    monkeypatch,
+    monkeypatch: pytest.MonkeyPatch,
     event_handler,
     profile_dialog_refs,
 ):
@@ -1412,7 +1422,7 @@ async def test_confirming_the_overwrite_copies_the_file_it_replaces(
 
 @pytest.mark.asyncio
 async def test_an_offer_run_from_the_prompt_still_has_somewhere_to_draw(
-    monkeypatch,
+    monkeypatch: pytest.MonkeyPatch,
     event_handler,
     profile_dialog_refs,
 ):
@@ -1452,7 +1462,7 @@ async def test_an_offer_run_from_the_prompt_still_has_somewhere_to_draw(
 
 @pytest.mark.asyncio
 async def test_the_user_is_told_which_file_is_waiting_on_the_device(
-    monkeypatch,
+    monkeypatch: pytest.MonkeyPatch,
     event_handler,
     profile_dialog_refs,
 ):
@@ -1486,7 +1496,9 @@ async def test_the_user_is_told_which_file_is_waiting_on_the_device(
 
 
 @pytest.mark.asyncio
-async def test_the_panel_goes_as_soon_as_the_device_answers(monkeypatch, event_handler, profile_dialog_refs):
+async def test_the_panel_goes_as_soon_as_the_device_answers(
+    monkeypatch: pytest.MonkeyPatch, event_handler, profile_dialog_refs
+):
     """Sending it is the dialog's whole job, and the device answering is the end of it.
 
     It used to stay up through the confirmation wait -- up to two minutes of dead panel over
@@ -1511,7 +1523,7 @@ async def test_the_panel_goes_as_soon_as_the_device_answers(monkeypatch, event_h
 
 @pytest.mark.asyncio
 async def test_a_confirmation_that_never_comes_does_not_discard_the_edit(
-    monkeypatch,
+    monkeypatch: pytest.MonkeyPatch,
     event_handler,
     profile_dialog_refs,
 ):
@@ -1535,7 +1547,9 @@ async def test_a_confirmation_that_never_comes_does_not_discard_the_edit(
 
 
 @pytest.mark.asyncio
-async def test_an_unconfirmable_import_is_never_waited_on(monkeypatch, event_handler, profile_dialog_refs):
+async def test_an_unconfirmable_import_is_never_waited_on(
+    monkeypatch: pytest.MonkeyPatch, event_handler, profile_dialog_refs
+):
     """Tasker offers to REPLACE one it already has, and a replacement leaves the name, the
     count and the enabled state exactly as they were -- so 'does Tasker report this Profile'
     answers yes before the user touches anything.  Waiting on it would confirm the import the
@@ -1562,7 +1576,9 @@ async def test_an_unconfirmable_import_is_never_waited_on(monkeypatch, event_han
 
 
 @pytest.mark.asyncio
-async def test_an_unreachable_pre_check_is_not_read_as_absent(monkeypatch, event_handler, profile_dialog_refs):
+async def test_an_unreachable_pre_check_is_not_read_as_absent(
+    monkeypatch: pytest.MonkeyPatch, event_handler, profile_dialog_refs
+):
     """None means 'could not ask', and guessing 'absent' would send this down the path that
     treats a name appearing afterwards as proof -- turning an unconfirmable import into a
     reported success."""
@@ -1582,7 +1598,9 @@ async def test_an_unreachable_pre_check_is_not_read_as_absent(monkeypatch, event
 
 
 @pytest.mark.asyncio
-async def test_a_failed_offer_never_reaches_the_confirmation(monkeypatch, event_handler, profile_dialog_refs):
+async def test_a_failed_offer_never_reaches_the_confirmation(
+    monkeypatch: pytest.MonkeyPatch, event_handler, profile_dialog_refs
+):
     """No screen was opened, so there is nothing to wait for.  Polling anyway would spend
     two minutes to report a failure that was already known."""
     field_refs, android_refs = profile_dialog_refs
@@ -1602,7 +1620,9 @@ async def test_a_failed_offer_never_reaches_the_confirmation(monkeypatch, event_
 
 
 @pytest.mark.asyncio
-async def test_the_waiting_message_is_taken_down_by_the_outcome(monkeypatch, event_handler, profile_dialog_refs):
+async def test_the_waiting_message_is_taken_down_by_the_outcome(
+    monkeypatch: pytest.MonkeyPatch, event_handler, profile_dialog_refs
+):
     """'Tap Import on the device' has no timeout, because there is no telling how long
     someone takes to reach their phone.  A message with no timeout and nothing to dismiss it
     is a box that sits on screen for the rest of the session -- so the outcome replaces it
@@ -1624,7 +1644,9 @@ async def test_the_waiting_message_is_taken_down_by_the_outcome(monkeypatch, eve
 
 
 @pytest.mark.asyncio
-async def test_the_replace_message_stays_because_nothing_follows_it(monkeypatch, event_handler, profile_dialog_refs):
+async def test_the_replace_message_stays_because_nothing_follows_it(
+    monkeypatch: pytest.MonkeyPatch, event_handler, profile_dialog_refs
+):
     """The already-there case has no outcome coming that could replace it, and it asks the
     user to go and do something.  So it stays, and its close button is how it goes."""
     field_refs, android_refs = profile_dialog_refs
@@ -1653,7 +1675,7 @@ async def test_the_replace_message_stays_because_nothing_follows_it(monkeypatch,
 
 
 @pytest.mark.asyncio
-async def test_a_project_is_offered_as_a_project(monkeypatch, event_handler, profile_dialog_refs):
+async def test_a_project_is_offered_as_a_project(monkeypatch: pytest.MonkeyPatch, event_handler, profile_dialog_refs):
     """The route is the whole difference at the device end: it stages the XML as
     '.prj.xml' rather than '.prf.xml', and the extension is what tells Tasker whether it is
     importing a Project or a Profile."""
@@ -1678,7 +1700,9 @@ async def test_a_project_is_offered_as_a_project(monkeypatch, event_handler, pro
 
 
 @pytest.mark.asyncio
-async def test_a_project_is_confirmed_through_the_profiles_it_owns(monkeypatch, event_handler, profile_dialog_refs):
+async def test_a_project_is_confirmed_through_the_profiles_it_owns(
+    monkeypatch: pytest.MonkeyPatch, event_handler, profile_dialog_refs
+):
     """There is no /api/projects to ask about the Project itself, so the names that go to
     the device are the Profiles it brings with it -- see projedit.project_profile_names."""
     from maptasker.src.device import deviceverify
@@ -1704,7 +1728,7 @@ async def test_a_project_is_confirmed_through_the_profiles_it_owns(monkeypatch, 
 
 
 @pytest.mark.asyncio
-async def test_a_project_has_no_edit_to_keep(monkeypatch, event_handler, profile_dialog_refs):
+async def test_a_project_has_no_edit_to_keep(monkeypatch: pytest.MonkeyPatch, event_handler, profile_dialog_refs):
     """Unlike a Profile, a Project is exported from the LIVE TREE by name -- there is no
     separate edited model, so there is nothing to register into the loaded configuration
     afterwards."""
@@ -1725,7 +1749,9 @@ async def test_a_project_has_no_edit_to_keep(monkeypatch, event_handler, profile
 
 
 @pytest.mark.asyncio
-async def test_unapplied_project_edits_stop_it_before_the_device(monkeypatch, event_handler, profile_dialog_refs):
+async def test_unapplied_project_edits_stop_it_before_the_device(
+    monkeypatch: pytest.MonkeyPatch, event_handler, profile_dialog_refs
+):
     """Same guard save_project_to_android_event has, for the same reason: this exports the
     Project from the live tree by name, so a dialog field that was never applied would be
     dropped silently from what reaches the phone.  It has to fail before anything is sent."""
@@ -1788,7 +1814,9 @@ async def _import_scene(event_handler, android_refs, scene_name: str = "Dialog")
 
 
 @pytest.mark.asyncio
-async def test_a_scene_already_on_the_device_is_asked_about_first(monkeypatch, event_handler, profile_dialog_refs):
+async def test_a_scene_already_on_the_device_is_asked_about_first(
+    monkeypatch: pytest.MonkeyPatch, event_handler, profile_dialog_refs
+):
     """This route always wrote the Scene under its own name into Tasker's own folder, so it
     always could land on a Dialog.scn.xml the user saved by hand -- it just never asked.  Now
     it asks the same question 'Save As File' asks, and keeps a copy when they say yes."""
@@ -1810,7 +1838,7 @@ async def test_a_scene_already_on_the_device_is_asked_about_first(monkeypatch, e
 
 
 @pytest.mark.asyncio
-async def test_a_scene_is_sent_under_its_own_name(monkeypatch, event_handler, profile_dialog_refs):
+async def test_a_scene_is_sent_under_its_own_name(monkeypatch: pytest.MonkeyPatch, event_handler, profile_dialog_refs):
     """The name is not cosmetic here.  If Tasker is not in the chooser the user finishes this
     by picking the file out of a list on their phone, so it has to be called what they are
     looking for.  This route got there first; the Profile and Project routes have since
@@ -1831,7 +1859,9 @@ async def test_a_scene_is_sent_under_its_own_name(monkeypatch, event_handler, pr
 
 
 @pytest.mark.asyncio
-async def test_a_scene_is_confirmed_at_the_scenes_endpoint(monkeypatch, event_handler, profile_dialog_refs):
+async def test_a_scene_is_confirmed_at_the_scenes_endpoint(
+    monkeypatch: pytest.MonkeyPatch, event_handler, profile_dialog_refs
+):
     """Unlike a Project, a Scene has an endpoint of its own -- Tasker's API reports Scenes by
     name -- so once the user has done the import by hand, it can still be confirmed."""
     from maptasker.src.device import deviceoffer, devicetask, deviceverify
@@ -1855,7 +1885,9 @@ async def test_a_scene_is_confirmed_at_the_scenes_endpoint(monkeypatch, event_ha
 
 
 @pytest.mark.asyncio
-async def test_the_scene_notification_names_the_file_and_the_menu(monkeypatch, event_handler, profile_dialog_refs):
+async def test_the_scene_notification_names_the_file_and_the_menu(
+    monkeypatch: pytest.MonkeyPatch, event_handler, profile_dialog_refs
+):
     """The whole delivery, for the user, is this message: the file is on their phone and the
     last step is theirs.  A message that says 'import it' without saying which file, or
     where from, leaves them exactly where they started."""
@@ -1873,7 +1905,7 @@ async def test_the_scene_notification_names_the_file_and_the_menu(monkeypatch, e
 
 @pytest.mark.asyncio
 async def test_a_scene_that_could_not_be_sent_does_not_send_anyone_to_their_phone(
-    monkeypatch,
+    monkeypatch: pytest.MonkeyPatch,
     event_handler,
     profile_dialog_refs,
 ):
@@ -1893,7 +1925,7 @@ async def test_a_scene_that_could_not_be_sent_does_not_send_anyone_to_their_phon
 
 @pytest.mark.asyncio
 async def test_a_scene_the_chooser_could_not_place_still_says_what_to_do(
-    monkeypatch,
+    monkeypatch: pytest.MonkeyPatch,
     event_handler,
     profile_dialog_refs,
 ):
@@ -1917,7 +1949,9 @@ async def test_a_scene_the_chooser_could_not_place_still_says_what_to_do(
 
 
 @pytest.mark.asyncio
-async def test_the_scene_edits_are_applied_before_the_export(monkeypatch, event_handler, profile_dialog_refs):
+async def test_the_scene_edits_are_applied_before_the_export(
+    monkeypatch: pytest.MonkeyPatch, event_handler, profile_dialog_refs
+):
     """Load-bearing, and silent when missed: the export renders the Scene from the LIVE TREE
     by name, while the dialog edits a deep copy whose V2 layout nothing writes back until a
     save handler runs.  Without the apply, an element added a moment ago is simply absent
@@ -1939,7 +1973,7 @@ async def test_the_scene_edits_are_applied_before_the_export(monkeypatch, event_
 
 @pytest.mark.asyncio
 async def test_a_scene_that_fails_validation_never_reaches_the_device(
-    monkeypatch,
+    monkeypatch: pytest.MonkeyPatch,
     event_handler,
     profile_dialog_refs,
 ):
@@ -1978,7 +2012,7 @@ async def test_a_scene_that_fails_validation_never_reaches_the_device(
 
 @pytest.mark.asyncio
 async def test_a_notification_the_user_already_closed_does_not_take_the_app_down(
-    monkeypatch,
+    monkeypatch: pytest.MonkeyPatch,
     event_handler,
     profile_dialog_refs,
 ):
@@ -2005,7 +2039,9 @@ async def test_a_notification_the_user_already_closed_does_not_take_the_app_down
 
 
 @pytest.mark.asyncio
-async def test_a_profile_notification_carries_no_such_advice(monkeypatch, event_handler, profile_dialog_refs):
+async def test_a_profile_notification_carries_no_such_advice(
+    monkeypatch: pytest.MonkeyPatch, event_handler, profile_dialog_refs
+):
     """A Profile reaches Tasker's import screen on its own, so there is nothing to finish by
     hand and nothing to say about it -- the hint is the Scene's, not everyone's."""
     field_refs, android_refs = profile_dialog_refs
@@ -2044,7 +2080,9 @@ def task_dialog_refs():
     )
 
 
-def _patch_task_file_path(monkeypatch, exists=False, upload=(0, "/Tasker/tasks/Opener.tsk.xml")) -> dict:
+def _patch_task_file_path(
+    monkeypatch: pytest.MonkeyPatch, exists=False, upload=(0, "/Tasker/tasks/Opener.tsk.xml")
+) -> dict:
     """Point the file-write handler's collaborators at fakes and record what it did."""
     from maptasker.src.gui import userintr
 
@@ -2117,7 +2155,9 @@ async def _save_task_file(event_handler, task_dialog_refs) -> tuple:
 
 
 @pytest.mark.asyncio
-async def test_a_task_file_write_reports_where_it_landed(monkeypatch, event_handler, task_dialog_refs):
+async def test_a_task_file_write_reports_where_it_landed(
+    monkeypatch: pytest.MonkeyPatch, event_handler, task_dialog_refs
+):
     """The path is the whole point of the message: nothing about this reaches Tasker, so
     what the user gets is a file, and they have to be told which one and where."""
     calls = _patch_task_file_path(monkeypatch)
@@ -2133,7 +2173,9 @@ async def test_a_task_file_write_reports_where_it_landed(monkeypatch, event_hand
 
 
 @pytest.mark.asyncio
-async def test_a_save_to_android_tells_the_user_to_watch_the_device(monkeypatch, event_handler, task_dialog_refs):
+async def test_a_save_to_android_tells_the_user_to_watch_the_device(
+    monkeypatch: pytest.MonkeyPatch, event_handler, task_dialog_refs
+):
     """Tasker's HTTP server prompts on the phone per request rather than once per client,
     so one save puts several authorization prompts up -- and an unanswered one times out
     into a failure that reads like an unreachable device.  The warning has to come out
@@ -2185,7 +2227,7 @@ def test_every_save_to_android_path_warns_about_the_device_prompts() -> None:
     assert not missing, f"no device warning in: {missing}"
 
 
-def test_a_save_to_android_panel_option_is_kept_for_the_next_session(monkeypatch) -> None:
+def test_a_save_to_android_panel_option_is_kept_for_the_next_session(monkeypatch: pytest.MonkeyPatch) -> None:
     """Ticking a box writes the settings file then and there -- not only at Exit, which a session
     closed any other way never reaches."""
     written: list = []
@@ -2258,7 +2300,7 @@ def test_a_panel_with_no_import_box_still_imports_as_it_always_did() -> None:
     assert pressed == ["import"]
 
 
-def test_an_android_address_entered_is_kept_for_the_next_session(monkeypatch) -> None:
+def test_an_android_address_entered_is_kept_for_the_next_session(monkeypatch: pytest.MonkeyPatch) -> None:
     """Entering an address writes the settings file then and there, and survives a local file
     load clearing android_ipaddr -- the next dialog still opens on it."""
     written: list = []
@@ -2355,7 +2397,7 @@ def test_no_save_to_android_path_calls_the_device_on_the_event_loop() -> None:
 
 
 @pytest.mark.asyncio
-async def test_the_overwrite_prompt_waits_for_a_save_that_is_a_coroutine(monkeypatch) -> None:
+async def test_the_overwrite_prompt_waits_for_a_save_that_is_a_coroutine(monkeypatch: pytest.MonkeyPatch) -> None:
     """A Save To Android is a coroutine now -- its requests go to a worker thread and it has to
     wait for them -- so pressing Overwrite must run it to the end, not start it and drop it.
     The local exports are still plain functions, and still have to work."""
@@ -2433,7 +2475,9 @@ def test_every_device_write_asks_tasker_what_it_already_has() -> None:
 
 
 @pytest.mark.asyncio
-async def test_the_check_ids_box_reaches_the_tasker_check(monkeypatch, event_handler, task_dialog_refs):
+async def test_the_check_ids_box_reaches_the_tasker_check(
+    monkeypatch: pytest.MonkeyPatch, event_handler, task_dialog_refs
+):
 
     _patch_task_file_path(monkeypatch)
     asked: list = []
@@ -2452,7 +2496,9 @@ async def test_the_check_ids_box_reaches_the_tasker_check(monkeypatch, event_han
 
 
 @pytest.mark.asyncio
-async def test_a_save_asks_when_tasker_has_the_object_even_with_no_file(monkeypatch, event_handler, task_dialog_refs):
+async def test_a_save_asks_when_tasker_has_the_object_even_with_no_file(
+    monkeypatch: pytest.MonkeyPatch, event_handler, task_dialog_refs
+):
     """A missing file used to mean no prompt.  Tasker already having the Task is now a reason
     of its own -- nothing is uploaded until it is answered, and the prompt says it is Tasker,
     not a file, that has it."""
@@ -2478,7 +2524,7 @@ async def test_a_save_asks_when_tasker_has_the_object_even_with_no_file(monkeypa
     assert calls["uploaded"] == ["Opener"]
 
 
-def _inline_tasker_check(monkeypatch, check_for) -> list:
+def _inline_tasker_check(monkeypatch: pytest.MonkeyPatch, check_for) -> list:
     """Run what_tasker_already_has's worker call inline, answering with check_for(sent)."""
     from maptasker.src.device import devicecheck
     from maptasker.src.gui import userintr
@@ -2503,7 +2549,7 @@ _ONE_PROJECT = '<TaskerData sr=""><Project sr="proj0"><name>Test</name></Project
 
 
 @pytest.mark.asyncio
-async def test_tasker_lines_end_with_what_happens_to_the_objects(monkeypatch):
+async def test_tasker_lines_end_with_what_happens_to_the_objects(monkeypatch: pytest.MonkeyPatch):
     notes = _inline_tasker_check(monkeypatch, lambda _sent: ({"Task": ["Test1"]}, {}))
 
     lines = await _REAL_WHAT_TASKER_ALREADY_HAS(
@@ -2515,7 +2561,7 @@ async def test_tasker_lines_end_with_what_happens_to_the_objects(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_a_check_that_could_not_run_prompts_without_a_consequence(monkeypatch):
+async def test_a_check_that_could_not_run_prompts_without_a_consequence(monkeypatch: pytest.MonkeyPatch):
     """Nothing is known to be there, so there is nothing to say will happen to it."""
     _inline_tasker_check(monkeypatch, lambda _sent: ({}, {"Task": "Tasker did not answer."}))
 
@@ -2527,7 +2573,7 @@ async def test_a_check_that_could_not_run_prompts_without_a_consequence(monkeypa
 
 
 @pytest.mark.asyncio
-async def test_nothing_in_tasker_means_no_lines_and_a_project_check_is_announced(monkeypatch):
+async def test_nothing_in_tasker_means_no_lines_and_a_project_check_is_announced(monkeypatch: pytest.MonkeyPatch):
     notes = _inline_tasker_check(monkeypatch, lambda _sent: ({"Project": []}, {}))
 
     lines = await _REAL_WHAT_TASKER_ALREADY_HAS(
@@ -2539,7 +2585,7 @@ async def test_nothing_in_tasker_means_no_lines_and_a_project_check_is_announced
 
 
 @pytest.mark.asyncio
-async def test_the_helper_checks_say_how_long_the_phone_will_be_waited_for(monkeypatch):
+async def test_the_helper_checks_say_how_long_the_phone_will_be_waited_for(monkeypatch: pytest.MonkeyPatch):
     """The helper Task and the backup are polled for half a minute or more: said before they start, not after."""
     from maptasker.src.device import devicecheck
 
@@ -2560,7 +2606,7 @@ async def test_the_helper_checks_say_how_long_the_phone_will_be_waited_for(monke
 
 
 @pytest.mark.asyncio
-async def test_a_plain_list_check_on_a_large_phone_says_it_is_waiting(monkeypatch):
+async def test_a_plain_list_check_on_a_large_phone_says_it_is_waiting(monkeypatch: pytest.MonkeyPatch):
     """No helper Task here -- the lists are asked for directly, and a big phone takes a while over them."""
     notes = _inline_tasker_check(monkeypatch, lambda _sent: ({"Task": []}, {}))
     for objects, count in (("profiles", 237), ("scenes", 62), ("tasks", 534)):
@@ -2572,7 +2618,7 @@ async def test_a_plain_list_check_on_a_large_phone_says_it_is_waiting(monkeypatc
 
 
 @pytest.mark.asyncio
-async def test_check_ids_answers_both_questions_from_one_backup(monkeypatch):
+async def test_check_ids_answers_both_questions_from_one_backup(monkeypatch: pytest.MonkeyPatch):
     """Names and ids alike come from the fresh backup -- nothing is asked by name as well."""
     from maptasker.src.device import devicecheck
 
@@ -2606,7 +2652,7 @@ async def test_check_ids_answers_both_questions_from_one_backup(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_a_backup_that_cannot_be_had_falls_back_to_asking_by_name(monkeypatch):
+async def test_a_backup_that_cannot_be_had_falls_back_to_asking_by_name(monkeypatch: pytest.MonkeyPatch):
     """The id answer is lost, and said to be; the name answer is still worth having."""
 
     _inline_tasker_check(monkeypatch, lambda _sent: ({"Task": ["Test1"]}, {}))
@@ -2633,7 +2679,7 @@ async def test_a_backup_that_cannot_be_had_falls_back_to_asking_by_name(monkeypa
 
 
 @pytest.mark.asyncio
-async def test_an_export_that_cannot_be_rendered_is_left_to_the_save_to_report(monkeypatch):
+async def test_an_export_that_cannot_be_rendered_is_left_to_the_save_to_report(monkeypatch: pytest.MonkeyPatch):
     asked: list = []
     _inline_tasker_check(monkeypatch, lambda sent: (asked.append(sent), ({}, {}))[1])
 
@@ -2645,7 +2691,9 @@ async def test_an_export_that_cannot_be_rendered_is_left_to_the_save_to_report(m
 
 
 @pytest.mark.asyncio
-async def test_a_task_file_is_not_clobbered_without_asking(monkeypatch, event_handler, task_dialog_refs):
+async def test_a_task_file_is_not_clobbered_without_asking(
+    monkeypatch: pytest.MonkeyPatch, event_handler, task_dialog_refs
+):
     """/upload overwrites silently and answers 200 either way, so the check has to happen
     here.  Nothing is uploaded until the prompt is answered -- the same guard the Profile and
     Project writes have."""
@@ -2666,10 +2714,12 @@ async def test_a_task_file_is_not_clobbered_without_asking(monkeypatch, event_ha
 
 
 @pytest.mark.asyncio
-async def test_a_task_file_asks_even_when_the_device_cannot_be_read(monkeypatch, event_handler, task_dialog_refs):
+async def test_a_task_file_asks_even_when_the_device_cannot_be_read(
+    monkeypatch: pytest.MonkeyPatch, event_handler, task_dialog_refs
+):
     """read_android_file's existence answer is tri-state, and None is 'could not tell'.  Treated as False
     it would skip the prompt on exactly the flaky connection where a user most wants it."""
-    calls = _patch_task_file_path(monkeypatch, exists=None)
+    calls = _patch_task_file_path(monkeypatch, exists=stand_in(None))
 
     await _save_task_file(event_handler, task_dialog_refs)
 
@@ -2678,7 +2728,9 @@ async def test_a_task_file_asks_even_when_the_device_cannot_be_read(monkeypatch,
 
 
 @pytest.mark.asyncio
-async def test_a_failed_task_file_write_keeps_the_dialog_open(monkeypatch, event_handler, task_dialog_refs):
+async def test_a_failed_task_file_write_keeps_the_dialog_open(
+    monkeypatch: pytest.MonkeyPatch, event_handler, task_dialog_refs
+):
     """The connection details the user typed are in that dialog.  Closing it on a failure
     makes them type the address again to retry -- and the retry is the likely next move."""
     calls = _patch_task_file_path(monkeypatch, upload=(8, "could not confirm it landed correctly"))
@@ -2692,7 +2744,9 @@ async def test_a_failed_task_file_write_keeps_the_dialog_open(monkeypatch, event
 
 
 @pytest.mark.asyncio
-async def test_a_saved_task_reaches_the_loaded_configuration(monkeypatch, event_handler, task_dialog_refs):
+async def test_a_saved_task_reaches_the_loaded_configuration(
+    monkeypatch: pytest.MonkeyPatch, event_handler, task_dialog_refs
+):
     """The half that is not about the device at all.  Both buttons end here -- a Task
     registered by one and not the other would show up in the Edit Task picker only
     sometimes."""
@@ -2707,7 +2761,7 @@ async def test_a_saved_task_reaches_the_loaded_configuration(monkeypatch, event_
 
 @pytest.mark.asyncio
 async def test_the_task_import_asks_before_replacing_the_file_it_writes(
-    monkeypatch,
+    monkeypatch: pytest.MonkeyPatch,
     event_handler,
     task_dialog_refs,
 ):
@@ -2747,7 +2801,7 @@ async def test_the_task_import_asks_before_replacing_the_file_it_writes(
 
 @pytest.mark.asyncio
 async def test_a_task_tasker_never_confirms_falls_back_to_the_open_with(
-    monkeypatch,
+    monkeypatch: pytest.MonkeyPatch,
     event_handler,
     task_dialog_refs,
 ):
@@ -2796,7 +2850,9 @@ async def test_a_task_tasker_never_confirms_falls_back_to_the_open_with(
 
 
 @pytest.mark.asyncio
-async def test_the_task_import_says_where_the_copy_was_left(monkeypatch, event_handler, task_dialog_refs):
+async def test_the_task_import_says_where_the_copy_was_left(
+    monkeypatch: pytest.MonkeyPatch, event_handler, task_dialog_refs
+):
     """The copy is the point of the change and the user has no other way to learn it is
     there -- an import that silently leaves a file behind is a file nobody knows to look
     for."""
@@ -2834,7 +2890,7 @@ async def test_the_task_import_says_where_the_copy_was_left(monkeypatch, event_h
 # ==========================================
 
 
-def _patch_object_save_path(monkeypatch, kind: str, exists=False, upload=(0, "/Tasker/x")) -> dict:
+def _patch_object_save_path(monkeypatch: pytest.MonkeyPatch, kind: str, exists=False, upload=(0, "/Tasker/x")) -> dict:
     """Fakes for one of the three non-Task Save To Android handlers."""
     from maptasker.src.gui import userintr
 
@@ -2924,7 +2980,7 @@ async def _save_object(event_handler, kind: str, android_refs) -> None:
 )
 @pytest.mark.asyncio
 async def test_each_kind_reads_its_destination_once_and_keeps_what_was_there(
-    monkeypatch,
+    monkeypatch: pytest.MonkeyPatch,
     event_handler,
     profile_dialog_refs,
     kind,
@@ -2951,7 +3007,7 @@ async def test_each_kind_reads_its_destination_once_and_keeps_what_was_there(
 @pytest.mark.parametrize("kind", ["profile", "project", "scene"])
 @pytest.mark.asyncio
 async def test_each_kind_writes_straight_through_when_nothing_is_there(
-    monkeypatch,
+    monkeypatch: pytest.MonkeyPatch,
     event_handler,
     profile_dialog_refs,
     kind,
@@ -2973,7 +3029,7 @@ async def test_each_kind_writes_straight_through_when_nothing_is_there(
 @pytest.mark.parametrize("kind", ["profile", "project", "scene"])
 @pytest.mark.asyncio
 async def test_each_kind_still_asks_when_the_device_cannot_be_read(
-    monkeypatch,
+    monkeypatch: pytest.MonkeyPatch,
     event_handler,
     profile_dialog_refs,
     kind,
@@ -2981,7 +3037,7 @@ async def test_each_kind_still_asks_when_the_device_cannot_be_read(
     """None is 'could not tell', and treating it as False would skip the prompt on exactly
     the flaky connection where a user most wants it."""
     _field_refs, android_refs = profile_dialog_refs
-    calls = _patch_object_save_path(monkeypatch, kind, exists=None)
+    calls = _patch_object_save_path(monkeypatch, kind, exists=stand_in(None))
 
     await _save_object(event_handler, kind, android_refs)
 
@@ -2998,7 +3054,7 @@ async def test_each_kind_still_asks_when_the_device_cannot_be_read(
 # ==========================================
 
 
-def _patch_helper_task_listing(monkeypatch, result) -> dict:
+def _patch_helper_task_listing(monkeypatch: pytest.MonkeyPatch, result) -> dict:
     """Point the handler at fakes and record the dialog it opens."""
     from maptasker.src.gui import userintr
 
@@ -3049,7 +3105,7 @@ def _android_panel(event_handler, ip="192.168.0.210", port="1821") -> None:
 
 
 @pytest.mark.asyncio
-async def test_the_helper_task_listing_reports_what_the_device_has(monkeypatch, event_handler):
+async def test_the_helper_task_listing_reports_what_the_device_has(monkeypatch: pytest.MonkeyPatch, event_handler):
     """The two lists together are the whole answer: what to delete, and what to leave."""
     from maptasker.src.device import devicehelpers
 
@@ -3069,7 +3125,9 @@ async def test_the_helper_task_listing_reports_what_the_device_has(monkeypatch, 
 
 
 @pytest.mark.asyncio
-async def test_the_helper_task_listing_says_to_stand_by_while_the_device_is_asked(monkeypatch, event_handler):
+async def test_the_helper_task_listing_says_to_stand_by_while_the_device_is_asked(
+    monkeypatch: pytest.MonkeyPatch, event_handler
+):
     """The key fetch and the GET take a few seconds; the notice is up before the question and down after the answer."""
     calls = _patch_helper_task_listing(monkeypatch, (0, "", [], []))
     _android_panel(event_handler)
@@ -3094,7 +3152,9 @@ async def test_the_helper_task_listing_says_to_stand_by_while_the_device_is_aske
 
 
 @pytest.mark.asyncio
-async def test_the_stand_by_notice_comes_down_when_the_device_call_fails(monkeypatch, event_handler):
+async def test_the_stand_by_notice_comes_down_when_the_device_call_fails(
+    monkeypatch: pytest.MonkeyPatch, event_handler
+):
     calls = _patch_helper_task_listing(monkeypatch, RuntimeError("the worker died"))
     _android_panel(event_handler)
 
@@ -3105,7 +3165,7 @@ async def test_the_stand_by_notice_comes_down_when_the_device_call_fails(monkeyp
 
 
 @pytest.mark.asyncio
-async def test_a_device_that_would_not_answer_opens_no_dialog(monkeypatch, event_handler):
+async def test_a_device_that_would_not_answer_opens_no_dialog(monkeypatch: pytest.MonkeyPatch, event_handler):
     """An empty dialog would read as 'nothing left over', which is the opposite of what a
     device that never replied has told us."""
     calls = _patch_helper_task_listing(monkeypatch, (8, "Connection error", [], []))
@@ -3121,7 +3181,9 @@ async def test_a_device_that_would_not_answer_opens_no_dialog(monkeypatch, event
 # Installing the 'Http Server Example' project on a device that lacks it
 # ==========================================
 @pytest.mark.asyncio
-async def test_installing_the_server_project_goes_to_the_device_without_pinging_it_first(monkeypatch, event_handler):
+async def test_installing_the_server_project_goes_to_the_device_without_pinging_it_first(
+    monkeypatch: pytest.MonkeyPatch, event_handler
+):
     """The ping is a GET on the 'file' route, which is the project being installed: it would fail for this device."""
     from maptasker.src.device import deviceserver
 
@@ -3142,7 +3204,9 @@ async def test_installing_the_server_project_goes_to_the_device_without_pinging_
 
 
 @pytest.mark.asyncio
-async def test_a_server_project_that_did_not_arrive_is_reported_as_a_warning(monkeypatch, event_handler):
+async def test_a_server_project_that_did_not_arrive_is_reported_as_a_warning(
+    monkeypatch: pytest.MonkeyPatch, event_handler
+):
     calls = _patch_helper_task_listing(monkeypatch, (8, "Tasker has not reported Project 'Http Server Example'."))
     monkeypatch.setattr(userintr_android, "notify_watch_android_device", lambda: None)
     monkeypatch.setattr(userintr_android.ui, "notification", lambda *_args, **_kwargs: MagicMock())
@@ -3154,7 +3218,7 @@ async def test_a_server_project_that_did_not_arrive_is_reported_as_a_warning(mon
 
 
 @pytest.mark.asyncio
-async def test_installing_the_server_project_needs_an_address(monkeypatch, event_handler):
+async def test_installing_the_server_project_needs_an_address(monkeypatch: pytest.MonkeyPatch, event_handler):
     calls = _patch_helper_task_listing(monkeypatch, (0, ""))
     _android_panel(event_handler, ip="", port="")
 

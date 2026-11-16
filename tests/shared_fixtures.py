@@ -285,7 +285,7 @@ _built: dict = {}
 
 
 @pytest.fixture
-def fresh_session(tmp_path, monkeypatch: pytest.MonkeyPatch):
+def fresh_session(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     """A working directory of its own, a fresh run, nothing loaded -- and everything the window
     changes on the way up put back afterwards, so no other test inherits it."""
     monkeypatch.chdir(tmp_path)

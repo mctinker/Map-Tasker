@@ -28,7 +28,7 @@ from maptasker.src.core.primitem import PrimeItems
 from maptasker.src.edit import taskedit_args
 from maptasker.src.mapgen import actargs, taskerd
 
-from tests.doubles import required
+from tests.doubles import required, stand_in
 
 if TYPE_CHECKING:
     import pathlib
@@ -241,7 +241,7 @@ def test_a_home_assistant_service_is_named_the_way_home_assistant_names_it() -> 
 def test_home_assistants_blurb_gives_way_to_its_settings() -> None:
     """Its blurb is nothing but the raw fields again ("dataJson: {}"), server id and all."""
     action = _action("com.github.db1996.taskerha", _HA_CALL, "dataJson: {}\ninstanceId: abcd1234")
-    value = actargs.get_bundle(action, {"returning_something": True}, "0", state=PrimeItems)["arg0"]["value"]
+    value = actargs.get_bundle(action, {"returning_something": True}, stand_in("0"), state=PrimeItems)["arg0"]["value"]
     assert value == "Configuration Parameter(s):\nService=light.turn_on\nEntity=light.hall\n"
 
 
@@ -252,14 +252,14 @@ def test_any_other_plugin_is_left_to_the_generic_reading() -> None:
     """One "Name=value" line per field, exactly as before."""
     action = _action("com.example.other", {"parameters": _json({"a": 1})})
     assert plugset.decode_settings(required(action.find("Bundle/Vals")), "com.example.other") is None
-    value = actargs.get_bundle(action, {"returning_something": True}, "0", state=PrimeItems)["arg0"]["value"]
+    value = actargs.get_bundle(action, {"returning_something": True}, stand_in("0"), state=PrimeItems)["arg0"]["value"]
     assert 'parameters={"a": 1}' in value
 
 
 def test_a_decoded_plugin_still_leads_with_its_blurb_in_the_map() -> None:
     """The blurb is the plugin's own sentence about what the action does."""
     action = _action("com.joaomgcd.join", _JOIN_PUSH, "Device: Kitchen Tablet")
-    value = actargs.get_bundle(action, {"returning_something": True}, "0", state=PrimeItems)["arg0"]["value"]
+    value = actargs.get_bundle(action, {"returning_something": True}, stand_in("0"), state=PrimeItems)["arg0"]["value"]
     assert value.startswith("Configuration Parameter(s):\nDevice: Kitchen Tablet\n")
     assert "Title=Door" in value
     assert "plugininstanceid" not in value

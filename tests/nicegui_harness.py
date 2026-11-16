@@ -47,6 +47,11 @@ async def open_page(build: Callable[[], None]) -> AsyncIterator[User]:
             await core.app.stop()
 
 
+def child_text(element: ui.element, index: int = 0) -> str:
+    """The text of the `index`th child in an element's default slot: NiceGUI types a child as a bare Element, which has none."""
+    return str(cast("Any", element.default_slot.children[index]).text)
+
+
 def found(user: User, kind: type[T]) -> list[T]:
     """Every visible element of this kind on the page, in the order they were built -- an empty list when none.
 

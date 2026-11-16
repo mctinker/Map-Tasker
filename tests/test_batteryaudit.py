@@ -1,3 +1,5 @@
+# pyright: reportPrivateUsage=false
+# (this test checks private helpers on purpose)
 """MapTasker Battery and Wake-up Audit (batteryaudit) Unit Tests
 
 The audit finds what keeps the phone busy -- a Time condition that repeats, a Task that loops, Keep Device Awake, a repeating Profile

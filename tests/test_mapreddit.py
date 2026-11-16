@@ -1,3 +1,5 @@
+# pyright: reportPrivateUsage=false
+# (this test checks private helpers on purpose)
 """mapreddit: what the Map shows, written as Tasker's own text and indented as a Reddit code block.
 
 The fixture is the post that asked for the feature, rebuilt as a backup: a Profile on a Logcat Entry Event whose Entry Task

@@ -396,7 +396,7 @@ def test_there_is_nothing_to_revert_without_a_working_tree_or_with_a_snapshot_th
 def test_the_properties_the_map_anchors_are_the_ones_the_analysis_reads() -> None:
     """Both sides ask the same question of every property, so neither can name a line the other lacks."""
     scene = _scene("New Panel")
-    layout = scenelayout.decode_v2_layout(scene)
+    layout = required(scenelayout.decode_v2_layout(scene))
     anchored = {key for properties in scenemodel.V2.anchor_parts(layout).values() for key in properties}
     read = {site.path[1] for site in scenemodel.V2.text_sites(scene, _place("New Panel"))}
 
@@ -409,7 +409,7 @@ def test_anchor_parts_are_keyed_by_the_identity_of_the_node_the_renderer_will_wa
     layout = scenelayout.decode_v2_layout(_scene("New Panel"))
     heading = required(layout)["root"]["children"][0]
 
-    parts = scenemodel.V2.anchor_parts(layout)
+    parts = scenemodel.V2.anchor_parts(required(layout))
 
     assert set(parts[id(heading)]) == {"text"}
 
@@ -419,7 +419,7 @@ def test_a_version_2_property_is_read_and_rewritten_through_its_address() -> Non
     site = _texts("New Panel")["Hello %Who"]
 
     assert scenemodel.V2.property_value(scene, site.path) == "Hello %Who"
-    assert scenemodel.V2.rewrite_property(scene, site.path, lambda text: text.replace("%Who", "%Whom")) is True
+    assert scenemodel.V2.rewrite_property(scene, site.path, lambda text: str(text).replace("%Who", "%Whom")) is True
     assert scenemodel.V2.property_value(scene, site.path) == "Hello %Whom"
     # The rest of the layout is exactly as it was.
     layout = scenelayout.decode_v2_layout(scene)
@@ -431,10 +431,10 @@ def test_a_property_that_cannot_be_reached_reads_as_empty_and_is_not_rewritten()
     before = required(scene.find(scenelayout.V2_LAYOUT_TAG)).text
 
     assert scenemodel.V2.property_value(scene, ((9, 9), "text")) == ""
-    assert scenemodel.V2.rewrite_property(scene, ((9, 9), "text"), str.upper) is False
-    assert scenemodel.V2.rewrite_property(scene, ((), "no such key"), str.upper) is False
+    assert scenemodel.V2.rewrite_property(scene, ((9, 9), "text"), lambda text: str(text).upper()) is False
+    assert scenemodel.V2.rewrite_property(scene, ((), "no such key"), lambda text: str(text).upper()) is False
     assert required(scene.find(scenelayout.V2_LAYOUT_TAG)).text == before
 
     required(scene.find(scenelayout.V2_LAYOUT_TAG)).text = "junk"
     assert scenemodel.V2.property_value(scene, ((), "text")) == ""
-    assert scenemodel.V2.rewrite_property(scene, ((), "text"), str.upper) is False
+    assert scenemodel.V2.rewrite_property(scene, ((), "text"), lambda text: str(text).upper()) is False

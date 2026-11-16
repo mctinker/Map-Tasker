@@ -15,6 +15,7 @@ writes is also what the Map view, the exports and the PDF are all read back out 
 from __future__ import annotations
 
 import io
+from pathlib import Path
 
 from maptasker.src.core.mapwriter import BLANK_LINE_BEFORE, MAX_BLANK_LINES, BlankLineLimiter, MapWriter
 
@@ -145,7 +146,7 @@ def test_the_breaks_added_for_a_blank_line_count_towards_the_cap() -> None:
     assert written("Profile<br>", BLANK_LINE_BEFORE, "<br><br><br>Task") == "Profile<br><br><br>Task"
 
 
-def test_the_map_writer_gives_a_blank_line_the_same_way(tmp_path) -> None:
+def test_the_map_writer_gives_a_blank_line_the_same_way(tmp_path: Path) -> None:
     path = tmp_path / "map.html"
     with path.open("w", encoding="utf-8") as out_file:
         writer = MapWriter(out_file)

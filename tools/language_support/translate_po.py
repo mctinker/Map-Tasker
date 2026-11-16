@@ -323,7 +323,7 @@ def check_and_append_to_file(filepath: str, target_string: str) -> bool:
         except OSError as e:
             print(f"❌ Error writing to file {filepath}: {e}")
             return False
-    return None
+    return False
 
 
 if __name__ == "__main__":

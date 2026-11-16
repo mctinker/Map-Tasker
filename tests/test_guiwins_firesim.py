@@ -65,7 +65,7 @@ def _labels(user: User) -> list[str]:
     return [element.text for element in user.find(kind=ui.label).elements]
 
 
-def _input(user: User, label: str) -> ui.element:
+def _input(user: User, label: str) -> ui.input:
     (element,) = [e for e in user.find(kind=ui.input).elements if e.props.get("label", "") == label]
     return element
 

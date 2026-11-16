@@ -55,6 +55,7 @@ import json
 import re
 import sys
 from collections import Counter, defaultdict
+from collections.abc import Iterable
 from dataclasses import dataclass, field, replace
 from pathlib import Path
 
@@ -375,7 +376,7 @@ class ModuleScanner(ast.NodeVisitor):
         self.generic_visit(node)
         self._class_stack.pop()
 
-    def visit_FunctionDef(self, node: ast.FunctionDef) -> None:  # The ast API's own method name.
+    def visit_FunctionDef(self, node: ast.FunctionDef | ast.AsyncFunctionDef) -> None:  # The ast API's own method name.
         """Takes the whole function, nested definitions included, as one surface.
 
         A dialog builder's inner render_toolbar()/render_inspector() draw into the
@@ -392,7 +393,7 @@ class ModuleScanner(ast.NodeVisitor):
 
     visit_AsyncFunctionDef = visit_FunctionDef
 
-    def _register_inner(self, node: ast.FunctionDef, qualname: str, owner: str) -> None:
+    def _register_inner(self, node: ast.FunctionDef | ast.AsyncFunctionDef, qualname: str, owner: str) -> None:
         """Registers every function defined inside this one, for handler resolution only."""
         for inner in ast.walk(node):
             if inner is node or not isinstance(inner, (ast.FunctionDef, ast.AsyncFunctionDef)):
@@ -403,7 +404,9 @@ class ModuleScanner(ast.NodeVisitor):
             self.funcs.setdefault(function.key, function)
 
     # -- one function ------------------------------------------------------------
-    def _build_func(self, node: ast.FunctionDef, qualname: str, with_widgets: bool = True) -> Func:
+    def _build_func(
+        self, node: ast.FunctionDef | ast.AsyncFunctionDef, qualname: str, with_widgets: bool = True
+    ) -> Func:
         """Everything the graph needs to know about one function."""
         function = Func(
             key=f"{self.module}:{qualname}",
@@ -443,7 +446,7 @@ class ModuleScanner(ast.NodeVisitor):
         return function
 
     # -- the widgets it creates --------------------------------------------------
-    def _widgets_in(self, node: ast.FunctionDef, function: Func) -> list[Widget]:
+    def _widgets_in(self, node: ast.FunctionDef | ast.AsyncFunctionDef, function: Func) -> list[Widget]:
         """Every documented widget created anywhere in the function."""
         tooltips = self._tooltip_map(node)
         tables = self._loop_labels(node)
@@ -455,7 +458,7 @@ class ModuleScanner(ast.NodeVisitor):
         widgets = []
         for inner in ast.walk(node):
             kind = ui_kind(inner, self.kinds)
-            if kind is None:
+            if kind is None or not isinstance(inner, ast.Call):
                 continue
             comment = self._comment_above(inner.lineno, statements)
             widgets.extend(self._widgets_from(inner, kind, function, tooltips, tables, comment))
@@ -570,7 +573,7 @@ class ModuleScanner(ast.NodeVisitor):
                 return values[name]
         return []
 
-    def _loop_labels(self, node: ast.FunctionDef) -> list[tuple[int, int, dict[str, list[str]]]]:
+    def _loop_labels(self, node: ast.FunctionDef | ast.AsyncFunctionDef) -> list[tuple[int, int, dict[str, list[str]]]]:
         """Every ``for`` loop over a literal table, and the values each of its names takes.
 
         The Scene designer's toolbars are written this way -- one ui.button() inside a
@@ -626,7 +629,7 @@ class ModuleScanner(ast.NodeVisitor):
             collected.append(text)
         return " ".join(reversed(collected)).strip()
 
-    def _tooltip_map(self, node: ast.FunctionDef) -> dict[int, str]:
+    def _tooltip_map(self, node: ast.FunctionDef | ast.AsyncFunctionDef) -> dict[int, str]:
         """Maps each widget call to its tooltip text, and records what each is named.
 
         Two shapes are in use and both are read: the widget is assigned to a variable
@@ -644,7 +647,7 @@ class ModuleScanner(ast.NodeVisitor):
             tooltips.setdefault(id(widget_call), text)
         return tooltips
 
-    def _named_widgets(self, node: ast.FunctionDef) -> dict[str, ast.Call]:
+    def _named_widgets(self, node: ast.FunctionDef | ast.AsyncFunctionDef) -> dict[str, ast.Call]:
         """Every widget assigned to a variable, by that variable's name."""
         named: dict[str, ast.Call] = {}
         for inner in ast.walk(node):
@@ -657,7 +660,7 @@ class ModuleScanner(ast.NodeVisitor):
             else:
                 continue
             widget_call = base_call(value)
-            if not ui_kind(widget_call, self.kinds):
+            if not isinstance(widget_call, ast.Call) or not ui_kind(widget_call, self.kinds):
                 continue
             for target in targets:
                 key = expr_key(target)
@@ -666,7 +669,7 @@ class ModuleScanner(ast.NodeVisitor):
                     self._identifiers.setdefault(id(widget_call), key)
         return named
 
-    def _chained_tooltips(self, node: ast.FunctionDef) -> dict[int, str]:
+    def _chained_tooltips(self, node: ast.FunctionDef | ast.AsyncFunctionDef) -> dict[int, str]:
         """Tooltips written as ui.button(...).props(...).tooltip("...")."""
         tooltips: dict[int, str] = {}
         for inner in ast.walk(node):
@@ -680,7 +683,7 @@ class ModuleScanner(ast.NodeVisitor):
                 tooltips[id(widget_call)] = text
         return tooltips
 
-    def _record_menu_items(self, node: ast.FunctionDef, named: dict[str, ast.Call]) -> None:
+    def _record_menu_items(self, node: ast.FunctionDef | ast.AsyncFunctionDef, named: dict[str, ast.Call]) -> None:
         """Notes the widgets that drop out of another one: `with a_button, ui.menu():`."""
         for inner in ast.walk(node):
             if not isinstance(inner, ast.With):
@@ -695,7 +698,7 @@ class ModuleScanner(ast.NodeVisitor):
 
     def _with_block_tooltips(
         self,
-        node: ast.FunctionDef,
+        node: ast.FunctionDef | ast.AsyncFunctionDef,
         named: dict[str, ast.Call],
     ) -> list[tuple[ast.Call, str]]:
         """Tooltips written as `with a_button: ui.tooltip("...")`."""
@@ -707,9 +710,12 @@ class ModuleScanner(ast.NodeVisitor):
             widget_calls = [named[subject] for subject in subjects if subject and subject in named]
             for statement in inner.body if widget_calls else []:
                 for candidate in ast.walk(statement):
-                    if not (isinstance(candidate, ast.Call) and ui_kind(base_call(candidate), {"tooltip"})):
+                    if not isinstance(candidate, ast.Call):
                         continue
-                    text = literal_text(base_call(candidate).args[0]) if base_call(candidate).args else None
+                    tip = base_call(candidate)
+                    if not isinstance(tip, ast.Call) or not ui_kind(tip, {"tooltip"}):
+                        continue
+                    text = literal_text(tip.args[0]) if tip.args else None
                     found.extend((widget_call, text) for widget_call in widget_calls if text)
         return found
 
@@ -905,7 +911,7 @@ class CommandModel:
             if argument is None and 0 <= index < len(call.args):
                 argument = call.args[index]
             text = literal_text(argument)
-            if is_nameable(text):
+            if text is not None and is_nameable(text):
                 labels.setdefault(text, []).append(call)
         return labels
 
@@ -1164,7 +1170,7 @@ def usable_comment(comment: str, label: str) -> str:
     return comment
 
 
-def literal_constants(trees: object) -> dict[str, list[str]]:
+def literal_constants(trees: Iterable[ast.AST]) -> dict[str, list[str]]:
     """Module-level lists of strings, by name, for loops that build one widget per entry."""
     constants: dict[str, list[str]] = {}
     for tree in trees:
@@ -1172,12 +1178,13 @@ def literal_constants(trees: object) -> dict[str, list[str]]:
             if not isinstance(node, ast.Assign) or not isinstance(node.value, (ast.List, ast.Tuple)):
                 continue
             values = [literal_text(element) for element in node.value.elts]
-            if not values or any(value is None for value in values):
+            texts = [value for value in values if value is not None]
+            if not texts or len(texts) != len(values):
                 continue
             for target in node.targets:
                 name = expr_key(target)
                 if name and name.isupper():
-                    constants.setdefault(name, values)
+                    constants.setdefault(name, texts)
     return constants
 
 

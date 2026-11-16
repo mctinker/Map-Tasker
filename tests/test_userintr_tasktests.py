@@ -1,3 +1,5 @@
+# pyright: reportPrivateUsage=false
+# (this test checks private helpers on purpose)
 """The Task Tests handlers: opening the dialog, and running every test again after an edit.
 
 What the tests do is test_taskcases', and the dialogs are test_guiwins_taskcases'.  What is tested here is the

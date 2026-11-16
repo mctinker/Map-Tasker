@@ -34,7 +34,7 @@ from maptasker.src.core.primitem import PrimeItems, RunState, initial_tasker_roo
 from maptasker.src.mapgen import taskerd
 from maptasker.src.mapgen.lineout import LineOut
 
-from tests.doubles import required
+from tests.doubles import required, stand_in
 
 _LOADED_XML = """<TaskerData sr="" dvi="1" tv="6.5.6">
   <Project sr="proj0" ve="2"><cdate>1</cdate><id>1</id><name>Home</name>
@@ -84,7 +84,7 @@ def _load_as_current(path: str) -> None:
 
 
 @pytest.fixture(autouse=True)
-def _runtime(tmp_path, monkeypatch):
+def _runtime(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     """A believable runtime, and a working directory of our own for the history folder."""
     monkeypatch.chdir(tmp_path)
     PrimeItems.program_arguments = ProgramArguments(
@@ -99,7 +99,7 @@ def _runtime(tmp_path, monkeypatch):
 # ##################################################################################
 # Recording: every load lands in the history.
 # ##################################################################################
-def test_loading_a_file_records_it(tmp_path) -> None:
+def test_loading_a_file_records_it(tmp_path: Path) -> None:
     """The whole premise: no button, no setting -- loading a configuration keeps it."""
     assert timeline.snapshots() == []
 
@@ -111,7 +111,7 @@ def test_loading_a_file_records_it(tmp_path) -> None:
     assert (tmp_path / timeline.HISTORY_FOLDER / held[0].path.name).is_file()
 
 
-def test_the_snapshot_holds_the_configuration_verbatim(tmp_path) -> None:
+def test_the_snapshot_holds_the_configuration_verbatim(tmp_path: Path) -> None:
     """Gzipped, and the bytes come back exactly -- this is the older side of a future diff."""
     path = _write(tmp_path, "backup.xml", _LOADED_XML)
     _load_as_current(path)
@@ -122,7 +122,7 @@ def test_the_snapshot_holds_the_configuration_verbatim(tmp_path) -> None:
         assert compressed.read().decode("utf-8") == _LOADED_XML
 
 
-def test_a_second_different_configuration_is_a_second_entry(tmp_path) -> None:
+def test_a_second_different_configuration_is_a_second_entry(tmp_path: Path) -> None:
     """Two loads of two configurations is two points in the timeline."""
     _load_as_current(_write(tmp_path, "backup.xml", _LOADED_XML))
     _load_as_current(_write(tmp_path, "later.xml", _LATER_XML))
@@ -132,7 +132,7 @@ def test_a_second_different_configuration_is_a_second_entry(tmp_path) -> None:
     assert held[0].digest != held[1].digest
 
 
-def test_reloading_an_unchanged_configuration_adds_nothing(tmp_path) -> None:
+def test_reloading_an_unchanged_configuration_adds_nothing(tmp_path: Path) -> None:
     """Restarting the program four times is not four things that happened to the config.
 
     A history that recorded it would report four hours in which nothing changed as four
@@ -145,7 +145,7 @@ def test_reloading_an_unchanged_configuration_adds_nothing(tmp_path) -> None:
     assert len(timeline.snapshots()) == 1
 
 
-def test_the_same_configuration_under_another_name_adds_nothing(tmp_path) -> None:
+def test_the_same_configuration_under_another_name_adds_nothing(tmp_path: Path) -> None:
     """ "Save To Current File" leaves the original and a timestamped copy side by side
     (caveats.md item 6).  Loading both is one configuration under two names, and comparing
     by content rather than by path is what keeps the pair out of the history twice.
@@ -156,7 +156,7 @@ def test_the_same_configuration_under_another_name_adds_nothing(tmp_path) -> Non
     assert len(timeline.snapshots()) == 1
 
 
-def test_a_configuration_that_comes_back_is_recorded_again(tmp_path) -> None:
+def test_a_configuration_that_comes_back_is_recorded_again(tmp_path: Path) -> None:
     """Only the LATEST entry is checked for sameness, so reverting an edit is an event.
 
     Undoing yesterday's change is a real change to the configuration, and a history that
@@ -171,7 +171,7 @@ def test_a_configuration_that_comes_back_is_recorded_again(tmp_path) -> None:
     assert held[0].digest == held[2].digest
 
 
-def test_a_failed_load_is_not_recorded(tmp_path) -> None:
+def test_a_failed_load_is_not_recorded(tmp_path: Path) -> None:
     """Nothing was loaded, so there is no configuration to have a history of."""
     with pytest.raises(MapTaskerError):
         _load_as_current(_write(tmp_path, "bad.xml", _MALFORMED_XML))
@@ -181,7 +181,7 @@ def test_a_failed_load_is_not_recorded(tmp_path) -> None:
 # ##################################################################################
 # NOT recording: the comparison's own load.
 # ##################################################################################
-def test_the_file_a_comparison_reads_is_not_recorded(tmp_path) -> None:
+def test_the_file_a_comparison_reads_is_not_recorded(tmp_path: Path) -> None:
     """THE ONE THAT MATTERS.  diffload parses the other file through the same taskerd
     path this hooks into.  Without the suppression, every comparison anyone ran would
     file a configuration nobody is working on into the history of the one they are --
@@ -196,7 +196,7 @@ def test_the_file_a_comparison_reads_is_not_recorded(tmp_path) -> None:
     assert [snapshot.digest for snapshot in timeline.snapshots()] == before
 
 
-def test_suppression_is_lifted_afterwards(tmp_path) -> None:
+def test_suppression_is_lifted_afterwards(tmp_path: Path) -> None:
     """A comparison must not switch recording off for the rest of the session."""
     _load_as_current(_write(tmp_path, "backup.xml", _LOADED_XML))
     diffload.load_for_comparison(_write(tmp_path, "other.xml", _LATER_XML), state=PrimeItems)
@@ -218,7 +218,7 @@ def test_suppression_restores_rather_than_clears() -> None:
 # ##################################################################################
 # Retention.
 # ##################################################################################
-def test_the_history_is_capped(tmp_path, monkeypatch) -> None:
+def test_the_history_is_capped(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Oldest out first, so the folder cannot grow without limit."""
     monkeypatch.setattr(timeline, "MAX_SNAPSHOTS", 3)
     for index in range(6):
@@ -245,7 +245,7 @@ def test_since_picks_the_newest_entry_no_later_than_the_cutoff() -> None:
     assert required(timeline.since(now)).source.startswith("Gamma")
 
 
-def test_snapshots_are_ordered_by_their_stamp_not_their_mtime(tmp_path) -> None:
+def test_snapshots_are_ordered_by_their_stamp_not_their_mtime(tmp_path: Path) -> None:
     """Sorted by the timestamp in the name, which a copy or a sync cannot rewrite."""
     now = clock.now()
     timeline.record(_named("Newer"), when=now)
@@ -254,7 +254,7 @@ def test_snapshots_are_ordered_by_their_stamp_not_their_mtime(tmp_path) -> None:
     assert [snapshot.source[:5] for snapshot in timeline.snapshots()] == ["Older", "Newer"]
 
 
-def test_foreign_files_in_the_folder_are_ignored(tmp_path) -> None:
+def test_foreign_files_in_the_folder_are_ignored(tmp_path: Path) -> None:
     """The folder sits in the user's own working directory; they may put things in it."""
     _load_as_current(_write(tmp_path, "backup.xml", _LOADED_XML))
     folder = tmp_path / timeline.HISTORY_FOLDER
@@ -273,7 +273,7 @@ def test_no_history_folder_is_an_empty_history_not_an_error() -> None:
 # ##################################################################################
 # The question the feature exists to answer.
 # ##################################################################################
-def test_what_changed_since_reports_the_difference(tmp_path) -> None:
+def test_what_changed_since_reports_the_difference(tmp_path: Path) -> None:
     """A week ago against now, with no file picker and nothing to hunt for."""
     now = clock.now()
     timeline.record(_write(tmp_path, "week_ago.xml", _LOADED_XML), when=now - timedelta(days=7))
@@ -289,7 +289,7 @@ def test_what_changed_since_reports_the_difference(tmp_path) -> None:
     assert result.counts["ADDED"] >= 1
 
 
-def test_the_older_side_is_named_by_when_it_was_not_by_its_temporary_file(tmp_path) -> None:
+def test_the_older_side_is_named_by_when_it_was_not_by_its_temporary_file(tmp_path: Path) -> None:
     """The report header has to say which configuration this is being compared against,
     and the file it was expanded into lives for a few milliseconds under a random name.
     """
@@ -305,7 +305,7 @@ def test_the_older_side_is_named_by_when_it_was_not_by_its_temporary_file(tmp_pa
     assert result.report.count(when.astimezone().strftime("%d-%b-%Y %H:%M:%S")) == 1
 
 
-def test_an_unchanged_configuration_reports_no_differences(tmp_path) -> None:
+def test_an_unchanged_configuration_reports_no_differences(tmp_path: Path) -> None:
     """Ran fine, found nothing -- distinct from having nothing to compare."""
     timeline.record(_write(tmp_path, "week_ago.xml", _LOADED_XML), when=clock.now() - timedelta(days=7))
     _load_as_current(_write(tmp_path, "today.xml", _LOADED_XML))
@@ -316,7 +316,7 @@ def test_an_unchanged_configuration_reports_no_differences(tmp_path) -> None:
     assert result.nothing_changed is True
 
 
-def test_a_history_that_does_not_reach_back_says_so(tmp_path) -> None:
+def test_a_history_that_does_not_reach_back_says_so(tmp_path: Path) -> None:
     """Answering "since last week" with three months ago, quietly, would be worse than
     saying the history is short.  The report is still produced -- it is still useful.
     """
@@ -337,7 +337,7 @@ def test_an_empty_history_is_explained_not_crashed() -> None:
     assert "No configuration history" in result.problem
 
 
-def test_nothing_loaded_is_explained(tmp_path) -> None:
+def test_nothing_loaded_is_explained(tmp_path: Path) -> None:
     """There is no "now" to compare the history against."""
     timeline.record(_write(tmp_path, "week_ago.xml", _LOADED_XML), when=clock.now() - timedelta(days=7))
     PrimeItems.tasker_root_elements = initial_tasker_root_elements()
@@ -348,7 +348,7 @@ def test_nothing_loaded_is_explained(tmp_path) -> None:
     assert "No XML file has been loaded" in result.problem
 
 
-def test_a_corrupt_snapshot_is_reported_not_raised(tmp_path) -> None:
+def test_a_corrupt_snapshot_is_reported_not_raised(tmp_path: Path) -> None:
     """A snapshot that will not parse produces the message a picked file would, and
     leaves the loaded configuration exactly where it was.
     """
@@ -369,7 +369,9 @@ def test_a_corrupt_snapshot_is_reported_not_raised(tmp_path) -> None:
 # ##################################################################################
 # The load survives a history that cannot be kept.
 # ##################################################################################
-def test_a_history_folder_that_cannot_be_made_does_not_break_the_load(tmp_path, monkeypatch) -> None:
+def test_a_history_folder_that_cannot_be_made_does_not_break_the_load(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """A read-only working directory costs the user the history, not the file they opened."""
 
     def refuse(*_args: Any, **_kwargs: Any) -> None:
@@ -381,7 +383,7 @@ def test_a_history_folder_that_cannot_be_made_does_not_break_the_load(tmp_path, 
     assert timeline.snapshots() == []
 
 
-def test_an_unreadable_source_file_does_not_break_the_load(tmp_path, monkeypatch) -> None:
+def test_an_unreadable_source_file_does_not_break_the_load(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """record() digests the file itself; a failure there is silent by design."""
     monkeypatch.setattr(timeline, "_digest_of", lambda _path: "")
 
@@ -389,14 +391,14 @@ def test_an_unreadable_source_file_does_not_break_the_load(tmp_path, monkeypatch
     assert timeline.snapshots() == []
 
 
-def test_a_failed_write_leaves_no_half_snapshot(tmp_path, monkeypatch) -> None:
+def test_a_failed_write_leaves_no_half_snapshot(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """A truncated .gz in the folder would be a snapshot that fails when it is read back,
     weeks later, when somebody is relying on it.  Better not to leave one.
     """
     real_open = gzip.open
 
     def fail_after_creating(path: object, *args: Any, **kwargs: Any) -> object:
-        handle = real_open(path, *args, **kwargs)
+        handle = real_open(stand_in(path), *args, **kwargs)
         handle.close()
         message = "disk full"
         raise OSError(message)
@@ -468,7 +470,7 @@ def test_a_period_with_no_usable_answer_falls_back_to_all() -> None:
     assert timeline.cutoff_for(timeline.ON_DATE, on_date=None, now=_NOON) is None
 
 
-def test_every_offered_period_resolves(tmp_path) -> None:
+def test_every_offered_period_resolves(tmp_path: Path) -> None:
     """Each option the picker shows has a cutoff behind it.
 
     Over PERIOD_LABELS itself, so an option added to the picker without teaching
@@ -479,7 +481,7 @@ def test_every_offered_period_resolves(tmp_path) -> None:
         assert cutoff is None or cutoff <= _NOON, period
 
 
-def test_all_reaches_the_oldest_snapshot_without_complaining(tmp_path) -> None:
+def test_all_reaches_the_oldest_snapshot_without_complaining(tmp_path: Path) -> None:
     """Asking for everything and being given everything is the answer, so it carries no
     note -- unlike asking for a year and only having a fortnight.
     """
@@ -528,7 +530,7 @@ def test_every_period_cutoff_is_aware() -> None:
     assert timeline.cutoff_for(timeline.ON_DATE, on_date=date(2026, 1, 5)) == datetime(2026, 1, 5).astimezone()
 
 
-def test_one_runs_suppression_does_not_stop_another_run_recording(tmp_path) -> None:
+def test_one_runs_suppression_does_not_stop_another_run_recording(tmp_path: Path) -> None:
     """The flag is the run's own: a comparison in one run leaves a second run's loads recorded."""
     first, second = RunState(), RunState()
     path = _write(tmp_path, "backup.xml", _LOADED_XML)
