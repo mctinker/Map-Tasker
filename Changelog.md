@@ -2,9 +2,11 @@
 
 All notable changes to this project will be documented in this file!
 
-## [16.0.1] ??-Nov-2026
+## [16.0.1] 16-Nov-2026
 
 ### Added
+
+- Nothing new has been added
 
 ### Changed
 
@@ -21,6 +23,8 @@ All notable changes to this project will be documented in this file!
 - Removed: The old desktop-only version of MapTasker is no longer supported and has been completely removed.
 
 ### Fixed
+
+- Nothing new has been fixed.
 
 ### Known Issues
 
