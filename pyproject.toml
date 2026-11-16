@@ -54,10 +54,10 @@ dependencies = [
 # them itself: `pip install "maptasker[ai]"` (or `uv add "maptasker[ai]"`) is how they arrive,
 # and maputil3.AI_EXTRA_INSTALL_COMMAND is what the program tells the user to run.
 ai = [
-    'anthropic>=2.7.0',
-    'google-genai>=3.0.0',
+    'anthropic>=2.9.0',
+    'google-genai>=3.3.0',
     'ollama>=0.6.3',
-    'openai>=3.48.0',
+    'openai>=3.51.0',
 ]
 
 [project.urls]
@@ -118,7 +118,7 @@ exclude = [".claude"]
 test = [
     "pytest>=9.2.0",
     "pytest-mock>=3.17.0",
-    "pytest-asyncio>=1.4.1.post1",
+    "pytest-asyncio>=1.5.0",
     "pytest-cov>=7.1.0",
     "pytest-xdist>=3.8",
     "hypothesis>=6.170.15",
@@ -137,7 +137,7 @@ dev = [
     "pyright[nodejs]>=1.1.414",
     "pytest>=9.2.0",
     "rich>=15.0.0",
-    "ruff>=0.17.4",
+    "ruff>=0.17.5",
     "vulture>=2.16",
 ]
 
