@@ -2,29 +2,16 @@
 
 All notable changes to this project will be documented in this file!
 
-## [16.0.1] 16-Nov-2026
+## [16.0.2] ??-Nov-2026
 
 ### Added
 
-- Nothing new has been added
-
 ### Changed
-
-- Changed: Hovering over 'Task:' in the Map view now also lists the Task's actions, numbered and indented like the Map's own, one title to a line, just below the Project name. A Task with more than 40 actions shows the first 40 and how many more there are.
-
-- Changed: In the Notes & Tags, Project Dependencies, Compatibility Check, New-Phone Checklist and Plugin Retirement Advisor windows, the Close button now sits right beside the other buttons instead of alone in the far lower right corner.
-
-- Changed: In the right-hand panel, the 'Get XML from Android Device' button and its '?' now sit directly below 'Get Local XML File', so the two ways to load a configuration are together. The 'File Operations' heading that used to sit above them is gone.
-
-- Changed: Clicking 'Get XML from Android Device' while its entry panel or its list of XML files is showing now puts that panel away, just as 'Cancel Entry' does, instead of rebuilding it.
 
 ### Removed
 
-- Removed: The old desktop-only version of MapTasker is no longer supported and has been completely removed.
-
 ### Fixed
 
-- Nothing new has been fixed.
 
 ### Known Issues
 
@@ -38,6 +25,13 @@ you have closed all pre-existing MapTasker browser tabs and you still get this e
 
 
 ## Older History Logs
+
+## [16.0.1] 16-Nov-2026
+
+- Changed: Hovering over 'Task:' in the Map view now also lists the Task's actions, numbered and indented like the Map's own, one title to a line, just below the Project name. A Task with more than 40 actions shows the first 40 and how many more there are.
+- Changed: In the Notes & Tags, Project Dependencies, Compatibility Check, New-Phone Checklist and Plugin Retirement Advisor windows, the Close button now sits right beside the other buttons instead of alone in the far lower right corner.
+- Changed: In the right-hand panel, the 'Get XML from Android Device' button and its '?' now sit directly below 'Get Local XML File', so the two ways to load a configuration are together. The 'File Operations' heading that used to sit above them is gone.
+- Changed: Clicking 'Get XML from Android Device' while its entry panel or its list of XML files is showing now puts that panel away, just as 'Cancel Entry' does, instead of rebuilding it.
 
 ## [16.0.0] 15-Nov-2026
 
