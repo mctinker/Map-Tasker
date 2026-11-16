@@ -18,6 +18,8 @@ All notable changes to this project will be documented in this file!
 
 ### Removed
 
+- Removed: The old desktop-only version of MapTasker is no longer supported and has been completely removed.
+
 ### Fixed
 
 ### Known Issues
