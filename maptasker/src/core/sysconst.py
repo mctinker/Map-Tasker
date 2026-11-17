@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import importlib.metadata
 import logging
+import os
 import re
 from enum import Enum
 
@@ -17,8 +18,18 @@ import darkdetect  # pyright: ignore[reportMissingTypeStubs]  (no stubs are publ
 
 from maptasker.src.core import clock
 
+# For testing the "Update Available!" path: setting this environment variable makes MapTasker believe it is that
+# version, so the daily PyPI check finds a newer one.  Unset (or empty), the installed version is used.
+FAKE_VERSION_VARIABLE = "MAPTASKER_FAKE_VERSION"
+
+
+def running_version() -> str:
+    """The version MapTasker takes itself to be: MAPTASKER_FAKE_VERSION if it is set, else the installed one."""
+    return os.environ.get(FAKE_VERSION_VARIABLE, "").strip() or importlib.metadata.version("maptasker")
+
+
 # Global constants
-VERSION = importlib.metadata.version("maptasker")
+VERSION = running_version()
 MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "MIT License"

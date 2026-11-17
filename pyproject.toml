@@ -864,6 +864,7 @@ strict = [
     "tests/test_elemvals.py",
     "tests/test_error_show_code.py",
     "tests/test_explicit_encodings.py",
+    "tests/test_fake_version.py",
     "tests/test_firesim.py",
     "tests/test_flags.py",
     "tests/test_folderwatch.py",
