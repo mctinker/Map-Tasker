@@ -612,6 +612,39 @@ def test_a_failed_upgrade_with_no_output_does_not_print_an_empty_box(
     assert _gui(handlers).display_message_box.call_count == 2
 
 
+def test_on_windows_the_upgrade_is_left_to_a_helper_and_we_close(
+    seen: SimpleNamespace, upgrade: SimpleNamespace, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A running Windows program cannot be replaced, so the install happens after we exit."""
+    monkeypatch.setattr(userintr.sys, "platform", "win32")
+
+    def helper_started(_state: Any, _failed: str, before_exit: Any) -> tuple[bool, str]:
+        before_exit()  # what the real one does just before it ends the process
+        return True, ""
+
+    patch_hub(monkeypatch, "update_after_exit", helper_started)
+    handlers = _handlers()
+
+    handlers.upgrade_event()
+
+    assert upgrade.changelog == [True] and upgrade.reloaded == []
+    assert "close, finish updating" in _gui(handlers).display_message_box.call_args.args[0]
+
+
+def test_on_windows_a_helper_that_cannot_start_is_reported_and_we_stay_open(
+    seen: SimpleNamespace, upgrade: SimpleNamespace, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(userintr.sys, "platform", "win32")
+    patch_hub(monkeypatch, "update_after_exit", lambda _state, _failed, _before: (False, "no process for you"))
+    handlers = _handlers()
+
+    handlers.upgrade_event()
+
+    said = [c.args[0] for c in _gui(handlers).display_message_box.call_args_list]
+    assert said[0].startswith("The update failed") and said[1] == "no process for you"
+    assert upgrade.changelog == []
+
+
 # ##################################################################################
 # The browser pages
 # ##################################################################################

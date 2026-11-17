@@ -23,6 +23,7 @@ loop.
 """
 
 import contextlib
+import sys
 import webbrowser
 from typing import TYPE_CHECKING, Any, cast
 
@@ -42,6 +43,7 @@ from maptasker.src.core.maputils import (
     append_to_filename,
     get_current_local_time_auto_timezone,
     rename_file,
+    update_after_exit,
     update_maptasker,
 )
 from maptasker.src.core.mtexcept import MapTaskerError
@@ -1529,7 +1531,28 @@ class MapTaskerEventHandlers:
             type="positive",
             timeout=5.0,
         )
-        updated, complaint = update_maptasker()
+        # Windows cannot replace the program it is running, however carefully the installer
+        # goes about it, so there the install is left to a helper that starts once we have
+        # closed, and that starts MapTasker again afterwards.
+        if sys.platform == "win32":
+
+            def announce_and_save_changes() -> None:
+                the_view.display_message_box(
+                    translate_string("MapTasker will now close, finish updating and open again.  Please stand by..."),
+                    "Green",
+                )
+                create_changelog()
+
+            started, complaint = update_after_exit(
+                self.state,
+                translate_string("The update failed and MapTasker is still on the version you were running."),
+                announce_and_save_changes,
+            )
+            if started:  # not reached once we have ended; nothing more to say if we somehow did not
+                return
+            updated = False
+        else:
+            updated, complaint = update_maptasker()
 
         # The update did not happen: say so, say what went wrong, and stay where we are.
         # Restarting would just bring back the same version, but wearing a "Program

@@ -11,6 +11,7 @@ import asyncio
 import contextlib
 import functools
 import ipaddress
+import json
 import os
 import re
 import shutil
@@ -39,6 +40,7 @@ from maptasker.src.core.primitem import clear_single_items
 from maptasker.src.core.sysconst import HOTLINK_STYLE, FormatLine, logger
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
     from xml.etree.ElementTree import Element
 
     from maptasker.src.core.primitem import RunState
@@ -170,6 +172,20 @@ def restore_locked_scripts(moved: list[tuple[Path, Path]]) -> None:
             stashed.rename(script)
 
 
+def _install_command(packageversion: str) -> list[str]:
+    """The command that installs `packageversion` into the environment we are running from: uv if there is one, else pip."""
+    if shutil.which("uv"):
+        # uv installs into the environment it discovers (VIRTUAL_ENV, or a .venv in the
+        # current directory), and neither is necessarily ours -- MapTasker started from
+        # its own 'maptasker' command runs without VIRTUAL_ENV set.  Naming our interpreter
+        # upgrades the copy we are actually running, rather than failing for want of an
+        # environment or quietly upgrading somebody else's.
+        console.say("Updating with uv...")
+        return ["uv", "pip", "install", "--python", sys.executable, packageversion, "--upgrade"]
+    console.say("Updating with pip...")
+    return [sys.executable, "-m", "pip", "install", packageversion, "--upgrade"]
+
+
 # Auto Update our code
 def update_maptasker() -> tuple[bool, str]:
     """Update this package using uv if available, otherwise fall back to pip.
@@ -181,21 +197,7 @@ def update_maptasker() -> tuple[bool, str]:
     version = get_pypi_version()  # Assuming this is defined elsewhere in your code
     packageversion = "maptasker" + version
 
-    # 1. Check if 'uv' is installed and available on the system
-    if shutil.which("uv"):
-        # Build the command for uv
-        # uv uses the syntax: uv pip install <package>
-        # --python: uv installs into the environment it discovers (VIRTUAL_ENV, or a .venv in
-        # the current directory), and neither is necessarily ours -- MapTasker started from
-        # its own 'maptasker' command runs without VIRTUAL_ENV set.  Naming our interpreter
-        # upgrades the copy we are actually running, rather than failing for want of an
-        # environment or quietly upgrading somebody else's.
-        command = ["uv", "pip", "install", "--python", sys.executable, packageversion, "--upgrade"]
-        console.say("Updating with uv...")
-    else:
-        # Build the fallback command for pip
-        command = [sys.executable, "-m", "pip", "install", packageversion, "--upgrade"]
-        console.say("Updating with pip...")
+    command = _install_command(packageversion)
 
     # 2. Execute the chosen command, keeping what it said in case it fails.  errors="replace"
     # because an installer's progress output is not necessarily in the console's encoding,
@@ -213,6 +215,76 @@ def update_maptasker() -> tuple[bool, str]:
     restore_locked_scripts(moved)
     complaint = (result.stderr or "").strip() or (result.stdout or "").strip()
     return False, complaint or f"the installer stopped with return code {result.returncode}"
+
+
+# What runs, once MapTasker has closed, to install the new version.  A Windows program cannot
+# be replaced while it is running, and the 'maptasker' command is a launcher that stays alive
+# for as long as MapTasker does, so the only dependable way to upgrade is from outside it.  This
+# is a script in its own right (run with 'python -c') because it must not need any file the
+# installer is about to replace.  It waits for MapTasker to exit and for the launcher to let go
+# of its file, installs, says so in a message box if that failed, and starts MapTasker again.
+_UPGRADE_HELPER = r"""
+import ctypes, json, subprocess, sys, time
+job = json.loads(sys.argv[1])
+kernel = ctypes.windll.kernel32
+handle = kernel.OpenProcess(0x00100000, False, job["pid"])
+if handle:
+    kernel.WaitForSingleObject(handle, 60000)
+    kernel.CloseHandle(handle)
+deadline = time.time() + 60
+while job["launcher"] and time.time() < deadline:
+    try:
+        open(job["launcher"], "r+b").close()
+        break
+    except FileNotFoundError:
+        break
+    except OSError:
+        time.sleep(0.5)
+result = subprocess.run(job["install"], capture_output=True, text=True, errors="replace", creationflags=0x08000000)
+if result.returncode != 0:
+    said = (result.stderr or result.stdout or "").strip()
+    ctypes.windll.user32.MessageBoxW(
+        0,
+        job["failed"] + "\n\n" + "\n".join(said.splitlines()[-3:]),
+        "MapTasker",
+        0x10,
+    )
+subprocess.Popen(job["relaunch"], env=job["env"], creationflags=0x00000208)
+"""
+
+
+def update_after_exit(state: RunState, failed_message: str, before_exit: Callable[[], None]) -> tuple[bool, str]:
+    """Hand the upgrade to a separate process that runs once MapTasker has closed (Windows).
+
+    This process then ends, which is what lets the installer replace our files, so a call that
+    works does not return.  The new process installs, reports a failure in a message box, and starts MapTasker again --
+    the new version if the install worked, the old one if not.
+
+    :param state: the run state, for the path of the program to start again.
+    :param failed_message: the (translated) sentence shown if the install fails.
+    :param before_exit: what to do once the helper is running and before we end, such as telling the user.
+    :return: (False, why not) when the helper could not be started; otherwise it does not return.
+    """
+    launcher = Path(sys.executable).parent / CONSOLE_SCRIPTS[0]
+    job = {
+        "pid": os.getpid(),
+        "launcher": str(launcher) if launcher.is_file() else "",
+        "install": _install_command("maptasker" + get_pypi_version()),
+        "relaunch": _restart_arguments(state),
+        "env": _restart_environment(),
+        "failed": failed_message,
+    }
+    try:
+        # DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP: it must outlive us and not take our console with it.
+        subprocess.Popen(  # noqa: S603
+            [sys.executable, "-c", _UPGRADE_HELPER, json.dumps(job)],
+            creationflags=0x00000208,
+        )
+    except OSError as e:
+        return False, str(e)
+    before_exit()
+    _exit_program()
+    return True, ""
 
 
 # How long the version check waits on PyPI: the same as the timezone lookup above, since both
@@ -682,24 +754,32 @@ def restart_program_subprocess(state: RunState) -> None:
     This is often more reliable on Windows.
     NOTE: This is a duplicate of 'rurun_process' in mapit.py, to avoid circular import error.
     """
-    # Get the absolute path of the current script file
-    # This is more robust than relying directly on sys.argv[0]
-    script_path = os.path.abspath(__file__)
-    script_path = script_path.replace(f"src{state.slash}core{state.slash}maputils.py", "main.py")
-
-    # Prepare the arguments for the new process
-    # The first argument is the Python interpreter
-    # The second is the absolute path to the script
-    # The rest are any original command-line arguments (excluding the script name itself)
-    new_process_args = [sys.executable, script_path, *sys.argv[1:]]
-
-    # NiceGUI exports its host, port and protocol to the environment while it serves, and the
-    # new process would inherit them.  It starts while this one still holds the port, so it
-    # picks another, and NiceGUI warns that it is "Ignoring NICEGUI_PORT=8080".  Leave them out.
-    child_env = {k: v for k, v in os.environ.items() if k not in ("NICEGUI_HOST", "NICEGUI_PORT", "NICEGUI_PROTOCOL")}
-    subprocess.Popen(new_process_args, env=child_env)  # noqa: S603
+    subprocess.Popen(_restart_arguments(state), env=_restart_environment())  # noqa: S603
     console.say("Restarting program.  Please stand by...")
     time.sleep(0.2)
+    _exit_program()
+
+
+def _restart_arguments(state: RunState) -> list[str]:
+    """The command that starts MapTasker again: this interpreter, main.py, and the arguments we were given."""
+    # The absolute path of main.py is more robust than relying on sys.argv[0].
+    script_path = os.path.abspath(__file__)
+    script_path = script_path.replace(f"src{state.slash}core{state.slash}maputils.py", "main.py")
+    return [sys.executable, script_path, *sys.argv[1:]]
+
+
+def _restart_environment() -> dict[str, str]:
+    """The environment for the new process.
+
+    NiceGUI exports its host, port and protocol to the environment while it serves, and the
+    new process would inherit them.  It starts while this one still holds the port, so it
+    picks another, and NiceGUI warns that it is "Ignoring NICEGUI_PORT=8080".  Leave them out.
+    """
+    return {k: v for k, v in os.environ.items() if k not in ("NICEGUI_HOST", "NICEGUI_PORT", "NICEGUI_PROTOCOL")}
+
+
+def _exit_program() -> None:
+    """End this process cleanly, whether or not we are inside NiceGUI's event loop."""
 
     # If we're inside a running event loop (e.g. this was triggered from a NiceGUI
     # button click), sys.exit() only raises SystemExit inside that task, which crashes

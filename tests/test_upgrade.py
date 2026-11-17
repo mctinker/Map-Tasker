@@ -18,12 +18,16 @@ from __future__ import annotations
 import builtins
 from pathlib import Path
 from types import SimpleNamespace
+from typing import TYPE_CHECKING, cast
 
 import pytest
 from maptasker.src.core import maputils
 from maptasker.src.gui import guiutils
 
 from tests.doubles import fake_window
+
+if TYPE_CHECKING:
+    from maptasker.src.core.primitem import RunState
 
 
 class FakeCompletedProcess(SimpleNamespace):
@@ -301,3 +305,53 @@ def test_an_unwritable_change_log_does_not_strand_the_upgrade(
     guiutils.create_changelog()
 
     assert complaints
+
+
+def test_the_after_exit_helper_is_valid_python() -> None:
+    """It only ever runs on Windows, so at least prove it parses everywhere."""
+    import ast
+
+    ast.parse(maputils._UPGRADE_HELPER)
+
+
+def test_the_upgrade_is_handed_to_a_detached_helper(
+    scripts_dir: Path, installer: dict, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The helper is told what to wait for, what to install and what to start again -- and nothing runs here."""
+    import json
+
+    started: dict = {}
+
+    def fake_popen(command: list[str], **kwargs: object) -> None:
+        started["command"], started["kwargs"] = command, kwargs
+
+    monkeypatch.setattr(maputils.subprocess, "Popen", fake_popen)
+    monkeypatch.setattr(maputils, "get_pypi_version", lambda: "==9.9.9")
+    monkeypatch.setattr(maputils.shutil, "which", lambda _name: None)
+
+    events: list[str] = []
+    monkeypatch.setattr(maputils, "_exit_program", lambda: events.append("exit"))
+
+    maputils.update_after_exit(cast("RunState", SimpleNamespace(slash="/")), "failed", lambda: events.append("told"))
+
+    assert events == ["told", "exit"]  # the user is told once the helper is running, and then we end
+    assert started["command"][:3] == [maputils.sys.executable, "-c", maputils._UPGRADE_HELPER]
+    job = json.loads(started["command"][3])
+    assert "maptasker==9.9.9" in job["install"]
+    assert job["launcher"] == str(scripts_dir / "maptasker.exe")
+    assert job["failed"] == "failed"
+    assert started["kwargs"]["creationflags"] == 0x208
+
+
+def test_an_upgrade_helper_that_cannot_start_says_why(scripts_dir: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    def refuse(*_a: object, **_k: object) -> None:
+        raise OSError("no process for you")
+
+    monkeypatch.setattr(maputils.subprocess, "Popen", refuse)
+    monkeypatch.setattr(maputils, "get_pypi_version", lambda: "")
+    monkeypatch.setattr(maputils.shutil, "which", lambda _name: None)
+
+    assert maputils.update_after_exit(cast("RunState", SimpleNamespace(slash="/")), "failed", lambda: None) == (
+        False,
+        "no process for you",
+    )
