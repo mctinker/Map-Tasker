@@ -21,14 +21,14 @@ if TYPE_CHECKING:
 
     from nicegui.testing.user import User
 
-_window = SimpleNamespace(drawer_sections={})
+_window = SimpleNamespace(drawer_sections={}, drawer_expansions={}, drawer_searching=False)
 
 
 def _page() -> None:
     for key, title in (
         ("history", "Compare & History"),
-        ("analyze", "Analyze"),
-        ("simulate", "Simulate & Verify"),
+        ("structure", "Structure & Style"),
+        ("simulate", "Simulate & Test"),
     ):
         with guiwins_drawers._drawer_section(_window, key, title, "history"):  # type: ignore[arg-type]
             ui.button(f"{title} button")
@@ -52,6 +52,8 @@ def _sections(user: User) -> dict[str, ui.expansion]:
 @pytest.fixture(autouse=True)
 def _fresh_window() -> None:
     _window.drawer_sections = {}
+    _window.drawer_expansions = {}
+    _window.drawer_searching = False
 
 
 @pytest.mark.asyncio
@@ -59,16 +61,16 @@ async def test_every_section_starts_folded() -> None:
     async with _open() as user:
         sections = _sections(user)
 
-        assert set(sections) == {"Compare & History", "Analyze", "Simulate & Verify"}
+        assert set(sections) == {"Compare & History", "Structure & Style", "Simulate & Test"}
         assert not any(section.value for section in sections.values())
 
 
 @pytest.mark.asyncio
 async def test_opening_a_section_is_remembered_on_the_window() -> None:
     async with _open() as user:
-        _sections(user)["Analyze"].set_value(True)
+        _sections(user)["Structure & Style"].set_value(True)
 
-        assert _window.drawer_sections == {"analyze": True}
+        assert _window.drawer_sections == {"structure": True}
 
 
 @pytest.mark.asyncio
@@ -78,7 +80,7 @@ async def test_a_drawer_drawn_again_shows_the_sections_as_they_were_left() -> No
         sections = _sections(user)
 
         assert sections["Compare & History"].value is True
-        assert sections["Analyze"].value is False
+        assert sections["Structure & Style"].value is False
 
 
 @pytest.mark.asyncio

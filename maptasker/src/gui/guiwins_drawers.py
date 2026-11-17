@@ -23,6 +23,7 @@ from maptasker.src.gui.guiwins import (
     set_notification_timeout,
 )
 from maptasker.src.gui.guiwins_canvas import register_canvas_events
+from maptasker.src.gui.guiwins_drawer_search import DrawerSearch
 from maptasker.src.gui.guiwins_nav import register_finding_clicks
 from maptasker.src.gui.guiwins_tabs import (
     create_analyze_tab_content,
@@ -44,6 +45,8 @@ from maptasker.src.gui.guiwins_tabs import (
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+
+    from nicegui.events import ValueChangeEventArguments
 
     from maptasker.src.core.primitem import RunState
     from maptasker.src.gui.userintr import MyGui
@@ -270,6 +273,7 @@ def _create_right_drawer(self: MyGui) -> None:
         .style("flex-wrap: nowrap") as self.gui_right_drawer
     ):
         ui.label(translate_string("Actions & Control")).classes("text-lg font-bold mb-2 self-center")
+        _create_drawer_search(self)
 
         ui.label(translate_string("Execution")).classes("text-xs font-bold uppercase text-gray-400 mt-2 self-center")
         _create_execution_section(self)
@@ -278,28 +282,32 @@ def _create_right_drawer(self: MyGui) -> None:
             "text-xs font-bold uppercase text-gray-400 mt-3 self-center",
         )
         _create_view_buttons_section(self)
+        ui.button(translate_string("Clear"), on_click=self.event_handlers.views.clear_view_event).classes("bg-blue-500")
         # Health Check stays out where it can be seen -- it is the most used of these and the others
-        # (Fix Findings beside it) is its follow-up.  The rest are tucked into three sections that open
-        # with a click, so the drawer is a few lines tall until one is wanted: what changed (Compare &
-        # History), what the file says (Analyze) and what it would do, checked against the phone
-        # (Simulate & Verify).
+        # (Fix Findings beside it) is its follow-up.  The rest are tucked into five sections that open with
+        # a click, one at a time, so the drawer is a few lines tall until one is wanted.  Each answers one
+        # question, in the order they tend to be asked: is it organized and consistent (Structure & Style),
+        # what reaches in or out and what does it cost (Exposure & Cost), will it work on this Tasker and
+        # this phone (Tasker & Phone), what would it do (Simulate & Test), and what changed (Compare &
+        # History).  The search box above finds a button in any of them.
         _create_health_check_row(self)
 
-        with _drawer_section(self, "history", "Compare & History", "history"):
-            _create_history_buttons_section(self)
-            _create_trend_button(self)
+        with _drawer_section(self, "structure", translate_string("Structure & Style"), "account_tree"):
+            _create_structure_buttons(self)
 
-        with _drawer_section(self, "analyze", "Analyze", "analytics"):
-            _create_analysis_buttons_section(self)
+        with _drawer_section(self, "exposure", translate_string("Exposure & Cost"), "security"):
+            _create_exposure_buttons(self)
 
-        with _drawer_section(self, "simulate", "Simulate & Verify", "science"):
+        with _drawer_section(self, "phone", translate_string("Tasker & Phone"), "smartphone"):
+            _create_phone_buttons(self)
+
+        with _drawer_section(self, "simulate", translate_string("Simulate & Test"), "science"):
             _create_simulation_buttons(self)
-            _create_resources_button(self)
             _create_monitor_button(self)
 
-        ui.button(translate_string("Clear"), on_click=self.event_handlers.views.clear_view_event).classes(
-            "bg-blue-500"
-        ).style("margin-top:-6px")
+        with _drawer_section(self, "history", translate_string("Compare & History"), "history"):
+            _create_history_buttons_section(self)
+            _create_trend_button(self)
 
         ui.label(translate_string("Application Settings")).classes(
             "text-xs font-bold uppercase text-gray-400 mt-4 self-center",
@@ -318,21 +326,50 @@ def _drawer_section(self: MyGui, key: str, title: str, icon: str) -> ui.expansio
     Whether each section is open is kept on the window (drawer_sections), so a section the user opened stays
     open when the drawer is drawn again -- a change of language or appearance rebuilds the page -- and is not
     saved between sessions: they start folded, which is the point of having them.  `key` is the section's
-    identity; `title` is what the header says.
+    identity; `title` is what the header says, already translated.
+
+    Opening one folds the others (an accordion), so the drawer is never taller than one group of buttons --
+    except while the search box is filtering, which opens every section that holds a match (see
+    guiwins_drawer_search).
     """
     section = (
-        ui.expansion(translate_string(title), icon=icon, value=self.drawer_sections.get(key, False))
+        ui.expansion(title, icon=icon, value=self.drawer_sections.get(key, False))
         .classes(
             "w-full rounded bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100 font-bold text-xs uppercase"
         )
         .props("dense dense-toggle")
     )
-    section.on_value_change(lambda event: self.drawer_sections.__setitem__(key, bool(event.value)))
+    sections = self.drawer_expansions
+    sections[key] = section
+
+    def changed(event: ValueChangeEventArguments[bool]) -> None:
+        self.drawer_sections[key] = bool(event.value)
+        if event.value and not self.drawer_searching:
+            for other_key, other in sections.items():
+                if other_key != key and other.value:
+                    other.set_value(value=False)
+
+    section.on_value_change(changed)
     return section
 
 
+def _create_drawer_search(self: MyGui) -> None:
+    """The 'Find a command' box at the top of the drawer, which filters every button in it as the user types."""
+    search = (
+        ui.input(placeholder=translate_string("Find a command..."))
+        .props("dense clearable outlined debounce=150")
+        .classes("w-full")
+    )
+    with search.add_slot("prepend"):
+        ui.icon("search")
+    nothing = ui.label(translate_string("No command matches.")).classes("text-xs italic text-gray-500 self-center")
+    nothing.visible = False
+    drawer_search = DrawerSearch(self, nothing)
+    search.on_value_change(lambda event: drawer_search.filter(event.value or ""))
+
+
 def _create_execution_section(self: MyGui) -> None:
-    """The Execution group: Get Local XML File, Get XML from Android Device, Exit, and the checkboxes that shape what Exit and a new view do."""
+    """The Execution group: Get Local XML File, Get XML from Android Device, Import With Dependencies, Exit, and the checkboxes that shape what Exit and a new view do."""
     get_file_color = "green" if self.state.file_to_get else "red"
     blink_class = "" if self.state.file_to_get else " animate-pulse"
 
@@ -352,6 +389,9 @@ def _create_execution_section(self: MyGui) -> None:
     # Get XML from Android Device and its "?", with the panel that opens under them: the two ways to load a
     # configuration sit together, ahead of Exit.
     create_file_and_message_buttons_section(self)
+
+    # With the other ways of loading: it brings an object in from a file that is not the one open.
+    _create_import_button(self)
 
     ui.button(
         translate_string("Exit"),
@@ -603,11 +643,10 @@ def _create_history_buttons_section(self: MyGui) -> None:
             "nothing from your configuration leaves this computer.",
         ),
     )
-    _create_import_button(self)
 
 
 def _create_import_button(self: MyGui) -> None:
-    """Import With Dependencies, under TaskerNet Updates: one more way of bringing an object in from another file."""
+    """Import With Dependencies, beside the two ways of loading a file: it brings an object in from another file."""
     self.import_with_dependencies_button = (
         ui.button(
             translate_string("Import With Dependencies"),
@@ -724,8 +763,8 @@ def _create_variable_manager_button(self: MyGui) -> None:
         ).style("white-space: pre-wrap")
 
 
-def _create_analysis_buttons_section(self: MyGui) -> None:
-    """The reports that read the configuration: Variable Xref, Variable Manager, Task Flow, Outbound Inventory, Inbound Inventory, Battery Audit and Notes & Tags."""
+def _create_variable_xref_row(self: MyGui) -> None:
+    """Variable Xref and its live twin, side by side."""
     # Full width and coloured through "color" for the same two reasons the two buttons
     # above are: the drawer is w-80 and this label will not fit beside another, and
     # Quasar's own bg-primary beats a Tailwind bg-* class added here.
@@ -769,8 +808,9 @@ def _create_analysis_buttons_section(self: MyGui) -> None:
                 ),
             ).style("white-space: pre-wrap")
 
-    _create_variable_manager_button(self)
 
+def _create_task_flow_button(self: MyGui) -> None:
+    """Task Flow: where the control flow of a Task does not hold together."""
     # Full width and coloured through "color" for the same two reasons the three buttons
     # above are: the drawer is w-80, this label will not fit beside another, and Quasar's
     # own bg-primary beats a Tailwind bg-* class added here.
@@ -797,15 +837,30 @@ def _create_analysis_buttons_section(self: MyGui) -> None:
             ),
         ).style("white-space: pre-wrap")
 
-    _create_outbound_button(self)
-    _create_inbound_button(self)
-    _create_battery_button(self)
-    _create_notes_button(self)
+
+def _create_structure_buttons(self: MyGui) -> None:
+    """Structure & Style: is the configuration organized and consistent?"""
+    _create_task_flow_button(self)
+    _create_variable_xref_row(self)
+    _create_variable_manager_button(self)
     _create_project_dependencies_button(self)
-    _create_compatibility_button(self)
-    _create_new_phone_button(self)
-    _create_retirement_button(self)
     _create_naming_rules_button(self)
+    _create_notes_button(self)
+
+
+def _create_exposure_buttons(self: MyGui) -> None:
+    """Exposure & Cost: what reaches in or out of the configuration, and what it costs the phone?"""
+    _create_inbound_button(self)
+    _create_outbound_button(self)
+    _create_battery_button(self)
+
+
+def _create_phone_buttons(self: MyGui) -> None:
+    """Tasker & Phone: will the configuration work on this version of Tasker and this phone?"""
+    _create_compatibility_button(self)
+    _create_retirement_button(self)
+    _create_new_phone_button(self)
+    _create_resources_button(self)
 
 
 def _create_naming_rules_button(self: MyGui) -> None:

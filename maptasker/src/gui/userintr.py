@@ -430,6 +430,9 @@ class MyGui:
         self.firesim_dialog: ui.dialog | None = None
         # Which sections of the right drawer are open, by key -- see guiwins_drawers._drawer_section.
         self.drawer_sections: dict[str, bool] = {}
+        # The sections of the right drawer by key, and whether its search box is filtering them right now.
+        self.drawer_expansions: dict[str, ui.expansion] = {}
+        self.drawer_searching = False
 
         # 1. Initialize settings and state
         initialize_gui(self)

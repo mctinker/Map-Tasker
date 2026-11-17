@@ -45,6 +45,7 @@ tests/test_diagram_anchors.py
 tests/test_diagram_connector_equivalence.py
 tests/test_diagutil.py
 tests/test_diffload.py
+tests/test_drawer_search.py
 tests/test_drawer_sections.py
 tests/test_editcommon.py
 tests/test_errcheck.py

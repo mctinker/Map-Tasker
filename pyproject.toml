@@ -694,6 +694,7 @@ strict = [
     "maptasker/src/gui/guiwins_diagram.py",
     "maptasker/src/gui/guiwins_dialogs.py",
     "maptasker/src/gui/guiwins_draft.py",
+    "maptasker/src/gui/guiwins_drawer_search.py",
     "maptasker/src/gui/guiwins_drawers.py",
     "maptasker/src/gui/guiwins_editor.py",
     "maptasker/src/gui/guiwins_firesim.py",
