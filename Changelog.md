@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file!
 
 ### Added
 
+- Added: __Naming Rules__ lets you set your own house style -- a prefix for Profile, Task, Scene and variable names, no leftover default names such as 'Task 12', a label on every action of a long Task, and a longest Task -- and lists every place the loaded file breaks it. A name that only needs its prefix can be renamed after a preview, with the calls to it rewritten, as one press of Undo.
 - Added: __Inbound Inventory__ is the mirror of the Outbound Inventory: it lists, Project by Project, everything that can start your Tasks from outside -- Tasker's own web server (the HTTP Request event), Intents, Commands, shares, text messages and plugin messages -- with the Tasks each one starts. For each it says whether anything checks who sent it (the event only accepts some senders, an If in the Task looks at what was sent, or nothing does), and puts the open ones that can run a shell or root command, send a message or place a call first.
 
 ### Changed

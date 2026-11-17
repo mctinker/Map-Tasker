@@ -426,6 +426,21 @@ TASKTESTS_HELP_TEXT = (
     " reads a global variable uses the value the backup holds, so it also notices when that moves.  Nothing is run on"
     " your phone.  \n"
 )
+NAMERULES_HELP_TEXT = (
+    "- Naming Rules: Set your own house style for names and Task length, and see every place the loaded configuration"
+    " breaks it.  The Health Check finds an object with no name; this finds one named the wrong way.  The rules are: a"
+    " prefix for Profile, Task and Scene names, and one each for global and local variables (a global's prefix needs a"
+    " capital letter and a local's must be lower case, because Tasker takes a variable's scope from its spelling); no"
+    " Profile, Task or Scene still carrying the name Tasker gave it, such as 'Task 12'; a label on every action in a"
+    " Task of more than the number of actions you set; and a longest Task.  A rule left empty or at zero is off.  Press"
+    " Check to save the rules and read the file against them: the Breaches tab lists each one, and every line is a"
+    " link to it in the Map view.  Where a name only needs its prefix the Renames tab offers the new name.  Tick the"
+    " ones to change and press Preview, which shows every Task, Profile and variable it would rename and every call or"
+    " use it would rewrite with it, and every one it would leave alone and why; Apply is available only once a preview"
+    " exists for what is ticked, and is one press of Undo.  Tasks and Profiles and variables are renamed; a Scene, a Task"
+    " that a Scene handler or a widget names, and a Task that shares its name with another are left for you.  The"
+    " rules are kept in a file beside the settings and never in the backup.  \n"
+)
 INBOUND_HELP_TEXT = (
     "- Inbound Inventory: The mirror of the Outbound Inventory: One report of everything that can start the loaded"
     " configuration's Tasks from outside, Project by Project.  It lists every Profile that waits for a web request"
@@ -578,5 +593,5 @@ def build_help(translate: Callable[[str], str] | None = None) -> str:
     lookup: Callable[[str], str] = translate or (lambda text: text)
     return (
         f"MapTasker {VERSION} {lookup(HELP_HEADING)}  \n{lookup(COMMAND_REFERENCE_TEXT)}{lookup(INFO_TEXT)}"
-        f"{lookup(OUTPUT_FOLDER_HELP_TEXT)}{lookup(TASKERNET_UPDATES_HELP_TEXT)}{lookup(TASKSTEP_HELP_TEXT)}{lookup(TREND_HELP_TEXT)}{lookup(VARIABLE_HELP_TEXT)}{lookup(SIMILAR_HELP_TEXT)}{lookup(SPLIT_HELP_TEXT)}{lookup(RESOURCES_HELP_TEXT)}{lookup(MONITOR_HELP_TEXT)}{lookup(PREBUILD_HELP_TEXT)}{lookup(CARRY_HELP_TEXT)}{lookup(TASKTESTS_HELP_TEXT)}{lookup(OUTBOUND_HELP_TEXT)}{lookup(INBOUND_HELP_TEXT)}{lookup(TNDESC_HELP_TEXT)}{lookup(LAUNCHER_HELP_TEXT)}{lookup(DESCRIBE_HELP_TEXT)}{lookup(BATTERY_HELP_TEXT)}{lookup(VARMAN_HELP_TEXT)}{lookup(NOTES_HELP_TEXT)}{lookup(PROJDEPS_HELP_TEXT)}{lookup(COMPAT_HELP_TEXT)}{lookup(NEWPHONE_HELP_TEXT)}{lookup(RETIRE_HELP_TEXT)}"
+        f"{lookup(OUTPUT_FOLDER_HELP_TEXT)}{lookup(TASKERNET_UPDATES_HELP_TEXT)}{lookup(TASKSTEP_HELP_TEXT)}{lookup(TREND_HELP_TEXT)}{lookup(VARIABLE_HELP_TEXT)}{lookup(SIMILAR_HELP_TEXT)}{lookup(SPLIT_HELP_TEXT)}{lookup(RESOURCES_HELP_TEXT)}{lookup(MONITOR_HELP_TEXT)}{lookup(PREBUILD_HELP_TEXT)}{lookup(CARRY_HELP_TEXT)}{lookup(TASKTESTS_HELP_TEXT)}{lookup(OUTBOUND_HELP_TEXT)}{lookup(INBOUND_HELP_TEXT)}{lookup(NAMERULES_HELP_TEXT)}{lookup(TNDESC_HELP_TEXT)}{lookup(LAUNCHER_HELP_TEXT)}{lookup(DESCRIBE_HELP_TEXT)}{lookup(BATTERY_HELP_TEXT)}{lookup(VARMAN_HELP_TEXT)}{lookup(NOTES_HELP_TEXT)}{lookup(PROJDEPS_HELP_TEXT)}{lookup(COMPAT_HELP_TEXT)}{lookup(NEWPHONE_HELP_TEXT)}{lookup(RETIRE_HELP_TEXT)}"
     )

@@ -363,6 +363,11 @@ TASK_TESTS_REPORT_FILE = "MapTasker_TaskTests.txt"
 # beside the settings and the Task tests, and never in the backup, so that Tasker never sees them.
 NOTES_FILE = "MapTasker_Notes.json"
 
+# The user's naming and structure rules, and the report of what breaks them -- see namerules.py.  Kept in the current
+# directory beside the settings and never in the backup.
+NAMING_RULES_FILE = "MapTasker_NamingRules.json"
+NAMING_RULES_REPORT_FILE = "MapTasker_NamingRules.txt"
+
 # Set up background color and border for tables
 TABLE_BACKGROUND_COLOR = "DarkSteelBlue" if darkdetect.isDark() else "PaleTurquois"
 TABLE_BORDER_COLOR = "DarkSlateGrey" if darkdetect.isDark() else "LightGrey"

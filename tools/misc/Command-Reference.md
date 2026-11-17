@@ -4,7 +4,7 @@ MapTasker displays your Android Tasker configuration based on your uploaded Task
 
 Once the XML file is loaded, you can optionally edit your Projects, Profiles, Tasks, and Scenes.
 
-This page describes each of the **98** commands, options and tabs in MapTasker's Help screen, in the same order, with more detail on each and the caveats that go with it.
+This page describes each of the **99** commands, options and tabs in MapTasker's Help screen, in the same order, with more detail on each and the caveats that go with it.
 
 _Generated from the MapTasker 16.0.2 source by `build_command_wiki.py`._ _Do not edit this page by hand -- rerun that program instead._
 
@@ -71,6 +71,7 @@ _Generated from the MapTasker 16.0.2 source by `build_command_wiki.py`._ _Do not
   * [Zoom, Collapse All, Expand All, Reset](#cmd-zoom-collapse-all-expand-all-reset)
   * [Rebuild](#cmd-rebuild)
 * [Missing Resources](#cmd-missing-resources)
+* [Naming Rules](#cmd-naming-rules)
 * [Notification Duration](#cmd-notification-duration)
 * [Open View In New Window](#cmd-open-view-in-new-window)
 * [Outbound Inventory](#cmd-outbound-inventory)
@@ -785,9 +786,11 @@ Make a copy of the selected Scene element.
 _Part of [Add, Edit and Save](#cmd-add-edit-and-save)._
 
 **Type:** Command  
-**Where:** Buttons; Draw Row; Build &gt; Delete (and 7 more)
+**Where:** Build; Buttons; Draw Row (and 8 more)
 
 Display the Scene being edited as it will appear.
+
+**Opens:** Note
 
 <a id="cmd-save-export"></a>
 ##### Save / Export
@@ -814,8 +817,8 @@ Write the entire configuration to a new, timestamped file beside the loaded one.
 **Hover text:**
 
 * Saves the entire backup -- every Project, Profile and Task in it, not just this one -- with the new Profile added to its Project, the same way 'Ok' adds it. It is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml. The file you loaded is never written to, so it is left exactly as it was. The app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one. This writes to this computer only -- nothing is sent to your Android device.
+* Write the renames made so far -- and every other edit this session -- to a file. Apply changes the loaded configuration and no file. This writes the whole configuration to a new, timestamped copy of the loaded file and switches to that copy; the original file is never written to.
 * Saves the entire backup -- every Project, Profile and Task in it, not just this Profile -- with this dialog's edits applied, the same ones 'Ok' would keep. It is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml. The file you loaded is never written to, so it is left exactly as it was. The app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one. This writes to this computer only -- nothing is sent to your Android device.
-* Saves the entire backup -- every Project, Profile and Task in it, not just this Project -- including every edit made anywhere in this session. It is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml. The file you loaded is never written to, so it is left exactly as it was. The app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one. This writes to this computer only -- nothing is sent to your Android device.
 
 <a id="cmd-save-to-android"></a>
 ##### Save To Android
@@ -1374,6 +1377,28 @@ The mirror of the Outbound Inventory: One report of everything that can start th
 * Nothing is contacted and nothing on your phone is changed.
 
 **Hover text:** List everything that can start your Tasks from outside, Project by Project: Tasker's own web server (the HTTP Request event), Intents, Commands, shares, text messages and plugin messages. Each one says who can send it, which Tasks it starts, and whether anything checks who the sender is: the event only accepts some senders, an If in the Task looks at what was sent, or nothing does. The ones with nothing in the way that start a shell or root command, send a message or place a call come first. Results are displayed here and saved to a text file in the Output Folder.
+
+<a id="cmd-naming-rules"></a>
+### Naming Rules
+
+**Type:** Command  
+**Where:** Right Drawer
+
+Set your own house style for names and Task length, and see every place the loaded configuration breaks it.
+
+* The Health Check finds an object with no name; this finds one named the wrong way.
+* A rule left empty or at zero is off.
+* Press Check to save the rules and read the file against them: the Breaches tab lists each one, and every line is a link to it in the Map view.
+* Where a name only needs its prefix the Renames tab offers the new name.
+* Tasks and Profiles and variables are renamed; a Scene, a Task that a Scene handler or a widget names, and a Task that shares its name with another are left for you.
+* The rules are kept in a file beside the settings and never in the backup.
+
+**Hover text:** Set your own naming and structure rules -- a prefix for Profile, Task, Scene and variable names, no leftover default names such as 'Task 12', a label on every action of a long Task, and a longest Task -- and list every place the loaded file breaks them. A rename can be offered for a name that only needs its prefix, with a preview first, and is one press of Undo. The rules are kept beside the settings, never in the backup.
+
+**Caveats:**
+
+* The rules are: a prefix for Profile, Task and Scene names, and one each for global and local variables (a global's prefix needs a capital letter and a local's must be lower case, because Tasker takes a variable's scope from its spelling); no Profile, Task or Scene still carrying the name Tasker gave it, such as 'Task 12'; a label on every action in a Task of more than the number of actions you set; and a longest Task.
+* Tick the ones to change and press Preview, which shows every Task, Profile and variable it would rename and every call or use it would rewrite with it, and every one it would leave alone and why; Apply is available only once a preview exists for what is ticked, and is one press of Undo.
 
 <a id="cmd-taskernet-description"></a>
 ### TaskerNet Description

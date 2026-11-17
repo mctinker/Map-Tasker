@@ -82,6 +82,7 @@ tests/test_guiwins_fix.py
 tests/test_guiwins_icon_picker.py
 tests/test_guiwins_impact.py
 tests/test_guiwins_monitor.py
+tests/test_guiwins_namerules.py
 tests/test_guiwins_nav.py
 tests/test_guiwins_newphone.py
 tests/test_guiwins_notes.py
@@ -140,6 +141,7 @@ tests/test_maptasker_gui.py
 tests/test_maputil3.py
 tests/test_maputils_helpers.py
 tests/test_mtexcept.py
+tests/test_namerules.py
 tests/test_notes_buttons.py
 tests/test_notesout.py
 tests/test_objprops.py

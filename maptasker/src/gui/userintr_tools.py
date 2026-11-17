@@ -26,6 +26,7 @@ from maptasker.src.gui.guiwins_compat import build_compatibility_window
 from maptasker.src.gui.guiwins_firesim import build_firesim_dialog
 from maptasker.src.gui.guiwins_fix import build_fix_dialog
 from maptasker.src.gui.guiwins_monitor import build_monitor_dialog
+from maptasker.src.gui.guiwins_namerules import build_naming_rules_window
 from maptasker.src.gui.guiwins_nav import go_to_target, opening_view_in_a_new_window
 from maptasker.src.gui.guiwins_newphone import build_new_phone_window
 from maptasker.src.gui.guiwins_notes import build_notes_window
@@ -213,6 +214,27 @@ class ToolEventHandlers(HandlerGroup):
             return go
 
         build_retirement_window(make_jump, self.state).open()
+
+    def naming_rules_event(self) -> None:
+        """Open the Naming Rules window: the person's house style for names and Task length, and what breaks it.
+
+        Opens with nothing loaded too, since the rules can be set before any file is.  Rebuilt on every press, for
+        variable_manager_event's reason, so it reads the saved rules and the configuration as they are now.  Its links
+        open a window of their own, and the pulldowns are brought up to date after a rename, for the reasons a
+        refactor's are.
+        """
+
+        def make_jump(target: mapjump.Target) -> Callable[[], Coroutine[Any, Any, None]]:
+            async def go() -> None:
+                with opening_view_in_a_new_window(self.gui):
+                    await go_to_target(self.gui, target)
+
+            return go
+
+        async def refresh_after_rename() -> None:
+            refresh_tasker_object_pulldowns(self.gui)
+
+        build_naming_rules_window(make_jump, refresh_after_rename, self.hub.save_whole_configuration, self.state).open()
 
     def project_dependencies_event(self) -> None:
         """Open the Project Dependencies window: which Projects use Tasks, Scenes and globals that live in other Projects.

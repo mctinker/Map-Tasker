@@ -217,6 +217,24 @@ DESCRIPTIONS: dict[str, dict[str, str]] = {
         "produced_by": "'Plugin Retirement Advisor' > Save Report",
         "note": "The plugins the loaded file uses that Tasker now does itself, the built-in that takes over from each and since which Tasker version, and where the plugin is used.",
     },
+    "MapTasker_NamingRules.txt": {
+        "section": "Reports",
+        "location": OUTPUT,
+        "produced_by": "'Naming Rules' > Save Report",
+        "note": "Every place the loaded file breaks the naming and structure rules you set -- names missing their prefix, default names left in, Tasks with unlabelled actions, Tasks that are too long -- with the new name where one can be offered.",
+    },
+    "MapTasker_NamingRules.json": {
+        "section": "Settings and remembered state",
+        "location": CURRENT,
+        "produced_by": "'Naming Rules' > Check",
+        "note": "The naming and structure rules you set, kept beside the settings and never in the backup.",
+    },
+    "MapTasker_Inbound.txt": {
+        "section": "Reports",
+        "location": OUTPUT,
+        "produced_by": "'Inbound Inventory' button",
+        "note": "Everything that can start your Tasks from outside -- web server requests, Intents, Commands, shares, text messages and plugin messages -- with the Tasks each starts and whether anything checks who sent it.",
+    },
     "MapTasker_Monitor.txt": {
         "section": "Reports",
         "location": OUTPUT,

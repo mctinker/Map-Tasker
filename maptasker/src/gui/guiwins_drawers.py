@@ -805,6 +805,31 @@ def _create_analysis_buttons_section(self: MyGui) -> None:
     _create_compatibility_button(self)
     _create_new_phone_button(self)
     _create_retirement_button(self)
+    _create_naming_rules_button(self)
+
+
+def _create_naming_rules_button(self: MyGui) -> None:
+    """Naming Rules, after the other Analyze buttons: does the configuration follow the person's own house style?"""
+    naming_button = (
+        ui.button(
+            translate_string("Naming Rules"),
+            color="teal",
+            on_click=self.event_handlers.tools.naming_rules_event,
+            icon="rule",
+        )
+        .classes("w-full justify-center")
+        .style("margin-top:-6px")
+    )
+    with naming_button:
+        ui.tooltip(
+            translate_string(
+                "Set your own naming and structure rules -- a prefix for Profile, Task, Scene and variable names, "
+                "no leftover default names such as 'Task 12', a label on every action of a long Task, and a "
+                "longest Task -- and list every place the loaded file breaks them.\n\nA rename can be offered for "
+                "a name that only needs its prefix, with a preview first, and is one press of Undo.\n\nThe rules "
+                "are kept beside the settings, never in the backup.",
+            ),
+        ).style("white-space: pre-wrap")
 
 
 def _create_retirement_button(self: MyGui) -> None:
