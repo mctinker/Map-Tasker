@@ -8,7 +8,6 @@ The dialog is the real one, on a page of NiceGUI's in-process user simulation.
 
 from __future__ import annotations
 
-import asyncio
 import contextlib
 from typing import TYPE_CHECKING
 
@@ -21,6 +20,7 @@ from nicegui import core, ui
 from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
 
+from tests.nicegui_harness import idle, until
 from tests.test_maprefac_variable import _FIXTURE_XML, _load, _texts
 
 if TYPE_CHECKING:
@@ -102,20 +102,11 @@ def _shown(user: User) -> list[str]:
     return [element.text for element in user.find(kind=ui.label).elements]
 
 
-async def _until(condition: Callable[[], object]) -> None:
-    for _ in range(60):
-        if condition():
-            return
-        await asyncio.sleep(0.05)
-    msg = "it did not happen"
-    raise AssertionError(msg)
-
-
 async def _variable_mode(user: User, operation: str = RENAME) -> None:
     """Switch to the Variable mode and then to an operation, the way a user would."""
     _toggle(user, "variable").set_value("variable")
     _toggle(user, TO_LOCAL).set_value(operation)
-    await asyncio.sleep(0)
+    await idle()
 
 
 @pytest.mark.asyncio
@@ -127,7 +118,7 @@ async def test_each_operation_offers_only_the_variables_it_can_be_asked_of() -> 
         assert choice_key("%tally", "40") not in offered
 
         _toggle(user, TO_LOCAL).set_value(TO_GLOBAL)
-        await asyncio.sleep(0)
+        await idle()
         offered = set(_select(user, "Variable").options)
         assert choice_key("%tally", "40") in offered
         assert choice_key("%Solo", "") not in offered
@@ -138,7 +129,7 @@ async def test_a_scope_change_fills_in_the_spelling_it_implies() -> None:
     async with _open() as user:
         await _variable_mode(user, TO_LOCAL)
         _select(user, "Variable").set_value(choice_key("%Solo", ""))
-        await asyncio.sleep(0)
+        await idle()
 
         assert _name_box(user).value == "%solo"
 
@@ -148,7 +139,7 @@ async def test_a_rename_with_no_name_is_a_nudge_not_a_preview() -> None:
     async with _open() as user:
         await _variable_mode(user, RENAME)
         _select(user, "Variable").set_value(choice_key("%Count", ""))
-        await asyncio.sleep(0)
+        await idle()
         UserInteraction(user, {_button(user, "Preview")}, None).click()
 
         assert user.notify.contains("Fill in every box first")
@@ -161,14 +152,14 @@ async def test_a_rename_previews_then_applies_and_redraws_the_view() -> None:
         await _variable_mode(user, RENAME)
         _select(user, "Variable").set_value(choice_key("%Count", ""))
         _name_box(user).set_value("%Tally")
-        await asyncio.sleep(0)
+        await idle()
         UserInteraction(user, {_button(user, "Preview")}, None).click()
 
         assert _button(user, "Apply").enabled
         assert any(text.startswith("WHAT WILL HAPPEN") for text in _shown(user))
 
         UserInteraction(user, {_button(user, "Apply")}, None).click()
-        await _until(lambda: _redrawn)
+        await until(lambda: _redrawn)
 
         assert _texts("41") == ["see %Tally"]
         assert user.notify.contains("Undo is available")
@@ -179,7 +170,7 @@ async def test_a_refused_change_says_why_and_leaves_apply_disabled() -> None:
     async with _open() as user:
         await _variable_mode(user, TO_LOCAL)
         _select(user, "Variable").set_value(choice_key("%Count", ""))
-        await asyncio.sleep(0)
+        await idle()
         UserInteraction(user, {_button(user, "Preview")}, None).click()
 
         assert any(text.startswith("CANNOT BE DONE") for text in _shown(user))
@@ -193,12 +184,12 @@ async def test_changing_a_box_throws_the_preview_away() -> None:
         await _variable_mode(user, RENAME)
         _select(user, "Variable").set_value(choice_key("%Count", ""))
         _name_box(user).set_value("%Tally")
-        await asyncio.sleep(0)
+        await idle()
         UserInteraction(user, {_button(user, "Preview")}, None).click()
         assert _button(user, "Apply").enabled
 
         _name_box(user).set_value("%Other")
-        await asyncio.sleep(0)
+        await idle()
 
         assert not _button(user, "Apply").enabled
         assert not any(text.startswith("WHAT WILL HAPPEN") for text in _shown(user))
@@ -209,7 +200,7 @@ async def _preview_a_rename(user: User) -> None:
     await _variable_mode(user, RENAME)
     _select(user, "Variable").set_value(choice_key("%Count", ""))
     _name_box(user).set_value("%Tally")
-    await asyncio.sleep(0)
+    await idle()
     UserInteraction(user, {_button(user, "Preview")}, None).click()
     assert _button(user, "Apply").enabled
 
@@ -220,8 +211,8 @@ async def test_save_to_current_file_saves_and_throws_the_preview_away_once_saved
     async with _open() as user:
         await _preview_a_rename(user)
         UserInteraction(user, {_button(user, "Save To Current File")}, None).click()
-        await _until(lambda: _saved)
-        await asyncio.sleep(0.1)
+        await until(lambda: _saved)
+        await idle()
         assert _saved == [True]
         assert not _button(user, "Apply").enabled
 
@@ -233,8 +224,8 @@ async def test_save_to_current_file_that_saved_nothing_leaves_the_preview_alone(
     async with _open() as user:
         await _preview_a_rename(user)
         UserInteraction(user, {_button(user, "Save To Current File")}, None).click()
-        await _until(lambda: _saved)
-        await asyncio.sleep(0.1)
+        await until(lambda: _saved)
+        await idle()
         assert _button(user, "Apply").enabled
 
 
@@ -244,7 +235,7 @@ async def test_the_dialog_stays_open_after_apply_so_the_save_can_be_pressed() ->
     async with _open() as user:
         await _preview_a_rename(user)
         UserInteraction(user, {_button(user, "Apply")}, None).click()
-        await _until(lambda: _redrawn)
+        await until(lambda: _redrawn)
         assert _built["dialog"].value
         UserInteraction(user, {_button(user, "Save To Current File")}, None).click()
-        await _until(lambda: _saved)
+        await until(lambda: _saved)

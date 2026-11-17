@@ -8,7 +8,6 @@ pure function and is tested as one.  The dialog is the real one, on a page of Ni
 
 from __future__ import annotations
 
-import asyncio
 import contextlib
 import re
 from typing import TYPE_CHECKING
@@ -27,7 +26,7 @@ pytestmark = pytest.mark.usefixtures("_runtime")
 from tests.test_trend import _at, _snapshot, config, flash, perform
 
 if TYPE_CHECKING:
-    from collections.abc import AsyncIterator, Callable
+    from collections.abc import AsyncIterator
     from pathlib import Path
 
     from nicegui.testing.user import User
@@ -77,15 +76,6 @@ def _labels(user: User) -> list[str]:
 def _select(user: User, label: str) -> ui.select:
     (element,) = [e for e in user.find(kind=ui.select).elements if e.props.get("label", "") == label]
     return element
-
-
-async def _until(condition: Callable[[], object]) -> None:
-    for _ in range(60):
-        if condition():
-            return
-        await asyncio.sleep(0.05)
-    msg = "it did not happen"
-    raise AssertionError(msg)
 
 
 def _keep(tmp_path: Path, *versions: tuple[int, str]) -> None:

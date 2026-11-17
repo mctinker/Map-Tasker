@@ -10,7 +10,6 @@ stays on one, and that the buttons which want exactly one element are off for an
 
 from __future__ import annotations
 
-import asyncio
 import contextlib
 import copy
 import xml.etree.ElementTree as ET
@@ -28,7 +27,7 @@ from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
 
 from tests.doubles import fake_window, required
-from tests.nicegui_harness import all_elements, child_text, idle
+from tests.nicegui_harness import all_elements, child_text, idle, until
 from tests.test_mapswap import _load
 
 if TYPE_CHECKING:
@@ -528,7 +527,7 @@ async def test_the_add_sheet_filters_as_you_type_and_enter_picks_the_only_match(
                 events.handle_event(
                     listener.handler, events.GenericEventArguments(sender=search, client=search.client, args=None)
                 )
-        await asyncio.sleep(0.05)
+        await until(lambda: len(_order()) == events_before + 1, what="the element being added")
         assert len(_order()) == events_before + 1
 
 

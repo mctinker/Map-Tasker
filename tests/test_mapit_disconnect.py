@@ -5,7 +5,11 @@ every few seconds.  What is tested is that the server side of that is calm: a wa
 never a pile of them; a tab that does come back is left alone; and one that does not has the work MapTasker started for it
 (the Live Run Monitor asking the phone) stopped, without that work being asked to touch a page that is gone.
 
-No browser is involved.  A client is a stand-in with the three things the handler reads, and the waits are shortened.
+No browser is involved.  A client is a stand-in with the three things the handler reads.  The handler's wait is a sleep,
+and what these tests have to say is what happens when it ends and what happens when it is cut short -- so the sleep is
+replaced with one that ends when a test says so (`clock`), and nothing here depends on how quickly a machine runs.  The
+tests used to start the waits and then sleep a few milliseconds to let them register, against a grace period of a tenth of
+a second: on a loaded runner the grace ran out first.
 """
 
 from __future__ import annotations
@@ -22,6 +26,7 @@ from maptasker.src.core.primitem import RunState
 from nicegui import app
 
 from tests.doubles import fake_state, stand_in
+from tests.nicegui_harness import until
 
 if TYPE_CHECKING:
     from nicegui.client import Client
@@ -52,24 +57,51 @@ def _state(monitor: _Monitor | None) -> RunState:
     return fake_state(mygui=SimpleNamespace(monitor_dialog=dialog))
 
 
+class _Clock:
+    """What mapit sees as `asyncio`: its sleep lasts until the test ends it, and everything else is the real thing.
+
+    Open to begin with, so a wait that a test merely awaits ends at once; `hold()` makes the waits last until
+    `release()`, for a test that has something to do while one is under way.
+    """
+
+    def __init__(self) -> None:
+        self._open = asyncio.Event()
+        self._open.set()
+
+    def hold(self) -> None:
+        """From here on a wait lasts until `release()`."""
+        self._open.clear()
+
+    def release(self) -> None:
+        """End every wait there is, and every one that is started."""
+        self._open.set()
+
+    async def sleep(self, _seconds: float) -> None:
+        await self._open.wait()
+
+    def __getattr__(self, name: str) -> object:
+        return getattr(asyncio, name)
+
+
 @pytest.fixture(autouse=True)
-def _short_waits(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
-    monkeypatch.setattr(mapit, "DISCONNECT_GRACE_SECONDS", 0.05)
-    monkeypatch.setattr(mapit, "_reconnect_timeout", lambda: 0.05)
+def clock(monkeypatch: pytest.MonkeyPatch) -> Iterator[_Clock]:
+    controlled = _Clock()
+    monkeypatch.setattr(mapit, "asyncio", controlled)
     mapit._waiting.clear()
-    yield
+    yield controlled
     for task in list(mapit._waiting.values()):
         task.cancel()
     mapit._waiting.clear()
 
 
+async def _registered(task: asyncio.Task[None], client_id: str = "c1") -> None:
+    """Wait until this task is the wait the handler has recorded for the tab: it has started and is sleeping."""
+    await until(lambda: mapit._waiting.get(client_id) is task, what=f"the wait for {client_id}")
+
+
 def _typed(client: _Client) -> Client:
     """The stand-in, as the client the handler is typed to take."""
     return cast("Client", client)
-
-
-async def _settle() -> None:
-    await asyncio.sleep(0.25)
 
 
 @pytest.mark.asyncio
@@ -83,23 +115,26 @@ async def test_a_tab_that_does_not_come_back_has_its_monitor_stopped() -> None:
 
 
 @pytest.mark.asyncio
-async def test_a_tab_that_is_back_when_the_wait_ends_is_left_alone() -> None:
+async def test_a_tab_that_is_back_when_the_wait_ends_is_left_alone(clock: _Clock) -> None:
+    clock.hold()
     client = _Client()
     monitor = _Monitor(client)
     task = asyncio.create_task(mapit._on_client_disconnect(_typed(client), _state(monitor)))
-    await asyncio.sleep(0.01)
+    await _registered(task)
     client.has_socket_connection = True
+    clock.release()
     await task
 
     assert monitor.abandoned == 0
 
 
 @pytest.mark.asyncio
-async def test_a_tab_that_connects_again_cancels_the_wait() -> None:
+async def test_a_tab_that_connects_again_cancels_the_wait(clock: _Clock) -> None:
+    clock.hold()
     client = _Client()
     monitor = _Monitor(client)
     task = asyncio.create_task(mapit._on_client_disconnect(_typed(client), _state(monitor)))
-    await asyncio.sleep(0.01)
+    await _registered(task)
     assert "c1" in mapit._waiting
 
     mapit._on_client_connect(_typed(client))
@@ -111,19 +146,19 @@ async def test_a_tab_that_connects_again_cancels_the_wait() -> None:
 
 
 @pytest.mark.asyncio
-async def test_a_connection_that_flaps_leaves_one_wait_not_a_pile(monkeypatch: pytest.MonkeyPatch) -> None:
-    # Long enough that no wait runs out while the six are being started, however slow the machine: on a loaded
-    # runner six starts took longer than the fixture's tenth of a second, and the early waits ended on their own
-    # instead of being replaced.
-    monkeypatch.setattr(mapit, "DISCONNECT_GRACE_SECONDS", 0.5)
+async def test_a_connection_that_flaps_leaves_one_wait_not_a_pile(clock: _Clock) -> None:
+    # No wait can run out while the six are being started, however slow the machine: they last until the clock
+    # is released, so an early one that ended on its own cannot be mistaken for one that was replaced.
+    clock.hold()
     client = _Client()
     monitor = _Monitor(client)
     tasks = []
     for _ in range(6):
         tasks.append(asyncio.create_task(mapit._on_client_disconnect(_typed(client), _state(monitor))))
-        await asyncio.sleep(0.005)
+        await _registered(tasks[-1])
 
     assert len(mapit._waiting) == 1
+    clock.release()
     results = await asyncio.gather(*tasks, return_exceptions=True)
 
     assert sum(isinstance(result, asyncio.CancelledError) for result in results) == 5
@@ -131,14 +166,17 @@ async def test_a_connection_that_flaps_leaves_one_wait_not_a_pile(monkeypatch: p
 
 
 @pytest.mark.asyncio
-async def test_each_tab_has_its_own_wait() -> None:
+async def test_each_tab_has_its_own_wait(clock: _Clock) -> None:
+    clock.hold()
     first, second = _Client("a"), _Client("b")
     tasks = [
         asyncio.create_task(mapit._on_client_disconnect(_typed(client), _state(None))) for client in (first, second)
     ]
-    await asyncio.sleep(0.01)
+    await _registered(tasks[0], "a")
+    await _registered(tasks[1], "b")
 
     assert set(mapit._waiting) == {"a", "b"}
+    clock.release()
     await asyncio.gather(*tasks)
 
 
@@ -176,7 +214,6 @@ def test_the_wait_is_longer_than_nicegus_own_reconnect_timeout() -> None:
 
 
 def test_the_timeout_is_the_one_ui_run_was_given_or_nicegus_default(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.undo()  # the autouse fixture replaced it
     assert mapit._reconnect_timeout() > 0
     monkeypatch.setattr(app.config, "reconnect_timeout", 10.0, raising=False)
     assert mapit._reconnect_timeout() == 10.0
@@ -198,7 +235,9 @@ def test_the_handlers_are_registered_once_and_nicegui_can_call_them() -> None:
 
 
 @pytest.mark.asyncio
-async def test_a_real_nicegui_disconnect_reaches_the_handler_with_its_client(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_a_real_nicegui_disconnect_reaches_the_handler_with_its_client(
+    monkeypatch: pytest.MonkeyPatch, clock: _Clock
+) -> None:
     """NiceGUI itself, not a stand-in: dropping a page's socket calls the registered handler with that page's client."""
     import contextlib
 
@@ -207,6 +246,7 @@ async def test_a_real_nicegui_disconnect_reaches_the_handler_with_its_client(mon
     from nicegui.testing.user_simulation import user_simulation
 
     monkeypatch.setattr(mapit, "_installed", {"done": False})
+    clock.hold()
 
     def page() -> None:
         ui.label("hello")
@@ -219,7 +259,7 @@ async def test_a_real_nicegui_disconnect_reaches_the_handler_with_its_client(mon
             # What Client.handle_disconnect does for each registered handler (the simulated user has no socket).
             for handler in core.app._disconnect_handlers:
                 client.safe_invoke(handler)
-            await asyncio.sleep(0.05)
+            await until(lambda: client.id in mapit._waiting, what="the handler being called with the client")
 
             assert client.id in mapit._waiting
             mapit._on_client_connect(_typed(stand_in(client)))

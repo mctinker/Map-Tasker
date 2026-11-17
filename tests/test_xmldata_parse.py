@@ -62,7 +62,9 @@ def test_an_entity_bomb_is_refused_at_once_and_never_expanded(tmp_path: Path) ->
     with pytest.raises(ET.ParseError):
         parse(tmp_path, text)
 
-    assert time.perf_counter() - started < 1
+    # Refusing takes milliseconds; expanding ten levels of ten (a billion copies) takes minutes or all the memory there is.
+    # The bound only has to be far from both, so that a slow machine cannot fail it.
+    assert time.perf_counter() - started < 20
 
 
 def test_a_document_type_that_declares_nothing_is_still_read(tmp_path: Path) -> None:

@@ -9,7 +9,6 @@ choices already made.
 
 from __future__ import annotations
 
-import asyncio
 import contextlib
 from typing import TYPE_CHECKING
 
@@ -22,7 +21,7 @@ from nicegui import core, ui
 from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
 
-from tests.nicegui_harness import idle
+from tests.nicegui_harness import idle, until
 from tests.test_mapfix import _FIXTURE_XML, _load
 
 if TYPE_CHECKING:
@@ -352,10 +351,7 @@ async def test_apply_makes_the_ticked_repairs_rebuilds_the_window_and_rescans() 
     before = len(mapfix.plan_fixes(state=PrimeItems).fixes)
     async with _open() as user:
         _press(user, "Apply")  # the pre-ticked repairs: no Task is deleted
-        for _ in range(40):
-            if _built["rebuilt"]:
-                break
-            await asyncio.sleep(0.05)
+        await until(lambda: _built["rebuilt"], what="the window being rebuilt")
 
         assert _built["rebuilt"] == 1
         assert any("repaired." in message for message in user.notify.messages)

@@ -7,7 +7,6 @@ The reports the dialogs sit in front of are healthck's, timeline's and projedit'
 
 from __future__ import annotations
 
-import asyncio
 from datetime import date, timedelta
 from types import SimpleNamespace
 from typing import TYPE_CHECKING, Any, cast
@@ -296,7 +295,7 @@ async def test_a_confirmation_that_is_a_coroutine_is_run_to_the_end() -> None:
     finished: list[str] = []
 
     async def write() -> None:
-        await asyncio.sleep(0)
+        await idle()
         finished.append("written")
 
     async with open_page(lambda: guiwins_dialogs.build_overwrite_confirm_dialog("f", write)) as user:

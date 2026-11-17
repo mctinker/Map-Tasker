@@ -23,7 +23,7 @@ from nicegui import ui
 
 from tests.doubles import fake_android_fields, required
 from tests.faketasker import FakeTasker
-from tests.nicegui_harness import click, found, idle, open_page, settled
+from tests.nicegui_harness import click, found, idle, open_page, settled, until
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator, Awaitable, Callable, Iterator
@@ -153,18 +153,12 @@ async def test_listing_the_phones_files_offers_them_and_the_one_picked_is_fetche
     async with open_page(_panel(window)) as user:
         _fill(user, phone, "")
         await click(user, "List XML Files")
-        for _ in range(100):  # the listing is a real request on a worker thread: wait for the picker, not for a guess
-            if found(user, ui.select):
-                break
-            await asyncio.sleep(0.1)
+        await until(lambda: found(user, ui.select), what="the picker")  # a real request on a worker thread
         picker = found(user, ui.select)[0]
 
         assert picker.options == ["/Tasker/backup.xml", "/Tasker/other.xml"]
         picker.value = "/Tasker/backup.xml"
-        for _ in range(100):
-            if Path("backup.xml").exists() and window.menus_refreshed:
-                break
-            await asyncio.sleep(0.1)
+        await until(lambda: Path("backup.xml").exists() and window.menus_refreshed, what="the backup arriving")
 
     assert Path("backup.xml").read_bytes() == _BACKUP
     assert window.android_file == "/Tasker/backup.xml"
@@ -436,7 +430,8 @@ async def test_saying_yes_to_the_overwrite_sends_it_and_keeps_a_copy_of_the_old_
         await click(user, "go")
         await idle()
         asked[0]["yes"]()
-        await asyncio.sleep(1)
+        await until(lambda: kept == ["kept"], what="the file being replaced")
+        await idle()
 
     assert phone.files["/Tasker/profiles/Morning.prf.xml"] == _PROFILE
     assert kept == ["kept"]

@@ -12,7 +12,6 @@ simulation.
 
 from __future__ import annotations
 
-import asyncio
 import contextlib
 from datetime import UTC, datetime
 from pathlib import Path
@@ -27,6 +26,7 @@ from nicegui import core, ui
 from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
 
+from tests.nicegui_harness import until
 from tests.test_maprestore import _older
 
 if TYPE_CHECKING:
@@ -109,16 +109,6 @@ def _labels(user: User) -> list[str]:
     return [element.text for element in user.find(kind=ui.label).elements]
 
 
-async def _until(condition: Callable[[], object]) -> None:
-    """Wait, up to two seconds, for something the dialog does on a timer or off the event loop."""
-    for _ in range(40):
-        if condition():
-            return
-        await asyncio.sleep(0.05)
-    msg = "it did not happen"
-    raise AssertionError(msg)
-
-
 async def _listed(user: User) -> None:
     """Wait for the first read of the history to finish and the list to be drawn."""
     await user.should_see("to bring back")
@@ -177,7 +167,7 @@ async def test_choosing_another_snapshot_reads_that_one(loaded: None) -> None:
         (choice,) = user.find(kind=ui.select).elements
 
         choice.value = 1
-        await _until(lambda: len(_built["read"]) == 2)
+        await until(lambda: len(_built["read"]) == 2)
 
         assert _built["read"] == ["newer.xml", "older.xml"]
 
@@ -187,7 +177,7 @@ async def test_a_snapshot_that_cannot_be_read_says_why_instead_of_listing_nothin
     """An empty list would read as 'nothing was lost'."""
     _built["problem"] = "That snapshot is damaged."
     async with _open() as user:
-        await _until(lambda: user.notify.contains("That snapshot is damaged."))
+        await until(lambda: user.notify.contains("That snapshot is damaged."))
         assert not _buttons(user, "Restore this")
 
 
@@ -241,7 +231,7 @@ async def test_apply_restores_one_object_rebuilds_the_window_and_lists_again(loa
         await _preview_one_that_can_be_applied(user)
 
         _press(user, _only(user, "Apply"))
-        await _until(lambda: _built["rebuilt"])
+        await until(lambda: _built["rebuilt"])
         await user.should_see("to bring back")
 
         assert _built["rebuilt"] == 1
@@ -262,7 +252,7 @@ async def test_save_to_current_file_asks_the_view_to_save(loaded: None) -> None:
     async with _open() as user:
         await _listed(user)
         _press(user, _only(user, "Save To Current File"))
-        await _until(lambda: _built["saved"])
+        await until(lambda: _built["saved"])
         assert _built["saved"] == 1
 
 

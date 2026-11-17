@@ -153,6 +153,34 @@ async def press(user: User, element: ui.button, *, wait: bool = True) -> None:
     stop_waiting_for_what_is_running()
 
 
+async def until(condition: Callable[[], object], seconds: float = 15.0, what: str = "") -> None:
+    """Wait until `condition` is true, however long this machine takes over it, and fail if it is not within `seconds`.
+
+    For what happens off the click that started it: a timer firing, a request on a worker thread, a binding refreshing.
+    A guess at how long that takes (a fixed sleep, or a loop of a few dozen of them) passes on a quick machine and fails
+    on a slow one, which is how the Android panel's and the Live Run Monitor's tests came to fail on CI runners; this
+    waits for the thing itself.  The cap is only the bound on a thing that never happens, so it is generous.
+    """
+    loop = asyncio.get_running_loop()
+    deadline = loop.time() + seconds
+    while not condition():
+        if loop.time() >= deadline:
+            message = f"{what or 'it'} did not happen within {seconds:g} seconds"
+            raise AssertionError(message)
+        await asyncio.sleep(0.02)
+
+
+async def let_it_run(turns: int = 20) -> None:
+    """Give the tasks a test has started a number of turns of the event loop, for a test about something NOT happening.
+
+    A thing that is parked on an event can only be shown to be parked by letting everything else run first.  Turns are
+    not time: it costs nothing on a fast machine and takes the same turns on a slow one, so a test that uses it cannot
+    fail on one.  Anything that waits on a condition uses `until` instead.
+    """
+    for _ in range(turns):
+        await asyncio.sleep(0)
+
+
 async def settled(condition: Callable[[], object], seconds: float = 15.0) -> None:
     """Wait until this is true, for as long as `seconds`: a refused connection takes Windows about two seconds."""
     deadline = asyncio.get_running_loop().time() + seconds

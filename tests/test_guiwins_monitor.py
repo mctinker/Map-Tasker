@@ -27,6 +27,7 @@ from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
 
 from tests.doubles import fake_window, stand_in
+from tests.nicegui_harness import until
 from tests.test_livemon import _FIXTURE_XML, _load
 
 if TYPE_CHECKING:
@@ -38,6 +39,7 @@ _built: dict = {}
 _jumps: list[object] = []
 _scripts: list[str] = []
 _windows: list[devicemonitor.Window] = []
+_in_flight: list[int] = []
 _asked: list[int] = []
 _opened: list[set[str]] = []
 
@@ -61,13 +63,18 @@ def _configuration(monkeypatch: pytest.MonkeyPatch) -> None:
     _scripts.clear()
     _windows.clear()
     _asked.clear()
+    _in_flight.clear()
     _opened.clear()
     _load(_FIXTURE_XML)
 
     def sample_window(_ip: str, _port: str, samples: int, *, state: object) -> devicemonitor.Window:
         _asked.append(samples)
-        time.sleep(0.02)
-        return _windows.pop(0) if len(_windows) > 1 else _windows[0]
+        _in_flight.append(samples)
+        try:
+            time.sleep(0.02)  # the phone taking its time, on the worker thread
+            return _windows.pop(0) if len(_windows) > 1 else _windows[0]
+        finally:
+            _in_flight.pop()
 
     async def run_javascript(script: str, timeout: float = 5) -> dict[str, int]:
         _scripts.append(script)
@@ -82,6 +89,18 @@ def _configuration(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(guiwins_monitor, "_clients", lambda: _built["windows"])
     monkeypatch.setattr(guiwins_monitor, "remember_android_address", lambda *_a, **_k: None)
     monkeypatch.setattr(guiwins_monitor, "remember_android_address_fields", lambda *_a, **_k: None)
+
+
+# How long a monitor that has been told to stop is given to ask for one more window before it is believed.  A thing that
+# does not happen can only be shown by giving it time, so this one is a period and not a condition; it cannot fail a
+# test on a slow machine, only make the check a little weaker there.
+_QUIET_PERIOD = 0.3
+
+
+async def _nothing_more_is_asked() -> None:
+    """Wait for the request the monitor already had out to come back, then for the quiet period."""
+    await until(lambda: not _in_flight, what="the request already in flight to finish")
+    await asyncio.sleep(_QUIET_PERIOD)
 
 
 async def _no_diagram(script: str, timeout: float = 5) -> dict[str, int]:
@@ -148,15 +167,6 @@ def _texts(user: User) -> list[str]:
     return [e.text for e in _elements(user, ui.label)] + [e.text for e in _elements(user, ui.link)]
 
 
-async def _until(condition: Callable[[], object]) -> None:
-    for _ in range(100):
-        if condition():
-            return
-        await asyncio.sleep(0.05)
-    msg = "it did not happen"
-    raise AssertionError(msg)
-
-
 def _script(*looks: tuple[float, str, str, str]) -> None:
     _windows.append(_window(*looks))
 
@@ -184,7 +194,7 @@ async def test_what_the_device_reports_becomes_log_lines_and_the_lists_of_what_i
     _script((MORNING, "Morning", "Dawn", "90"), (MORNING + 200, "Morning", "Dawn", "90"))
     async with _open() as user:
         _press(user, "Start")
-        await _until(lambda: any("Task started: Morning" in text for text in _texts(user)))
+        await until(lambda: any("Task started: Morning" in text for text in _texts(user)))
 
         text = _texts(user)
         assert any("Profile became active: Dawn" in line for line in text)
@@ -201,7 +211,7 @@ async def test_the_number_of_looks_asked_for_is_what_the_field_says() -> None:
         (field,) = [e for e in user.find(kind=ui.number).elements if e.props.get("label") == "Looks per request"]
         field.set_value(4)
         _press(user, "Start")
-        await _until(lambda: _asked)
+        await until(lambda: _asked)
 
         assert _asked[0] == 4
 
@@ -211,7 +221,7 @@ async def test_every_open_diagram_is_told_to_light_what_is_on() -> None:
     _script((MORNING, "Morning", "Dawn,Twin", "90"))
     async with _open() as user:
         _press(user, "Start")
-        await _until(lambda: any('"mt-task-20"' in script for script in _scripts))
+        await until(lambda: any('"mt-task-20"' in script for script in _scripts))
 
         script = next(script for script in _scripts if '"mt-task-20"' in script)
         assert "document.getElementById" in script and 'const containerId = "";' in script, "the whole page"
@@ -226,7 +236,7 @@ async def test_with_light_up_the_diagram_cleared_nothing_is_sent_to_it() -> None
         (box,) = [e for e in user.find(kind=ui.checkbox).elements if "Light up" in e.text]
         box.set_value(False)
         _press(user, "Start")
-        await _until(lambda: any("Task started: Morning" in text for text in _texts(user)))
+        await until(lambda: any("Task started: Morning" in text for text in _texts(user)))
 
         assert _scripts == []
 
@@ -236,12 +246,12 @@ async def test_stop_puts_the_lights_out_and_the_monitor_stops_asking() -> None:
     _script((MORNING, "Morning", "Dawn", "90"))
     async with _open() as user:
         _press(user, "Start")
-        await _until(lambda: any('"mt-task-20"' in script for script in _scripts))
+        await until(lambda: any('"mt-task-20"' in script for script in _scripts))
 
         _press(user, "Stop")
-        await _until(lambda: "Stopped." in _texts(user))
+        await until(lambda: "Stopped." in _texts(user))
         asked = len(_asked)
-        await asyncio.sleep(0.3)
+        await _nothing_more_is_asked()
 
         assert "const lit = {};" in _scripts[-1]
         assert len(_asked) == asked, "no more windows were asked for"
@@ -265,7 +275,7 @@ async def test_a_diagram_open_in_another_window_is_lit_and_nothing_is_said_again
     _script((MORNING, "Morning", "Dawn", "90"))
     async with _open() as user:
         _press(user, "Start")
-        await _until(lambda: any('"mt-profile-100"' in script for script in _scripts))
+        await until(lambda: any('"mt-profile-100"' in script for script in _scripts))
 
         assert not any("No Diagram is open" in text or "none of these" in text for text in _texts(user))
 
@@ -294,7 +304,7 @@ async def test_a_window_that_does_not_answer_is_one_more_window_with_nothing_to_
     _built["windows"] = [SimpleNamespace(run_javascript=hung), _built["windows"][1]]
     async with _open() as user:
         _press(user, "Start")
-        await _until(lambda: any('"mt-task-20"' in script for script in _scripts))
+        await until(lambda: any('"mt-task-20"' in script for script in _scripts))
 
         assert not any("No Diagram is open" in text for text in _texts(user))
 
@@ -306,7 +316,7 @@ async def test_a_device_that_will_not_install_the_helper_is_never_called_monitor
     monkeypatch.setattr(devicemonitor, "install_monitor", lambda *_a, **_k: (8, "Tasker is not answering"))
     async with _open() as user:
         _press(user, "Start")
-        await _until(lambda: user.notify.contains("Tasker is not answering"))
+        await until(lambda: user.notify.contains("Tasker is not answering"))
 
         assert "Could not start." in _texts(user)
         assert _asked == []
@@ -325,8 +335,8 @@ async def test_a_device_that_keeps_failing_ends_the_monitoring(monkeypatch: pyte
     monkeypatch.setattr(devicemonitor, "sample_window", failing)
     async with _open() as user:
         _press(user, "Start")
-        await _until(lambda: user.notify.contains("Connection error"))
-        await _until(lambda: "Stopped." in _texts(user))
+        await until(lambda: user.notify.contains("Connection error"))
+        await until(lambda: "Stopped." in _texts(user))
 
         assert len(calls) == guiwins_monitor._FAILURES_ALLOWED
         assert _button(user, "Start").enabled
@@ -337,11 +347,11 @@ async def test_a_log_line_that_names_an_object_is_a_link_into_the_map() -> None:
     _script((MORNING, "Morning", "", "90"))
     async with _open() as user:
         _press(user, "Start")
-        await _until(lambda: any("Task started: Morning" in e.text for e in _elements(user, ui.link)))
+        await until(lambda: any("Task started: Morning" in e.text for e in _elements(user, ui.link)))
 
         link = next(e for e in _elements(user, ui.link) if "Task started: Morning" in e.text)
         UserInteraction(user, {link}, None).click()
-        await _until(lambda: _jumps)
+        await until(lambda: _jumps)
 
         assert _jumps[0].key == "20"  # type: ignore[attr-defined]
 
@@ -351,7 +361,7 @@ async def test_a_name_not_in_the_backup_is_logged_and_marked_so_and_is_not_a_lin
     _script((MORNING, "Stranger", "", "90"))
     async with _open() as user:
         _press(user, "Start")
-        await _until(lambda: any("Stranger" in text for text in _texts(user)))
+        await until(lambda: any("Stranger" in text for text in _texts(user)))
 
         assert any("(not in this backup)" in e.text for e in _elements(user, ui.label))
         assert not any("Stranger" in e.text and "Task started" in e.text for e in _elements(user, ui.link))
@@ -370,7 +380,7 @@ async def test_compare_shows_where_the_device_and_the_prediction_disagree() -> N
     _script((MORNING, "", "Dusk", "90"))
     async with _open() as user:
         _press(user, "Start")
-        await _until(lambda: any("Profile became active: Dusk" in text for text in _texts(user)))
+        await until(lambda: any("Profile became active: Dusk" in text for text in _texts(user)))
         _press(user, "Compare With What Fires When")
 
         await user.should_see("Device against What Fires When")
@@ -391,9 +401,9 @@ async def test_save_log_writes_what_was_seen(monkeypatch: pytest.MonkeyPatch) ->
     _script((MORNING, "Morning", "Dawn", "90"))
     async with _open() as user:
         _press(user, "Start")
-        await _until(lambda: any("Task started: Morning" in text for text in _texts(user)))
+        await until(lambda: any("Task started: Morning" in text for text in _texts(user)))
         _press(user, "Save Log")
-        await _until(lambda: written)
+        await until(lambda: written)
 
         assert written[0][0] == livemon.MONITOR_FILE
         assert "Task started: Morning" in written[0][1]
@@ -404,7 +414,7 @@ async def test_save_log_writes_what_was_seen(monkeypatch: pytest.MonkeyPatch) ->
 async def test_save_log_with_nothing_logged_says_so() -> None:
     async with _open() as user:
         _press(user, "Save Log")
-        await _until(lambda: user.notify.contains("There is nothing in the log yet."))
+        await until(lambda: user.notify.contains("There is nothing in the log yet."))
 
 
 @pytest.mark.asyncio
@@ -412,12 +422,12 @@ async def test_close_stops_the_monitoring() -> None:
     _script((MORNING, "Morning", "Dawn", "90"))
     async with _open() as user:
         _press(user, "Start")
-        await _until(lambda: _asked)
+        await until(lambda: _asked)
 
         _press(user, "Close")
-        await asyncio.sleep(0.2)
+        await until(lambda: not _in_flight, what="the request already in flight to finish")
         asked = len(_asked)
-        await asyncio.sleep(0.3)
+        await asyncio.sleep(_QUIET_PERIOD)
 
         assert _built["dialog"].monitor.running is False
         assert len(_asked) == asked
@@ -437,7 +447,7 @@ async def test_the_dialog_is_docked_where_it_does_not_cover_the_diagram_button()
 async def test_open_diagram_opens_the_diagram_without_closing_the_monitor() -> None:
     async with _open() as user:
         _press(user, "Open Diagram")
-        await _until(lambda: _opened)
+        await until(lambda: _opened)
 
         assert _built["dialog"].value is True
 
@@ -446,7 +456,7 @@ async def test_open_diagram_opens_the_diagram_without_closing_the_monitor() -> N
 async def test_before_anything_has_fired_the_diagram_is_asked_for_with_no_projects() -> None:
     async with _open() as user:
         _press(user, "Open Diagram")
-        await _until(lambda: _opened)
+        await until(lambda: _opened)
 
         assert _opened == [set()]
 
@@ -456,9 +466,9 @@ async def test_after_things_have_fired_the_diagram_is_told_which_projects_they_b
     _script((MORNING, "Morning,Away Task", "Dawn", "90"))
     async with _open() as user:
         _press(user, "Start")
-        await _until(lambda: any("Task started: Morning" in text for text in _texts(user)))
+        await until(lambda: any("Task started: Morning" in text for text in _texts(user)))
         _press(user, "Open Diagram")
-        await _until(lambda: _opened)
+        await until(lambda: _opened)
 
         assert _opened[0] == {"Home", "Away"}
 
@@ -468,7 +478,7 @@ async def test_what_has_just_started_is_what_the_diagram_is_told_to_scroll_to() 
     _script((MORNING, "Morning", "Dawn", "90"))
     async with _open() as user:
         _press(user, "Start")
-        await _until(lambda: any('"mt-task-20"' in script for script in _scripts))
+        await until(lambda: any('"mt-task-20"' in script for script in _scripts))
 
         script = next(script for script in _scripts if '"mt-task-20"' in script)
         assert 'for (const anchor of ["mt-profile-100", "mt-task-20"])' in script
@@ -481,7 +491,7 @@ async def test_with_scrolling_turned_off_the_diagram_is_lit_and_left_where_it_is
         (box,) = [e for e in user.find(kind=ui.checkbox).elements if "Scroll the Diagram" in e.text]
         box.set_value(False)
         _press(user, "Start")
-        await _until(lambda: any('"mt-task-20"' in script for script in _scripts))
+        await until(lambda: any('"mt-task-20"' in script for script in _scripts))
 
         script = next(script for script in _scripts if '"mt-task-20"' in script)
         assert "for (const anchor of [])" in script
@@ -493,13 +503,13 @@ async def test_abandon_stops_the_asking_without_touching_a_widget() -> None:
     _script((MORNING, "Morning", "Dawn", "90"))
     async with _open() as user:
         _press(user, "Start")
-        await _until(lambda: _asked)
+        await until(lambda: _asked)
         monitor = _built["dialog"].monitor
         status_before = [e.text for e in _elements(user, ui.label) if e.text.startswith("Monitoring")]
 
         monitor.abandon()
         asked = len(_asked)
-        await asyncio.sleep(0.3)
+        await _nothing_more_is_asked()
 
         assert monitor.running is False
         assert monitor.worker is None

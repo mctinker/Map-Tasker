@@ -1855,18 +1855,19 @@ def test_two_threads_suppressing_at_once_leave_the_streams_usable() -> None:
     from maptasker.src.core.maputil2 import suppress_stdout
 
     real_stdout, real_stderr = sys.stdout, sys.stderr
-    first_inside, first_done = threading.Event(), threading.Event()
+    first_inside, first_done, first_out = threading.Event(), threading.Event(), threading.Event()
 
     def first() -> None:
         with suppress_stdout():
             first_inside.set()
             first_done.wait(timeout=5)
+        first_out.set()
 
     def second() -> None:
         first_inside.wait(timeout=5)
         with suppress_stdout():
             first_done.set()
-            time.sleep(0.05)  # still inside while the other one exits and closes its file
+            first_out.wait(timeout=5)  # still inside while the other one exits and closes its file
 
     threads = [threading.Thread(target=first), threading.Thread(target=second)]
     for thread in threads:

@@ -18,6 +18,8 @@ import pytest
 from maptasker.src.gui import userintr_carry
 from maptasker.src.gui.userintr import MapTaskerEventHandlers
 
+from tests.nicegui_harness import let_it_run
+
 
 def _handlers(*, loaded: bool = True) -> MapTaskerEventHandlers:
     window = MagicMock()
@@ -155,7 +157,7 @@ async def test_another_file_is_not_read_while_a_map_is_being_built_ahead_of_time
         with picker, start, reader as read, builder, ui:
             read.side_effect = lambda *_a, **_k: (order.append("the file was read"), ("SOURCE", ""))[1]
             press = asyncio.create_task(handlers.carry.import_with_dependencies_event())
-            await asyncio.sleep(0.02)
+            await let_it_run()
             assert order == []
             release.set()
             await press

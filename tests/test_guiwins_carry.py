@@ -10,7 +10,6 @@ user simulation.
 
 from __future__ import annotations
 
-import asyncio
 import contextlib
 from typing import TYPE_CHECKING
 
@@ -24,6 +23,7 @@ from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
 
 from tests import test_mapcarry
+from tests.nicegui_harness import until
 from tests.test_mapcarry import _source
 
 if TYPE_CHECKING:
@@ -97,16 +97,6 @@ def _labels(user: User) -> list[str]:
     return [element.text for element in user.find(kind=ui.label).elements]
 
 
-async def _until(condition: Callable[[], object]) -> None:
-    """Wait, up to two seconds, for something the dialog does on a timer."""
-    for _ in range(40):
-        if condition():
-            return
-        await asyncio.sleep(0.05)
-    msg = "it did not happen"
-    raise AssertionError(msg)
-
-
 def _row_button(user: User, label: str) -> ui.button:
     """The 'Preview' button on the row of this name: the one beside the label that is next to it in the list."""
     labels = user.find(kind=ui.label).elements
@@ -154,7 +144,7 @@ async def test_the_kind_toggle_narrows_the_list(loaded: None) -> None:
 
         toggle.value = "task"
 
-        await _until(lambda: "5 of 8 offered" in _labels(user))
+        await until(lambda: "5 of 8 offered" in _labels(user))
         assert len(_buttons(user, "Preview")) == 5
 
 
@@ -165,7 +155,7 @@ async def test_typing_part_of_a_name_narrows_the_list(loaded: None) -> None:
 
         box.value = "fade"
 
-        await _until(lambda: "1 of 8 offered" in _labels(user))
+        await until(lambda: "1 of 8 offered" in _labels(user))
         assert len(_buttons(user, "Preview")) == 1
 
 
@@ -176,7 +166,7 @@ async def test_a_search_that_matches_nothing_says_so(loaded: None) -> None:
 
         box.value = "zzz"
 
-        await _until(lambda: "Nothing matches." in _labels(user))
+        await until(lambda: "Nothing matches." in _labels(user))
 
 
 # ##################################################################################
@@ -207,7 +197,7 @@ async def test_a_preview_that_cannot_be_applied_leaves_apply_greyed_out_and_says
     async with _open() as user:
         (box,) = user.find(kind=ui.input).elements
         box.value = "Broken"
-        await _until(lambda: "1 of 8 offered" in _labels(user))
+        await until(lambda: "1 of 8 offered" in _labels(user))
         PrimeItems.tasker_root_elements["all_projects"].pop("Home")  # the Project everything would be filed in
         select = user.find(kind=ui.select).elements.pop()
         select.value = "Home"
@@ -262,7 +252,7 @@ async def test_apply_imports_refreshes_the_window_and_undo_is_there(loaded: None
         _press(user, _row_button(user, "Lights On  (Lights)"))
 
         _press(user, _only(user, "Apply"))
-        await _until(lambda: _built["rebuilt"])
+        await until(lambda: _built["rebuilt"])
 
         assert _built["rebuilt"] == 1
         assert any("Undo is available." in message for message in user.notify.messages)
@@ -279,7 +269,7 @@ async def test_the_row_that_was_imported_keeps_its_place_with_a_green_button(loa
     async with _open() as user:
         _press(user, _row_button(user, "Lights On  (Lights)"))
         _press(user, _only(user, "Apply"))
-        await _until(lambda: _built["rebuilt"])
+        await until(lambda: _built["rebuilt"])
 
         button = _row_button(user, "Lights On  (Lights)")
 
@@ -293,7 +283,7 @@ async def test_the_row_that_was_imported_keeps_its_place_with_a_green_button(loa
 async def test_save_to_current_file_asks_the_window_to_save(loaded: None) -> None:
     async with _open() as user:
         _press(user, _only(user, "Save To Current File"))
-        await _until(lambda: _built["saved"])
+        await until(lambda: _built["saved"])
 
         assert _built["saved"] == 1
 
@@ -302,6 +292,6 @@ async def test_save_to_current_file_asks_the_window_to_save(loaded: None) -> Non
 async def test_choose_another_file_closes_this_and_asks_for_one(loaded: None) -> None:
     async with _open() as user:
         _press(user, _only(user, "Choose another file..."))
-        await _until(lambda: _built["another"])
+        await until(lambda: _built["another"])
 
         assert _built["another"] == 1

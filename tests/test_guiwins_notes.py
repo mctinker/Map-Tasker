@@ -7,7 +7,6 @@ right, that the switch is kept, and that Show In Map is given the right place to
 
 from __future__ import annotations
 
-import asyncio
 import contextlib
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast
@@ -23,7 +22,7 @@ from nicegui.testing.user import User
 from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
 
-from tests.nicegui_harness import idle
+from tests.nicegui_harness import idle, until
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator, Callable
@@ -123,15 +122,6 @@ def _keep(existing: Note | None, kind: str, name: str, tags: str, text: str) -> 
 
 def _file_notes() -> dict[tuple[str, str], Note]:
     return objnotes.load().notes
-
-
-async def _until(condition: Callable[[], object]) -> None:
-    for _ in range(60):
-        if condition():
-            return
-        await asyncio.sleep(0.05)
-    msg = "it did not happen"
-    raise AssertionError(msg)
 
 
 # ##################################################################################
@@ -471,10 +461,10 @@ async def test_the_add_dialog_offers_the_names_of_the_open_file_by_kind() -> Non
         kind, name = sorted(selects, key=lambda element: element.id)[-2:]
         offered_tasks = set(name.options)
         kind.set_value(PROFILE)
-        await _until(lambda: set(name.options) == {"Dawn", "Dusk"})
+        await until(lambda: set(name.options) == {"Dawn", "Dusk"})
         offered_profiles = set(name.options)
         kind.set_value(PROJECT)
-        await _until(lambda: set(name.options) == {"Pack", "Other"})
+        await until(lambda: set(name.options) == {"Pack", "Other"})
 
     assert offered_tasks >= {"Morning", "Helper", "Elsewhere"}
     assert offered_profiles == {"Dawn", "Dusk"}
@@ -531,7 +521,7 @@ async def test_deleting_asks_first_and_then_takes_the_chosen_notes_away() -> Non
         await user.should_see("Delete the chosen notes?")
         assert len(_file_notes()) == 4  # Nothing yet.
         _press(user, _newest(user, "Delete"))
-        await _until(lambda: len(_file_notes()) == 2)
+        await until(lambda: len(_file_notes()) == 2)
 
     assert set(_rows()) == {"Pack", "Gone Since"}
 
@@ -570,7 +560,7 @@ async def test_the_switch_is_on_when_the_notes_are_shown_and_is_kept_when_it_is_
         switch = user.find(kind=ui.switch).elements.pop()
         was_on = switch.value
         switch.set_value(False)
-        await _until(lambda: not objnotes.load().show_in_map)
+        await until(lambda: not objnotes.load().show_in_map)
 
     assert was_on is True
     assert len(_file_notes()) == 4  # Hidden, not deleted.

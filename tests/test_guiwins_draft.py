@@ -27,10 +27,11 @@ from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
 
 from tests.doubles import expect, no_error
+from tests.nicegui_harness import until
 from tests.test_mapswap import _FIXTURE_XML, _load
 
 if TYPE_CHECKING:
-    from collections.abc import AsyncIterator, Callable
+    from collections.abc import AsyncIterator
 
     from nicegui.testing.user import User
 
@@ -138,15 +139,6 @@ def _notes(user: User) -> str:
     )
 
 
-async def _until(condition: Callable[[], object]) -> None:
-    for _ in range(40):
-        if condition():
-            return
-        await asyncio.sleep(0.05)
-    msg = "it did not happen"
-    raise AssertionError(msg)
-
-
 @pytest.mark.asyncio
 async def test_a_draft_is_added_to_the_dialogs_task_unsaved() -> None:
     _built["draft"] = mapdraft.Draft(
@@ -159,7 +151,7 @@ async def test_a_draft_is_added_to_the_dialogs_task_unsaved() -> None:
     async with _open() as user:
         _description(user).value = "say hello then wait five seconds"
         _press(user, "Draft")
-        await _until(lambda: len(_listed(user)) == 2)
+        await until(lambda: len(_listed(user)) == 2)
 
         assert _built["asked"] == ["say hello then wait five seconds"]
         # By the number each header starts with: the finder does not promise an order.
@@ -186,7 +178,7 @@ async def test_a_name_already_typed_is_kept() -> None:
         _name(user).value = "Mine"
         _description(user).value = "flash"
         _press(user, "Draft")
-        await _until(lambda: len(_listed(user)) == 1)
+        await until(lambda: len(_listed(user)) == 1)
 
         assert _name(user).value == "Mine"
 
@@ -197,7 +189,7 @@ async def test_a_name_another_task_has_is_not_used_and_is_said() -> None:
     async with _open() as user:
         _description(user).value = "flash"
         _press(user, "Draft")
-        await _until(lambda: len(_listed(user)) == 1)
+        await until(lambda: len(_listed(user)) == 1)
 
         assert _name(user).value == ""
         assert "Noisy" in _notes(user)
@@ -217,7 +209,7 @@ async def test_what_was_left_out_is_on_screen_beside_the_draft() -> None:
     async with _open() as user:
         _description(user).value = "flash when I get home"
         _press(user, "Draft")
-        await _until(lambda: len(_listed(user)) == 1)
+        await until(lambda: len(_listed(user)) == 1)
 
         notes = _notes(user)
         for part in ("Teleport", "End If", "'maybe'", "'When I get home' is a Profile."):
@@ -230,7 +222,7 @@ async def test_a_draft_with_nothing_in_it_says_so_and_adds_nothing() -> None:
     async with _open() as user:
         _description(user).value = "teleport me"
         _press(user, "Draft")
-        await _until(lambda: user.notify.contains("Nothing could be drafted"))
+        await until(lambda: user.notify.contains("Nothing could be drafted"))
 
         assert _listed(user) == []
         assert "Teleport" in _notes(user)
@@ -240,7 +232,7 @@ async def test_a_draft_with_nothing_in_it_says_so_and_adds_nothing() -> None:
 async def test_nothing_is_asked_without_a_description() -> None:
     async with _open() as user:
         _press(user, "Draft")
-        await _until(lambda: user.notify.contains("Describe the Task first."))
+        await until(lambda: user.notify.contains("Describe the Task first."))
 
         assert _built["asked"] == []
 
@@ -251,7 +243,7 @@ async def test_nothing_is_asked_when_no_model_is_chosen() -> None:
     async with _open() as user:
         _description(user).value = "flash hello"
         _press(user, "Draft")
-        await _until(lambda: user.notify.contains("No AI model is selected."))
+        await until(lambda: user.notify.contains("No AI model is selected."))
 
         assert _built["asked"] == []
         assert _listed(user) == []
@@ -267,7 +259,7 @@ async def test_a_failing_model_is_said_and_adds_nothing() -> None:
     async with _open() as user:
         _description(user).value = "flash hello"
         _press(user, "Draft")
-        await _until(lambda: user.notify.contains("invalid x-api-key"))
+        await until(lambda: user.notify.contains("invalid x-api-key"))
 
         assert _listed(user) == []
         assert "loading" not in _button(user, "Draft")._props
@@ -289,7 +281,7 @@ async def test_closing_the_dialog_takes_the_question_back() -> None:
         assert "loading" in _button(user, "Draft")._props
 
         _press(user, "Cancel")
-        await _until(lambda: _built.get("cancelled"))
+        await until(lambda: _built.get("cancelled"))
 
         assert _listed(user) == []
 
@@ -314,7 +306,7 @@ async def test_asking_again_replaces_the_question_still_out() -> None:
         started.clear()
         _description(user).value = "second"
         _press(user, "Draft")
-        await _until(lambda: len(_listed(user)) == 1)
+        await until(lambda: len(_listed(user)) == 1)
 
         assert _built["asked"] == ["first", "second"]
         assert _built["cancelled"]
@@ -339,8 +331,8 @@ async def test_a_slow_question_says_so_and_can_be_stopped() -> None:
         assert any("Asking Anthropic (claude-sonnet-5)" in label.text for label in user.find(kind=ui.label).elements)
 
         _press(user, "Stop")
-        await _until(lambda: _built.get("cancelled"))
-        await _until(lambda: not _shown(user, "Stop"))
+        await until(lambda: _built.get("cancelled"))
+        await until(lambda: not _shown(user, "Stop"))
 
         assert _listed(user) == []
         assert "loading" not in _button(user, "Draft")._props
@@ -358,7 +350,7 @@ async def test_the_names_of_the_users_tasks_are_not_shared_unless_the_box_is_tic
         assert _share_box(user).value is False
         _description(user).value = "run my Cleanup task"
         _press(user, "Draft")
-        await _until(lambda: _built["asked"])
+        await until(lambda: _built["asked"])
 
         assert _built["shared"] == [False]
 
@@ -370,7 +362,7 @@ async def test_ticking_the_box_shares_the_names_and_is_remembered() -> None:
         _share_box(user).value = True
         _description(user).value = "run my Cleanup task"
         _press(user, "Draft")
-        await _until(lambda: _built["asked"])
+        await until(lambda: _built["asked"])
 
         assert _built["shared"] == [True]
         # The choice outlasts the dialog: the window it belongs to is told.

@@ -8,7 +8,6 @@ that Save Report says where the report went.  The window is the real one, on a p
 
 from __future__ import annotations
 
-import asyncio
 import contextlib
 from typing import TYPE_CHECKING, Any
 
@@ -96,7 +95,7 @@ async def test_asked_about_the_newest_release_it_finds_nothing_newer_than_it() -
 async def test_picking_an_older_tasker_redraws_the_findings_at_once() -> None:
     async with _open() as user:
         _window().pick(target="6.0.9")
-        await asyncio.sleep(0)
+        await idle()
         shown = " ".join(_shown(user))
 
         assert "NEWER-TASKER  [6.6.4] Action Java Code is new in Tasker 6.6.4 (a beta; released in 6.6.18)." in shown
@@ -107,7 +106,7 @@ async def test_picking_an_older_tasker_redraws_the_findings_at_once() -> None:
 async def test_picking_an_android_adds_what_that_android_is_too_old_for() -> None:
     async with _open() as user:
         _window().pick(android=33)
-        await asyncio.sleep(0)
+        await idle()
 
         assert any("Set Device Effects needs Android 15 or later." in text for text in _shown(user))
 
@@ -116,7 +115,7 @@ async def test_picking_an_android_adds_what_that_android_is_too_old_for() -> Non
 async def test_a_place_a_finding_names_is_a_link_that_jumps_to_it() -> None:
     async with _open() as user:
         _window().pick(target="6.0.9")
-        await asyncio.sleep(0)
+        await idle()
         link = next(element for element in user.find(kind=ui.link).elements if "Morning" in element.text)
 
         UserInteraction(user, {link}, None).click()

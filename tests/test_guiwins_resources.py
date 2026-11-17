@@ -9,7 +9,6 @@ user simulation; the device is not involved.
 
 from __future__ import annotations
 
-import asyncio
 import contextlib
 import threading
 from typing import TYPE_CHECKING, Any
@@ -26,6 +25,7 @@ from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
 
 from tests.doubles import fake_window
+from tests.nicegui_harness import until
 from tests.test_resrefs import _FIXTURE_XML, PHONE, _answer, _load
 
 if TYPE_CHECKING:
@@ -97,15 +97,6 @@ def _outcome(**changes: Any) -> deviceresource.Outcome:
     return outcome
 
 
-async def _until(condition: Callable[[], object]) -> None:
-    for _ in range(60):
-        if condition():
-            return
-        await asyncio.sleep(0.05)
-    msg = "it did not happen"
-    raise AssertionError(msg)
-
-
 def _spinner_shown(user: User) -> bool:
     """Whether the progress spinner is on the page (find raises when nothing matches)."""
     try:
@@ -164,7 +155,7 @@ async def test_check_device_asks_what_the_fields_say_and_redraws_from_the_answer
     monkeypatch.setattr(deviceresource, "check_device", fake_check)
     async with _open() as user:
         UserInteraction(user, {_button(user, "Check Device")}, None).click()
-        await _until(lambda: asked)
+        await until(lambda: asked)
         await user.should_see("Tasker/data.txt")
 
         assert asked == [("192.0.2.1", "1821", True)]
@@ -204,14 +195,14 @@ async def test_the_progress_line_says_what_the_check_is_doing_and_goes_when_it_i
     monkeypatch.setattr(deviceresource, "check_device", slow_check)
     async with _open() as user:
         UserInteraction(user, {_button(user, "Check Device")}, None).click()
-        await _until(started.is_set)
-        await _until(lambda: _spinner_shown(user))  # shown while the check runs
-        await _until(lambda: "Step 2 of 3" in _progress_text(user))
+        await until(started.is_set)
+        await until(lambda: _spinner_shown(user))  # shown while the check runs
+        await until(lambda: "Step 2 of 3" in _progress_text(user))
 
         assert "(0:0" in _progress_text(user)  # the elapsed time, m:ss
 
         release.set()
-        await _until(lambda: not _spinner_shown(user))
+        await until(lambda: not _spinner_shown(user))
 
 
 @pytest.mark.asyncio
@@ -226,7 +217,7 @@ async def test_the_refresh_checkbox_decides_whether_the_app_list_is_fetched(monk
         (box,) = user.find(kind=ui.checkbox).elements
         box.set_value(False)
         UserInteraction(user, {_button(user, "Check Device")}, None).click()
-        await _until(lambda: asked)
+        await until(lambda: asked)
 
         assert asked == [False]
 
@@ -239,7 +230,7 @@ async def test_a_row_naming_a_place_is_a_link_into_the_map() -> None:
         assert links
 
         UserInteraction(user, {links[0]}, None).click()
-        await _until(lambda: _jumps)
+        await until(lambda: _jumps)
 
         assert _jumps[0].action == 9  # type: ignore[attr-defined]
 
@@ -250,7 +241,7 @@ async def test_save_report_writes_the_file(monkeypatch: pytest.MonkeyPatch, tmp_
     _answer(PHONE, data=False)
     async with _open() as user:
         UserInteraction(user, {_button(user, "Save Report")}, None).click()
-        await _until(lambda: user.notify.contains("Report saved as"))
+        await until(lambda: user.notify.contains("Report saved as"))
 
     (saved,) = tmp_path.glob("MapTasker_Resources_*.txt")
     assert "Tasker/data.txt" in saved.read_text(encoding="utf-8")

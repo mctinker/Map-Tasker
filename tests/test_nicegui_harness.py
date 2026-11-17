@@ -2,7 +2,9 @@
 
 A fixed tenth of a second after every click passed on a quick machine and failed on a slow CI runner (Windows once,
 macOS once, for the Android panel's tests), because the handler under test hands work to a thread or awaits something.
-`idle` waits for the tasks NiceGUI is running for a handler instead.
+`idle` waits for the tasks NiceGUI is running for a handler instead.  `until` is the same idea for what happens off a
+click -- a timer, a request on a worker thread -- and replaces the fixed sleeps and the handful-of-tries loops that stood
+in for it; `let_it_run` is for the test that something does NOT happen, which costs turns of the event loop, not time.
 """
 
 from __future__ import annotations
@@ -14,7 +16,7 @@ from typing import TYPE_CHECKING
 import pytest
 from nicegui import ui
 
-from tests.nicegui_harness import IDLE_CAP_SECONDS, button, idle, open_page, press
+from tests.nicegui_harness import IDLE_CAP_SECONDS, button, idle, let_it_run, open_page, press, until
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -99,3 +101,52 @@ async def test_idle_with_nothing_running_returns_at_once() -> None:
         await idle()
 
         assert time.monotonic() - started < 0.2
+
+
+@pytest.mark.asyncio
+async def test_until_returns_as_soon_as_the_condition_is_true_however_long_that_takes() -> None:
+    state = {"ready": False}
+
+    async def becomes_ready() -> None:
+        await asyncio.sleep(0.2)
+        state["ready"] = True
+
+    task = asyncio.create_task(becomes_ready())
+    await until(lambda: state["ready"])
+
+    assert state["ready"]
+    await task
+
+
+@pytest.mark.asyncio
+async def test_until_checks_before_it_waits() -> None:
+    started = time.monotonic()
+
+    await until(lambda: True)
+
+    assert time.monotonic() - started < 0.1
+
+
+@pytest.mark.asyncio
+async def test_until_fails_with_what_it_was_waiting_for_when_it_never_happens() -> None:
+    with pytest.raises(AssertionError, match=r"the picker did not happen within 0\.1 seconds"):
+        await until(lambda: False, 0.1, what="the picker")
+
+
+@pytest.mark.asyncio
+async def test_let_it_run_lets_a_started_task_get_as_far_as_it_will() -> None:
+    steps: list[int] = []
+    gate = asyncio.Event()
+
+    async def parks() -> None:
+        steps.append(1)
+        await gate.wait()
+        steps.append(2)
+
+    task = asyncio.create_task(parks())
+    await let_it_run()
+
+    assert steps == [1], "it ran to the gate and stopped there"
+    gate.set()
+    await task
+    assert steps == [1, 2]

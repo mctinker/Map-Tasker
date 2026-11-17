@@ -18,6 +18,8 @@ from maptasker.src.gui import userintr_prebuild
 from maptasker.src.gui.userintr import MapTaskerEventHandlers
 from maptasker.src.gui.userintr_prebuild import PrebuildEventHandlers, _building
 
+from tests.nicegui_harness import let_it_run
+
 
 def _state(**changes: Any) -> SimpleNamespace:
     """A run state with a loaded configuration and nothing in the way."""
@@ -477,7 +479,7 @@ async def test_a_press_waits_for_the_build_before_it_touches_the_run_state() -> 
 
     with patch("maptasker.src.gui.userintr_views._busy_banner", return_value=None):
         press = asyncio.create_task(handlers.views.view_event("map"))
-        await asyncio.sleep(0.01)
+        await let_it_run()
         assert order == [], "the press went ahead while the build was under way"
         release.set()
         await press
@@ -599,7 +601,7 @@ async def test_a_press_in_one_window_waits_for_a_build_started_by_another(seen: 
         other.prebuild_tick()
         await asyncio.sleep(0)
         press = asyncio.create_task(handlers.views.view_event("map"))
-        await asyncio.sleep(0.01)
+        await let_it_run()
         assert "the press prepared" not in order
         release.set()
         await press

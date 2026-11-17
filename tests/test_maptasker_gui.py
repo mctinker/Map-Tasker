@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from tests.doubles import fake_android_fields, required, set_attr, stand_in
 from tests.editor_modules import patch_editors
+from tests.nicegui_harness import idle
 
 """MapTasker GUI Event Handlers Unit Tests
 
@@ -1413,8 +1414,7 @@ async def test_confirming_the_overwrite_copies_the_file_it_replaces(
     )
     _what, on_confirm, _kwargs = calls["overwrite"][0]
     on_confirm()
-    await asyncio.sleep(0)  # the prompt's callback is sync; the offer it starts is not
-    await asyncio.sleep(0)
+    await idle()  # the prompt's callback is sync; the offer it starts is not
 
     assert calls["backed_up"] == [("/Tasker/profiles/Watched.prf.xml", b"<TaskerData>the old one</TaskerData>")]
     assert [call[0] for call in calls["io_bound"]][1].__name__ == "offer_to_tasker"
@@ -1452,8 +1452,7 @@ async def test_an_offer_run_from_the_prompt_still_has_somewhere_to_draw(
     )
     before = len(calls["in_slot"])
     calls["overwrite"][0][1]()  # the user presses Overwrite
-    await asyncio.sleep(0)
-    await asyncio.sleep(0)
+    await idle()
 
     spawned = calls["in_slot"][before:]
     assert spawned, calls["notify"]  # the offer did notify, so there is something to check
@@ -1832,8 +1831,7 @@ async def test_a_scene_already_on_the_device_is_asked_about_first(
     assert calls["io_bound"] == []  # nothing sent while the question is unanswered
 
     on_confirm()
-    await asyncio.sleep(0)
-    await asyncio.sleep(0)
+    await idle()
     assert calls["backed_up"] == [("/Tasker/scenes/Dialog.scn.xml", b"<TaskerData>the old one</TaskerData>")]
 
 

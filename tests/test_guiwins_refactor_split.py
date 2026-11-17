@@ -9,7 +9,6 @@ in-process user simulation.
 
 from __future__ import annotations
 
-import asyncio
 import contextlib
 from typing import TYPE_CHECKING
 
@@ -22,6 +21,7 @@ from nicegui import core, ui
 from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
 
+from tests.nicegui_harness import idle, until
 from tests.test_maprefac import _load
 from tests.test_projdeps import _XML
 
@@ -98,25 +98,16 @@ def _shown(user: User) -> list[str]:
     return [element.text for kind in (ui.label, ui.link) for element in user.find(kind=kind).elements]
 
 
-async def _until(condition: Callable[[], object]) -> None:
-    for _ in range(60):
-        if condition():
-            return
-        await asyncio.sleep(0.05)
-    msg = "it did not happen"
-    raise AssertionError(msg)
-
-
 async def _split_mode(user: User) -> None:
     (toggle,) = [e for e in user.find(kind=ui.toggle).elements if "split" in e.options]
     toggle.set_value("split")
-    await asyncio.sleep(0)
+    await idle()
 
 
 async def _choose(user: User, keys: list[str], name: str) -> None:
     _picks(user).set_value(keys)
     _name_box(user).set_value(name)
-    await asyncio.sleep(0)
+    await idle()
 
 
 def _members(project: str, tag: str) -> list[str]:
@@ -145,7 +136,7 @@ async def test_nothing_is_previewed_until_something_is_chosen_and_the_project_is
         assert user.notify.contains("Fill in every box first.")
 
         _picks(user).set_value(["task:10"])
-        await asyncio.sleep(0)
+        await idle()
         UserInteraction(user, {_button(user, "Preview")}, None).click()
         assert not _button(user, "Apply").enabled
 
@@ -185,7 +176,7 @@ async def test_changing_what_is_chosen_throws_the_preview_away() -> None:
         assert _button(user, "Apply").enabled
 
         _picks(user).set_value(["task:10", "task:11"])
-        await asyncio.sleep(0)
+        await idle()
 
         assert not _button(user, "Apply").enabled
 
@@ -197,7 +188,7 @@ async def test_apply_moves_the_objects_forgets_the_choice_and_redraws_the_view()
         await _choose(user, ["task:10"], "Morning Stuff")
         UserInteraction(user, {_button(user, "Preview")}, None).click()
         UserInteraction(user, {_button(user, "Apply")}, None).click()
-        await _until(lambda: _redrawn)
+        await until(lambda: _redrawn)
 
         assert set(_members("Morning Stuff", "tids")) == {"10", "20", "12", "22"}
         assert _members("Home", "tids") == ["11"]

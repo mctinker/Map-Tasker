@@ -11,7 +11,6 @@ the real one, on a page of NiceGUI's in-process user simulation.
 
 from __future__ import annotations
 
-import asyncio
 import contextlib
 import threading
 from typing import TYPE_CHECKING, Any
@@ -29,6 +28,7 @@ from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
 
 from tests.doubles import required
+from tests.nicegui_harness import until
 from tests.test_tnupdate import _V2, LINK, _info, _live, _share
 
 pytestmark = pytest.mark.usefixtures("_runtime")
@@ -119,16 +119,6 @@ def _labels(user: User) -> list[str]:
     return [element.text for element in user.find(kind=ui.label).elements]
 
 
-async def _until(condition: Callable[[], object]) -> None:
-    """Wait, up to two seconds, for something the dialog does on a timer or off the event loop."""
-    for _ in range(40):
-        if condition():
-            return
-        await asyncio.sleep(0.05)
-    msg = "it did not happen"
-    raise AssertionError(msg)
-
-
 def _seed(*, seen: int = 1_600_000_000_000, latest: int = 0, baseline: bool = True) -> tnupdate.Link:
     """A link already made and accepted at an older version, as the dialog finds it on opening."""
     book = tnupdate.default_book()
@@ -198,7 +188,7 @@ async def test_linking_compares_the_share_with_your_copy_straight_away_and_makes
         box.set_value(LINK)
         _press(user, _only(user, "Link"))
 
-        await _until(lambda: _book().links and next(iter(_book().links.values())).seen_ms)
+        await until(lambda: _book().links and next(iter(_book().links.values())).seen_ms)
         await user.should_see("Linked.")
         link = _book().links[("Project", "Pack")]
         assert link.seen_ms == link.latest_ms == _built["published"], "taken to be at what is published now"
@@ -283,7 +273,7 @@ async def test_check_now_asks_even_so_and_says_when_everything_is_current() -> N
     async with _open() as user:
         _press(user, _only(user, "Check Now"))
 
-        await _until(lambda: user.notify.contains("Everything linked is up to date."))
+        await until(lambda: user.notify.contains("Everything linked is up to date."))
         assert _built["asked"] == ["Project:Pack"]
 
 
@@ -343,7 +333,7 @@ async def test_apply_takes_the_preview_on_screen_and_turns_its_button_green() ->
         _press(user, morning)
         _press(user, _only(user, "Apply"))
 
-        await _until(lambda: _built["rebuilt"] == 1)
+        await until(lambda: _built["rebuilt"] == 1)
         assert _live("all_tasks")["20"]["xml"].findtext("Action/Str") == "hello there"
         assert _live("all_tasks")["21"]["xml"].findtext("nme") == "Helper", "nothing else was touched"
         assert not _only(user, "Apply").enabled, "the preview is spent"
@@ -366,7 +356,7 @@ async def test_mark_as_up_to_date_moves_the_accepted_version_forward() -> None:
 
         _press(user, _only(user, "Mark As Up To Date"))
 
-        await _until(lambda: user.notify.contains("Marked as up to date."))
+        await until(lambda: user.notify.contains("Marked as up to date."))
         saved = _book().links[("Project", "Pack")]
         assert saved.seen_ms == _built["published"]
         assert saved.status == tnupdate.CURRENT
@@ -421,7 +411,7 @@ async def test_a_review_that_fails_says_why_even_though_its_own_button_was_redra
         await user.should_see("Newer version published")
         _press(user, _only(user, "Review"))
 
-        await _until(lambda: user.notify.contains("not valid Tasker XML"))
+        await until(lambda: user.notify.contains("not valid Tasker XML"))
         assert reached, "the notification was raised, and from a context that still exists"
         assert "not valid Tasker XML" in _book().links[("Project", "Pack")].problem
 
@@ -449,7 +439,7 @@ async def test_differences_that_are_not_the_authors_are_hidden_but_one_tick_away
 
         box.set_value(True)
 
-        await _until(lambda: _buttons(user, "Take this"))
+        await until(lambda: _buttons(user, "Take this"))
         assert len(_buttons(user, "Take this")) == 1
 
 
@@ -463,7 +453,7 @@ async def test_accept_latest_version_takes_everything_listed_in_one_press_and_mo
 
         _press(user, _only(user, "Accept Latest Version"))
 
-        await _until(lambda: _built["rebuilt"] == 1)
+        await until(lambda: _built["rebuilt"] == 1)
         assert _live("all_tasks")["20"]["xml"].findtext("Action/Str") == "hello there"
         assert _live("all_tasks")["22"]["xml"].findtext("Action/Str") == "anon v2"
         assert user.notify.contains("5 change(s) taken.")
@@ -479,7 +469,7 @@ async def test_accept_latest_version_is_one_undo() -> None:
     async with _open() as user:
         await _review_the_update(user)
         _press(user, _only(user, "Accept Latest Version"))
-        await _until(lambda: _built["rebuilt"] == 1)
+        await until(lambda: _built["rebuilt"] == 1)
 
         assert sessundo.undo(state=PrimeItems)[0]
 
@@ -506,7 +496,7 @@ async def test_accept_latest_version_with_nothing_to_take_just_marks_the_version
 
         _press(user, _only(user, "Accept Latest Version"))
 
-        await _until(lambda: user.notify.contains("Marked as up to date."))
+        await until(lambda: user.notify.contains("Marked as up to date."))
         assert _book().links[("Project", "Pack")].seen_ms == _built["published"]
 
 
@@ -534,7 +524,7 @@ async def test_check_now_says_it_is_asking_taskernet_and_takes_the_notice_down_w
 
         _press(user, _only(user, "Check Now"))
 
-        await _until(lambda: "down" in events)
+        await until(lambda: "down" in events)
         assert events == ["up: Asking TaskerNet.  Please stand by...", "down"]
         assert _built["asked"] == ["Project:Pack"]
 
@@ -575,7 +565,7 @@ async def test_find_links_links_what_agrees_and_shows_it_in_the_list_behind(monk
 
         _press(user, _only(user, "Scan"))
 
-        await _until(lambda: _book().links.get(("Project", "Pack")))
+        await until(lambda: _book().links.get(("Project", "Pack")))
         await user.should_see("Linked automatically")
         await user.should_see("found automatically")
         link = _book().links[("Project", "Pack")]
@@ -605,7 +595,7 @@ async def test_find_links_offers_a_possible_match_and_links_it_only_when_ticked(
         box.set_value(True)
         _press(user, _only(user, "Link Ticked"))
 
-        await _until(lambda: _book().links.get(("Project", "Pack")))
+        await until(lambda: _book().links.get(("Project", "Pack")))
         assert not _book().links[("Project", "Pack")].auto, "the user chose it"
 
 
@@ -666,7 +656,7 @@ async def test_closing_find_links_does_not_stop_the_scan_and_a_notification_says
 
         release.set()
 
-        await _until(lambda: user.notify.contains("TaskerNet scan finished: 1 linked"))
+        await until(lambda: user.notify.contains("TaskerNet scan finished: 1 linked"))
         assert _book().links[("Project", "Pack")].auto
         await user.should_see("found automatically")
 
@@ -684,7 +674,7 @@ async def test_opening_find_links_again_after_a_background_scan_shows_what_it_fo
         _press(user, _only(user, "Scan"))
         _press(user, _close_of_find_links(user))
         release.set()
-        await _until(lambda: user.notify.contains("TaskerNet scan finished"))
+        await until(lambda: user.notify.contains("TaskerNet scan finished"))
 
         _press(user, _only(user, "Find Links"))
 
@@ -711,7 +701,7 @@ async def test_opening_find_links_while_a_scan_runs_picks_it_up_and_does_not_sta
         assert scans == [], "no second scan can be started from the dialog that picked it up"
         assert len(stops) == 1, "but it can be stopped"
         release.set()
-        await _until(lambda: user.notify.contains("TaskerNet scan finished"))
+        await until(lambda: user.notify.contains("TaskerNet scan finished"))
         assert len(asked) == 1
 
 
@@ -727,7 +717,7 @@ async def test_a_stopped_background_scan_says_so_in_its_notification(monkeypatch
         _press(user, [b for b in _buttons(user, "Stop") if b.enabled][0])
         release.set()
 
-        await _until(lambda: user.notify.contains("TaskerNet scan finished"))
+        await until(lambda: user.notify.contains("TaskerNet scan finished"))
         assert required(required(guiwins_tnfind.current_job()).result).stopped
 
 
@@ -763,7 +753,7 @@ async def test_select_all_and_deselect_all_work_on_the_whole_checklist(monkeypat
         _press(user, _only(user, "Select All"))
         _press(user, _only(user, "Link Ticked"))
 
-        await _until(lambda: _book().links.get(("Project", "Pack")))
+        await until(lambda: _book().links.get(("Project", "Pack")))
         assert _book().links[("Project", "Pack")].link.endswith("Project%3APack"), "one object, one link"
 
 
@@ -788,12 +778,12 @@ async def test_stop_during_the_reading_still_gives_matches_and_says_the_list_was
         await user.should_see("No shares are linked yet.")
         _press(user, _only(user, "Find Links"))
         _press(user, _only(user, "Scan"))
-        await _until(lambda: pages)
+        await until(lambda: pages)
         _press(user, [b for b in _buttons(user, "Stop") if b.enabled][0])
 
         release.set()
 
-        await _until(lambda: user.notify.contains("TaskerNet scan finished: 1 linked"))
+        await until(lambda: user.notify.contains("TaskerNet scan finished: 1 linked"))
         await user.should_see("stopped while reading the list")
         assert _book().links[("Project", "Pack")].auto
         assert len(pages) == 1, "no further pages were read after Stop"

@@ -23,6 +23,7 @@ from maptasker.src.core import clock, console, maputils
 from maptasker.src.core.primitem import PrimeItems
 
 from tests.doubles import fake_state
+from tests.nicegui_harness import until
 from tests.test_mapswap import _FIXTURE_XML, _load
 
 
@@ -406,12 +407,7 @@ async def test_restarting_from_inside_the_event_loop_stops_the_server_on_another
     assert started["args"][0] == sys.executable
     assert threads and threads[0]["daemon"] is True
     # It was handed to a thread rather than called here, where it would deadlock the loop.
-    for _ in range(50):
-        if stopped:
-            break
-        import asyncio
-
-        await asyncio.sleep(0.02)
+    await until(lambda: stopped, what="the app being told to stop")
     assert stopped == [1]
 
 

@@ -10,7 +10,6 @@ which would act on more than the selection are switched off.
 
 from __future__ import annotations
 
-import asyncio
 import contextlib
 import copy
 import gc
@@ -28,7 +27,7 @@ from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
 
 from tests.doubles import fake_window, required, stand_in
-from tests.nicegui_harness import all_elements, child_text, idle
+from tests.nicegui_harness import all_elements, child_text, idle, until
 from tests.test_mapfind import _FIXTURE_XML, _load
 
 K = TypeVar("K", bound=ui.element)  # the kind of element a finder was asked for, and so what it hands back
@@ -577,7 +576,7 @@ async def test_a_dynamic_state_shows_its_value_box_and_keeps_what_was_typed_when
         picker = _widget(user, ui.select, "Enabled")
         dynamic = _after(user, ui.input, "Dynamic value", picker)
         picker.value = sceneedit_v2.V2_DYNAMIC_STATE
-        await asyncio.sleep(0.3)  # NiceGUI refreshes bindings on a timer
+        await until(lambda: dynamic.visible, what="the binding refreshing")  # NiceGUI refreshes bindings on a timer
         assert dynamic.visible
         dynamic.value = "%flag"
         picker.value = None

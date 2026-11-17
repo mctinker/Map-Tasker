@@ -10,7 +10,6 @@ whose own behaviour is tests/test_livevars.py's.
 
 from __future__ import annotations
 
-import asyncio
 import contextlib
 import types
 from typing import TYPE_CHECKING, Any, cast
@@ -24,7 +23,7 @@ from nicegui.testing.user import User
 from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
 
-from tests.nicegui_harness import idle
+from tests.nicegui_harness import idle, until
 from tests.shared_fixtures import _load_local
 from tests.test_mapvars import _XML
 
@@ -106,15 +105,6 @@ def _labels(user: User) -> list[str]:
 def _table(user: User) -> ui.table:
     (table,) = user.find(kind=ui.table).elements
     return table
-
-
-async def _until(condition: Callable[[], object]) -> None:
-    for _ in range(60):
-        if condition():
-            return
-        await asyncio.sleep(0.05)
-    msg = "it did not happen"
-    raise AssertionError(msg)
 
 
 # ##################################################################################
@@ -289,8 +279,8 @@ async def test_changing_a_value_previews_then_applies_and_the_table_follows(tmp_
         await user.should_see("ready to apply")
         assert _held("%Count") == "12", "a preview changes nothing"
         _press(user, _only(user, "Apply"))
-        await _until(lambda: _held("%Count") == "99")
-        await _until(lambda: next(r for r in _table(user).rows if r["name"] == "%Count")["value"] == "99")
+        await until(lambda: _held("%Count") == "99")
+        await until(lambda: next(r for r in _table(user).rows if r["name"] == "%Count")["value"] == "99")
 
 
 @pytest.mark.asyncio
@@ -326,7 +316,7 @@ async def test_deleting_previews_then_removes_the_entry(tmp_path: Path) -> None:
         await user.should_see("ready to apply")
         assert _held("%Spare") == "x"
         _press(user, _newest(user, "Delete"))
-        await _until(lambda: _held("%Spare") is None)
+        await until(lambda: _held("%Spare") is None)
 
 
 @pytest.mark.asyncio
@@ -344,8 +334,8 @@ async def test_renaming_previews_then_rewrites_every_use(tmp_path: Path) -> None
         _press(user, _only(user, "Preview"))
         await user.should_see("ready to apply")
         _press(user, _newest(user, "Rename"))
-        await _until(lambda: _held("%Phase") == "night")
-        await _until(lambda: any(r["name"] == "%Phase" for r in _table(user).rows))
+        await until(lambda: _held("%Phase") == "night")
+        await until(lambda: any(r["name"] == "%Phase" for r in _table(user).rows))
 
 
 # ##################################################################################
@@ -364,7 +354,7 @@ async def test_reading_from_the_phone_fills_its_column_and_says_which_differ(
         _press(user, _only(user, "Get From Phone"))
         await user.should_see("Reads the current value")
         _press(user, _only(user, "Get Values"))
-        await _until(lambda: next(r for r in _table(user).rows if r["name"] == "%Mode")["phone"])
+        await until(lambda: next(r for r in _table(user).rows if r["name"] == "%Mode")["phone"])
         by_name = {row["name"]: row for row in _table(user).rows}
 
     assert "evening" in by_name["%Mode"]["phone"]
@@ -410,8 +400,8 @@ async def test_pushing_sends_the_value_typed_for_the_chosen_variable_and_shows_w
         (box,) = [e for e in user.find(kind=ui.textarea).elements if e.label == "Value"]
         box.value = "dawn"
         _press(user, _only(user, "Send Value"))
-        await _until(lambda: sent)
-        await _until(lambda: "dawn" in next(r for r in _table(user).rows if r["name"] == "%Mode")["phone"])
+        await until(lambda: sent)
+        await until(lambda: "dawn" in next(r for r in _table(user).rows if r["name"] == "%Mode")["phone"])
 
     assert sent == [("192.168.0.210", "1821", "%Mode", "dawn")]
     assert _held("%Mode") == "night", "pushing changes the phone and not the file"
@@ -441,7 +431,7 @@ async def test_saving_asks_the_window_to_save(tmp_path: Path) -> None:
     async with _open() as user:
         await user.should_see("Variable Manager")
         _press(user, _only(user, "Save To Current File"))
-        await _until(lambda: _built["saved"] == 1)
+        await until(lambda: _built["saved"] == 1)
 
 
 @pytest.mark.asyncio
@@ -523,10 +513,10 @@ async def test_several_are_deleted_through_one_preview_and_one_undo(tmp_path: Pa
             "a preview changes nothing"
         )
         _press(user, _newest(user, "Delete"))
-        await _until(lambda: _held("%Spare") is None)
+        await until(lambda: _held("%Spare") is None)
         assert _held("%Flag") is None
         assert _held("%Json") is None
-        await _until(lambda: not {"%Spare", "%Flag", "%Json"} & {r["name"] for r in _table(user).rows})
+        await until(lambda: not {"%Spare", "%Flag", "%Json"} & {r["name"] for r in _table(user).rows})
         names = {r["name"] for r in _table(user).rows}
 
     assert "%Mode" in names
@@ -550,7 +540,7 @@ async def test_a_filter_then_select_all_shown_deletes_exactly_those(tmp_path: Pa
         _press(user, _only(user, "Preview"))
         await user.should_see("ready to apply")
         _press(user, _newest(user, "Delete"))
-        await _until(lambda: all(_held(name) is None for name in shown))
+        await until(lambda: all(_held(name) is None for name in shown))
 
     assert _held("%Mode") == "night"
 
@@ -577,8 +567,8 @@ async def test_ticked_variables_are_removed_from_the_phone_and_shown_as_gone_fro
         _press(user, _only(user, "Delete On Phone"))
         await user.should_see("Delete On Phone: 2 global variables")
         _press(user, _newest(user, "Delete On Phone"))
-        await _until(lambda: sorted(sent) == ["%Count", "%Mode"])
-        await _until(lambda: "%Mode" not in manager.live.values)
+        await until(lambda: sorted(sent) == ["%Count", "%Mode"])
+        await until(lambda: "%Mode" not in manager.live.values)
         by_name = {row["name"]: row for row in _table(user).rows}
 
     assert by_name["%Mode"]["phone"] == "not found on the phone"
@@ -622,7 +612,7 @@ async def test_nothing_is_sent_to_the_phone_until_the_dialogs_button_is_pressed(
         _tick(manager, "%Mode")
         _press(user, _only(user, "Delete On Phone"))
         await user.should_see("Delete On Phone: %Mode")
-        await asyncio.sleep(0.3)
+        await idle()
 
     assert sent == []
 
@@ -699,8 +689,8 @@ async def test_a_finding_is_fixed_through_a_preview_and_the_lists_follow(tmp_pat
         await user.should_see("ready to apply")
         assert _held("%mode") == "day", "a preview changes nothing"
         _press(user, _newest(user, "Fix"))
-        await _until(lambda: _held("%Mode") == "day")
-        await _until(lambda: "%mode" not in {row["name"] for row in fixer.shown_rows})
+        await until(lambda: _held("%Mode") == "day")
+        await until(lambda: "%mode" not in {row["name"] for row in fixer.shown_rows})
         names = {row.name for row in _built["manager"].rows}
 
     assert "%Mode" in names, "the Variable Manager behind it follows"

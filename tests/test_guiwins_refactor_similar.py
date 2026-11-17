@@ -8,7 +8,6 @@ The dialog is the real one, on a page of NiceGUI's in-process user simulation.
 
 from __future__ import annotations
 
-import asyncio
 import contextlib
 from typing import TYPE_CHECKING
 
@@ -20,6 +19,7 @@ from nicegui import core, ui
 from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
 
+from tests.nicegui_harness import idle, until
 from tests.test_maprefac import _load
 from tests.test_maprefac_similar import _FIXTURE_XML, _RUN, _codes, _configuration, _flash, _task
 
@@ -93,22 +93,13 @@ def _shown(user: User) -> list[str]:
     return [element.text for element in user.find(kind=ui.label).elements]
 
 
-async def _until(condition: Callable[[], object]) -> None:
-    for _ in range(60):
-        if condition():
-            return
-        await asyncio.sleep(0.05)
-    msg = "it did not happen"
-    raise AssertionError(msg)
-
-
 async def _near_duplicates(user: User) -> None:
     """Switch to the mode and press Find, the way a user would."""
     (toggle,) = [e for e in user.find(kind=ui.toggle).elements if "similar" in e.options]
     toggle.set_value("similar")
-    await asyncio.sleep(0)
+    await idle()
     UserInteraction(user, {_button(user, "Find")}, None).click()
-    await asyncio.sleep(0)
+    await idle()
 
 
 @pytest.mark.asyncio
@@ -116,7 +107,7 @@ async def test_nothing_is_offered_until_find_is_pressed() -> None:
     async with _open() as user:
         (toggle,) = [e for e in user.find(kind=ui.toggle).elements if "similar" in e.options]
         toggle.set_value("similar")
-        await asyncio.sleep(0)
+        await idle()
 
         assert not _select(user, "Shared actions").options
 
@@ -138,7 +129,7 @@ async def test_choosing_a_run_suggests_a_name_no_task_has() -> None:
         await _near_duplicates(user)
         key = next(iter(_select(user, "Shared actions").options))
         _select(user, "Shared actions").set_value(key)
-        await asyncio.sleep(0)
+        await idle()
 
         assert _name_box(user).value == "Evening - shared part"
 
@@ -148,14 +139,14 @@ async def test_a_run_previews_then_applies_looks_again_and_redraws_the_view() ->
     async with _open() as user:
         await _near_duplicates(user)
         _select(user, "Shared actions").set_value(next(iter(_select(user, "Shared actions").options)))
-        await asyncio.sleep(0)
+        await idle()
         UserInteraction(user, {_button(user, "Preview")}, None).click()
 
         assert _button(user, "Apply").enabled
         assert any(text.startswith("WHAT WILL HAPPEN") for text in _shown(user))
 
         UserInteraction(user, {_button(user, "Apply")}, None).click()
-        await _until(lambda: _redrawn)
+        await until(lambda: _redrawn)
 
         assert _codes("30") == ["548", "130", "548"]
         assert user.notify.contains("Undo is available")
@@ -167,9 +158,9 @@ async def test_a_name_that_is_taken_is_refused_and_leaves_apply_disabled() -> No
     async with _open() as user:
         await _near_duplicates(user)
         _select(user, "Shared actions").set_value(next(iter(_select(user, "Shared actions").options)))
-        await asyncio.sleep(0)
+        await idle()
         _name_box(user).set_value("Morning")
-        await asyncio.sleep(0)
+        await idle()
         UserInteraction(user, {_button(user, "Preview")}, None).click()
 
         assert any(text.startswith("CANNOT BE DONE") for text in _shown(user))
@@ -184,7 +175,7 @@ async def test_changing_the_smallest_run_forgets_what_was_found() -> None:
         assert _select(user, "Shared actions").options
 
         _select(user, "Fewest actions").set_value(5)
-        await asyncio.sleep(0)
+        await idle()
 
         assert not _select(user, "Shared actions").options
 
@@ -205,7 +196,7 @@ async def test_a_task_that_is_only_the_run_needs_no_name() -> None:
     async with _open() as user:
         await _near_duplicates(user)
         _select(user, "Shared actions").set_value(next(iter(_select(user, "Shared actions").options)))
-        await asyncio.sleep(0)
+        await idle()
 
         assert not _name_box(user).enabled
         assert any("made of nothing else" in text for text in _shown(user))

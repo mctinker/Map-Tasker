@@ -9,7 +9,6 @@ simulation, in a directory of its own so the ticks file is not left in the proje
 
 from __future__ import annotations
 
-import asyncio
 import contextlib
 from typing import TYPE_CHECKING, Any
 
@@ -105,7 +104,7 @@ async def test_every_group_is_drawn_with_how_many_of_it_are_done() -> None:
 async def test_ticking_a_box_counts_it_and_saves_it_at_once() -> None:
     async with _open() as user:
         _box(user, "Dawn").set_value(True)
-        await asyncio.sleep(0)
+        await idle()
 
         assert "Profiles to enable (1/1)" in _shown(user)
         assert "1/6 done" in _shown(user)
@@ -135,7 +134,7 @@ async def test_picking_no_phone_takes_the_flags_away() -> None:
     appinv.store_fetched_apps(PHONE, [appinv.AppEntry(pkg="com.example.music", label="", cls="")])
     async with _open() as user:
         _window().pick("")
-        await asyncio.sleep(0)
+        await idle()
 
         await user.should_not_see(kind=ui.badge)
 
@@ -163,7 +162,7 @@ async def test_hiding_values_hides_them_on_screen() -> None:
         assert "Value: s3cret" in _shown(user)
 
         _window().set_show_values(False)
-        await asyncio.sleep(0)
+        await idle()
 
         assert "Value: s3cret" not in _shown(user)
 
@@ -173,7 +172,7 @@ async def test_only_what_is_left_leaves_out_what_is_ticked() -> None:
     newphone.save_ticks(newphone.TickBook(keys={"profile:Dawn"}))
     async with _open() as user:
         _window().set_only_left(True)
-        await asyncio.sleep(0)
+        await idle()
 
         assert not [box for box in user.find(kind=ui.checkbox).elements if box.text.startswith("Dawn")]
         assert "Profiles to enable (1/1)" in _shown(user)
@@ -184,7 +183,7 @@ async def test_clear_ticks_starts_again_and_saves_that() -> None:
     newphone.save_ticks(newphone.TickBook(keys={"profile:Dawn"}))
     async with _open() as user:
         _press(user, "Clear ticks")
-        await asyncio.sleep(0)
+        await idle()
 
         assert "0/6 done" in _shown(user)
         assert newphone.load_ticks().keys == set()

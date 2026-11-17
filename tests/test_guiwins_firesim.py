@@ -8,7 +8,6 @@ in-process user simulation.
 
 from __future__ import annotations
 
-import asyncio
 import contextlib
 from typing import TYPE_CHECKING
 
@@ -18,8 +17,10 @@ from maptasker.src.gui import guiwins_firesim
 from nicegui import core, ui
 from nicegui.testing.user_simulation import user_simulation
 
+from tests.nicegui_harness import until
+
 if TYPE_CHECKING:
-    from collections.abc import AsyncIterator, Callable
+    from collections.abc import AsyncIterator
 
     from nicegui.testing.user import User
 
@@ -52,15 +53,6 @@ async def _open() -> AsyncIterator[User]:
             await core.app.stop()
 
 
-async def _until(condition: Callable[[], object]) -> None:
-    for _ in range(60):
-        if condition():
-            return
-        await asyncio.sleep(0.05)
-    msg = "it did not happen"
-    raise AssertionError(msg)
-
-
 def _labels(user: User) -> list[str]:
     return [element.text for element in user.find(kind=ui.label).elements]
 
@@ -78,7 +70,7 @@ async def _at_monday_ten(user: User) -> None:
     """Move the dialog to the moment test_firesim's fixture is described for: Monday 28 September 2026, 10:00."""
     _input(user, "Date").set_value("2026-09-28")
     _input(user, "Time").set_value("10:00")
-    await _until(lambda: _links(user, "Profile 'Work Hours'"))
+    await until(lambda: _links(user, "Profile 'Work Hours'"))
 
 
 def _links(user: User, text: str) -> list:
@@ -116,16 +108,16 @@ async def test_a_moment_that_makes_profiles_active_lists_them_and_where_they_col
 async def test_a_date_that_is_not_one_asks_for_a_date_and_time() -> None:
     async with _open() as user:
         _input(user, "Date").set_value("")
-        await _until(lambda: _summary(user) == "Choose a date and a time.")
+        await until(lambda: _summary(user) == "Choose a date and a time.")
 
 
 async def test_a_battery_level_off_the_scale_is_put_right() -> None:
     async with _open() as user:
         (battery,) = user.find(kind=ui.number).elements
         battery.set_value(250)
-        await _until(lambda: battery.value == 100)
+        await until(lambda: battery.value == 100)
         battery.set_value(-5)
-        await _until(lambda: battery.value == 0)
+        await until(lambda: battery.value == 0)
 
 
 async def test_a_low_battery_makes_the_low_battery_profile_active() -> None:
@@ -133,14 +125,14 @@ async def test_a_low_battery_makes_the_low_battery_profile_active() -> None:
         await _at_monday_ten(user)
         (battery,) = user.find(kind=ui.number).elements
         battery.set_value(10)
-        await _until(lambda: _links(user, "Profile 'Low Battery'"))
+        await until(lambda: _links(user, "Profile 'Low Battery'"))
 
 
 async def test_clicking_a_name_in_the_answer_jumps_to_it() -> None:
     async with _open() as user:
         await _at_monday_ten(user)
         user.find(kind=ui.link, content="Profile 'Work Hours'").click()
-        await _until(lambda: _built["jumps"])
+        await until(lambda: _built["jumps"])
         assert "Work Hours" in _built["jumps"][0]
 
 
@@ -148,7 +140,7 @@ async def test_a_task_in_the_run_order_can_be_walked_in_the_stepper() -> None:
     async with _open() as user:
         await _at_monday_ten(user)
         user.find(content="Step").click()
-        await _until(lambda: _built["steps"])
+        await until(lambda: _built["steps"])
         assert _built["steps"][0]
 
 
@@ -157,14 +149,14 @@ async def test_now_puts_the_date_and_time_back() -> None:
         date = _input(user, "Date")
         date.set_value("2001-01-01")
         user.find(content="Now").click()
-        await _until(lambda: date.value != "2001-01-01")
+        await until(lambda: date.value != "2001-01-01")
         assert len(date.value) == len("2026-09-28")
 
 
 async def test_close_closes_the_dialog() -> None:
     async with _open() as user:
         user.find(content="Close").click()
-        await _until(lambda: not _built["dialog"].value)
+        await until(lambda: not _built["dialog"].value)
 
 
 async def test_the_pickers_tell_a_skipped_input_from_one_with_nothing_in_it() -> None:

@@ -18,7 +18,6 @@ Two things every test here relies on:
 
 from __future__ import annotations
 
-import asyncio
 import contextlib
 import logging
 from collections.abc import AsyncIterator
@@ -38,6 +37,7 @@ from nicegui.testing.user_interaction import UserInteraction
 from nicegui.testing.user_simulation import user_simulation
 
 from tests.doubles import required
+from tests.nicegui_harness import until
 from tests.shared_fixtures import _built
 
 if TYPE_CHECKING:
@@ -91,11 +91,9 @@ def _click(user: User, element: ui.element) -> None:
 
 async def _wait_for_notification(user: User, message: str) -> None:
     """Wait for a message a short ui.timer puts up -- Reset Options rebuilds the window from one."""
-    for _ in range(40):
-        if user.notify.contains(message):
-            return
-        await asyncio.sleep(0.05)
-    raise AssertionError(f"no {message!r} among {user.notify.messages}")
+    await until(
+        lambda: user.notify.contains(message), what=f"the notice {message!r} (the others were {user.notify.messages})"
+    )
 
 
 def _no_errors_logged(caplog: pytest.LogCaptureFixture) -> None:
@@ -181,10 +179,7 @@ async def test_choosing_an_indentation_changes_it(caplog: pytest.LogCaptureFixtu
         assert gui.indent == 4
 
         gui.indent_option.set_value("7")
-        for _ in range(40):
-            if gui.indent == 7:
-                break
-            await asyncio.sleep(0.05)
+        await until(lambda: gui.indent == 7, what="the indentation changing")
 
         assert gui.indent == 7
     _no_errors_logged(caplog)
