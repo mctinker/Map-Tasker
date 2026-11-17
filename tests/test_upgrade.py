@@ -69,6 +69,27 @@ def test_leftover_stash_cleared_first(scripts_dir: Path) -> None:
     assert stashed.read_text() == "the running program"
 
 
+def test_locked_leftover_stash_does_not_block_the_move(scripts_dir: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """A leftover that cannot be deleted (still locked) must not stop the running script being moved aside."""
+    leftover = scripts_dir / f"maptasker.exe{maputils.STASHED_SCRIPT_SUFFIX}"
+    leftover.write_text("still locked")
+    real_unlink = Path.unlink
+
+    def locked(self: Path, *args: object, **kwargs: object) -> None:
+        if self == leftover:
+            raise PermissionError("in use")
+        real_unlink(self, *args, **kwargs)  # type: ignore[arg-type]
+
+    monkeypatch.setattr(Path, "unlink", locked)
+
+    moved = maputils.move_locked_scripts_aside()
+
+    assert len(moved) == 1
+    assert not (scripts_dir / "maptasker.exe").exists()
+    assert moved[0][1].read_text() == "the running program"
+    assert leftover.read_text() == "still locked"
+
+
 def test_missing_script_is_not_missed(scripts_dir: Path) -> None:
     """An environment without our console script has nothing in the installer's way."""
     (scripts_dir / "maptasker.exe").unlink()

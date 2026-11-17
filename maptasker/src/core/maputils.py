@@ -102,6 +102,25 @@ CONSOLE_SCRIPTS = ("maptasker.exe",)
 STASHED_SCRIPT_SUFFIX = ".mtold"
 
 
+def _free_stash_name(script: Path) -> Path:
+    """A name beside `script` that nothing is using, for the running copy to be renamed to.
+
+    Leftovers from earlier upgrades are cleared away first.  One that is still locked -- the
+    process that made it can take a moment to exit after a restart -- cannot be, and Windows
+    will not rename onto an existing file, so that would silently leave the installer
+    fighting the running program.  A numbered name sidesteps it.
+    """
+    for leftover in script.parent.glob(f"{script.name}{STASHED_SCRIPT_SUFFIX}*"):
+        with contextlib.suppress(OSError):
+            leftover.unlink()
+    candidate = script.with_name(f"{script.name}{STASHED_SCRIPT_SUFFIX}")
+    number = 0
+    while candidate.exists():
+        number += 1
+        candidate = script.with_name(f"{script.name}{STASHED_SCRIPT_SUFFIX}{number}")
+    return candidate
+
+
 def move_locked_scripts_aside() -> list[tuple[Path, Path]]:
     """Rename our console scripts so the installer has a free name to write them to.
 
@@ -126,15 +145,12 @@ def move_locked_scripts_aside() -> list[tuple[Path, Path]]:
         script = script_dir / name
         if not script.is_file():
             continue
-        stashed = script.with_name(f"{name}{STASHED_SCRIPT_SUFFIX}")
-        # Left over from an earlier upgrade: by now nothing is running from it.
-        with contextlib.suppress(OSError):
-            stashed.unlink(missing_ok=True)
+        stashed = _free_stash_name(script)
         try:
             script.rename(stashed)
         except OSError as e:
             # Out of our hands: let the installer run and report whatever it hits.
-            logger.debug(f"Unable to move {script} aside before upgrading: {e}")
+            logger.warning(f"Unable to move {script} aside before upgrading: {e}")
             continue
         moved.append((script, stashed))
     return moved
