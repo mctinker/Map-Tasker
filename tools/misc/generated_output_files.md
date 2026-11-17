@@ -38,6 +38,7 @@ One per command that saves its results.  Each is stamped with the date and time 
 | `MapTasker_Fix_date_time.txt` | Output folder | 'Fix Findings' | What the repairs changed.  Kept apart from the Health Check report because that one says what is wrong and this one says what was done about it. |
 | `MapTasker_Flowchart_date_time.txt` | Output folder | 'Task Flow' | The flowchart drawn for a single Task. |
 | `MapTasker_HealthCheck_date_time.txt` | Output folder | 'Health Check' | What the check found wrong with the configuration. |
+| `MapTasker_Inbound_date_time.txt` | Current folder | -- | The inventory of everything that can start a Task from outside -- see inbound.py. |
 | `MapTasker_Monitor.txt` | Output folder | 'Live Run Monitor' > Save Log | What the Live Run Monitor saw on the device: each Profile that became active or inactive and each Task that started or finished, with the time to the millisecond. |
 | `MapTasker_NewPhone_Checklist_date_time.txt` | Output folder | 'New-Phone Checklist' > Save Report | What is left to set up on a new phone after restoring the backup -- plugins and apps to install, special access to grant, global variables to enter and Profiles to enable -- with what has been ticked off. |
 | `MapTasker_Notes.json` | Current folder | -- | The user's own notes and tags on Projects, Profiles and Tasks -- see objnotes.py.  Kept in the current directory, beside the settings and the Task tests, and never in the backup, so that Tasker never sees them. |

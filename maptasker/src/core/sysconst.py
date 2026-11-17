@@ -79,6 +79,8 @@ TASKFLOW_FILE = "MapTasker_TaskFlow.txt"
 FLOWCHART_FILE = "MapTasker_Flowchart.txt"
 # The inventory of everything the configuration reaches outside itself with -- see outbound.py.
 OUTBOUND_FILE = "MapTasker_Outbound.txt"
+# The inventory of everything that can start a Task from outside -- see inbound.py.
+INBOUND_FILE = "MapTasker_Inbound.txt"
 # What keeps the phone busy, Project by Project -- see batteryaudit.py.
 BATTERY_FILE = "MapTasker_Battery.txt"
 # Older versions pickled a second settings file here, apart from MapTasker_Settings.toml.  It

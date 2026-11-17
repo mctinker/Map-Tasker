@@ -113,6 +113,7 @@ tests/test_healthck.py
 tests/test_icon_spans.py
 tests/test_impact.py
 tests/test_import_structure.py
+tests/test_inbound.py
 tests/test_initparg.py
 tests/test_launcher_task.py
 tests/test_livevars.py

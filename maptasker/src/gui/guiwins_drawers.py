@@ -725,7 +725,7 @@ def _create_variable_manager_button(self: MyGui) -> None:
 
 
 def _create_analysis_buttons_section(self: MyGui) -> None:
-    """The reports that read the configuration: Variable Xref, Variable Manager, Task Flow, Outbound Inventory, Battery Audit and Notes & Tags."""
+    """The reports that read the configuration: Variable Xref, Variable Manager, Task Flow, Outbound Inventory, Inbound Inventory, Battery Audit and Notes & Tags."""
     # Full width and coloured through "color" for the same two reasons the two buttons
     # above are: the drawer is w-80 and this label will not fit beside another, and
     # Quasar's own bg-primary beats a Tailwind bg-* class added here.
@@ -798,6 +798,7 @@ def _create_analysis_buttons_section(self: MyGui) -> None:
         ).style("white-space: pre-wrap")
 
     _create_outbound_button(self)
+    _create_inbound_button(self)
     _create_battery_button(self)
     _create_notes_button(self)
     _create_project_dependencies_button(self)
@@ -921,6 +922,32 @@ def _create_notes_button(self: MyGui) -> None:
                 "under each object in the Map, and in the Diagram, where a tag can be followed from the toolbar.  "
                 "They are kept in a file of their own beside MapTasker's settings and never in the backup, so "
                 "Tasker never sees them.",
+            ),
+        ).style("white-space: pre-wrap")
+
+
+def _create_inbound_button(self: MyGui) -> None:
+    """Inbound Inventory, the mirror of the Outbound one: what can start a Task from outside, and who is checked?"""
+    inbound_button = (
+        ui.button(
+            translate_string("Inbound Inventory"),
+            color="teal",
+            on_click=self.event_handlers.reports.inbound_event,
+            icon="login",
+        )
+        .classes("w-full justify-center")
+        .style("margin-top:-6px")
+    )
+    with inbound_button:
+        ui.tooltip(
+            translate_string(
+                "List everything that can start your Tasks from outside, Project by Project: Tasker's own web "
+                "server (the HTTP Request event), Intents, Commands, shares, text messages and plugin "
+                "messages.\n\nEach one says who can send it, which Tasks it starts, and whether anything checks "
+                "who the sender is: the event only accepts some senders, an If in the Task looks at what was "
+                "sent, or nothing does.  The ones with nothing in the way that start a shell or root command, "
+                "send a message or place a call come first.\n\nResults are displayed here and saved to a text "
+                "file in the Output Folder.",
             ),
         ).style("white-space: pre-wrap")
 

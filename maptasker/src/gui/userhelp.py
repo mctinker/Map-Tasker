@@ -426,6 +426,23 @@ TASKTESTS_HELP_TEXT = (
     " reads a global variable uses the value the backup holds, so it also notices when that moves.  Nothing is run on"
     " your phone.  \n"
 )
+INBOUND_HELP_TEXT = (
+    "- Inbound Inventory: The mirror of the Outbound Inventory: One report of everything that can start the loaded"
+    " configuration's Tasks from outside, Project by Project.  It lists every Profile that waits for a web request"
+    " to Tasker's own server (the HTTP Request event), an Intent, a Command, something shared to Tasker, a text"
+    " message, a remote action, or a message from a plugin such as AutoApps, Join or AutoShare, and says who can"
+    " send each one and which Tasks it starts, including the Tasks those perform.  For each it says whether anything"
+    " checks who sent it: FILTERED when the event itself only accepts some senders, such as a Received Text from"
+    " one number or a Received Share from one app; CHECKED when an If in the Task looks at something the sender"
+    " supplied, such as a header, a body or a command's parameter; or OPEN when neither does, so whoever can send it"
+    " runs it.  It opens with a count of each kind and the triggers worth a look -- an open web server, which says"
+    " whether it answers the Wi-Fi network or any network, and any open trigger whose Task runs a shell or root"
+    " command, sends a message or places a call -- then the full list by Project and Profile.  Click any line to see"
+    " it in the Map view.  A broadcast that only the Android system sends is listed and not counted, and a Profile"
+    " that is turned off is listed and not counted.  The report also says whether Tasker's Allow External Access"
+    " setting is on, since that lets any app run your Tasks by name.  CHECKED does not mean the check is a good one:"
+    " read it.  Nothing is contacted and nothing on your phone is changed.  \n"
+)
 OUTBOUND_HELP_TEXT = (
     "- Outbound Inventory: One report of everything the loaded configuration reaches outside the phone with, Project by"
     " Project.  It lists every Task action that sends a web request or downloads (HTTP Request, Get, Post, Head, Browse"
@@ -561,5 +578,5 @@ def build_help(translate: Callable[[str], str] | None = None) -> str:
     lookup: Callable[[str], str] = translate or (lambda text: text)
     return (
         f"MapTasker {VERSION} {lookup(HELP_HEADING)}  \n{lookup(COMMAND_REFERENCE_TEXT)}{lookup(INFO_TEXT)}"
-        f"{lookup(OUTPUT_FOLDER_HELP_TEXT)}{lookup(TASKERNET_UPDATES_HELP_TEXT)}{lookup(TASKSTEP_HELP_TEXT)}{lookup(TREND_HELP_TEXT)}{lookup(VARIABLE_HELP_TEXT)}{lookup(SIMILAR_HELP_TEXT)}{lookup(SPLIT_HELP_TEXT)}{lookup(RESOURCES_HELP_TEXT)}{lookup(MONITOR_HELP_TEXT)}{lookup(PREBUILD_HELP_TEXT)}{lookup(CARRY_HELP_TEXT)}{lookup(TASKTESTS_HELP_TEXT)}{lookup(OUTBOUND_HELP_TEXT)}{lookup(TNDESC_HELP_TEXT)}{lookup(LAUNCHER_HELP_TEXT)}{lookup(DESCRIBE_HELP_TEXT)}{lookup(BATTERY_HELP_TEXT)}{lookup(VARMAN_HELP_TEXT)}{lookup(NOTES_HELP_TEXT)}{lookup(PROJDEPS_HELP_TEXT)}{lookup(COMPAT_HELP_TEXT)}{lookup(NEWPHONE_HELP_TEXT)}{lookup(RETIRE_HELP_TEXT)}"
+        f"{lookup(OUTPUT_FOLDER_HELP_TEXT)}{lookup(TASKERNET_UPDATES_HELP_TEXT)}{lookup(TASKSTEP_HELP_TEXT)}{lookup(TREND_HELP_TEXT)}{lookup(VARIABLE_HELP_TEXT)}{lookup(SIMILAR_HELP_TEXT)}{lookup(SPLIT_HELP_TEXT)}{lookup(RESOURCES_HELP_TEXT)}{lookup(MONITOR_HELP_TEXT)}{lookup(PREBUILD_HELP_TEXT)}{lookup(CARRY_HELP_TEXT)}{lookup(TASKTESTS_HELP_TEXT)}{lookup(OUTBOUND_HELP_TEXT)}{lookup(INBOUND_HELP_TEXT)}{lookup(TNDESC_HELP_TEXT)}{lookup(LAUNCHER_HELP_TEXT)}{lookup(DESCRIBE_HELP_TEXT)}{lookup(BATTERY_HELP_TEXT)}{lookup(VARMAN_HELP_TEXT)}{lookup(NOTES_HELP_TEXT)}{lookup(PROJDEPS_HELP_TEXT)}{lookup(COMPAT_HELP_TEXT)}{lookup(NEWPHONE_HELP_TEXT)}{lookup(RETIRE_HELP_TEXT)}"
     )

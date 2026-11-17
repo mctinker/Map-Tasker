@@ -391,6 +391,58 @@ def test_an_outbound_report_that_could_not_be_written_says_so(
 
 
 # ##################################################################################
+# Inbound Inventory
+# ##################################################################################
+def test_inbound_with_nothing_loaded_asks_for_a_file(seen: SimpleNamespace) -> None:
+    handlers = _handlers(loaded=False)
+
+    handlers.reports.inbound_event()
+
+    assert "No XML file has been loaded" in _said(handlers)[0][0]
+    assert seen.views == []
+
+
+@pytest.mark.parametrize(
+    ("counts", "told"),
+    [
+        (
+            {"total": 0, "flagged": 0},
+            ("Inbound Inventory found nothing that can start a Task from outside.", "positive"),
+        ),
+        ({"total": 4, "flagged": 0}, ("Click a trigger to see it in the Map view.", "info")),
+        (
+            {"total": 4, "flagged": 2},
+            ("Some triggers are worth a look.  Click one to see it in the Map view.", "warning"),
+        ),
+    ],
+)
+def test_inbound_saves_shows_and_says_how_it_went(
+    seen: SimpleNamespace, monkeypatch: pytest.MonkeyPatch, counts: dict[str, int], told: tuple
+) -> None:
+    monkeypatch.setattr(userintr_reports, "run_inbound_inventory", lambda state: ([SimpleNamespace()], counts))
+    monkeypatch.setattr(userintr_reports, "write_inbound_report", lambda rows, state: seen.saved_as)
+    handlers = _handlers()
+
+    handlers.reports.inbound_event()
+
+    assert _said(handlers) == [("Inbound Inventory saved as /out/report.txt", "Green")]
+    assert seen.views == [("Misc View", "<html 1 rows>")]
+    assert seen.notified == [told]
+
+
+def test_an_inbound_report_that_could_not_be_written_says_so(
+    seen: SimpleNamespace, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(userintr_reports, "run_inbound_inventory", lambda state: ([], {"total": 0, "flagged": 0}))
+    monkeypatch.setattr(userintr_reports, "write_inbound_report", lambda rows, state: "")
+    handlers = _handlers()
+
+    handlers.reports.inbound_event()
+
+    assert _said(handlers) == [("Inbound Inventory report could not be saved.", "Red")]
+
+
+# ##################################################################################
 # Battery Audit
 # ##################################################################################
 def test_battery_with_nothing_loaded_asks_for_a_file(seen: SimpleNamespace) -> None:

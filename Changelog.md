@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file!
 
 ### Added
 
+- Added: __Inbound Inventory__ is the mirror of the Outbound Inventory: it lists, Project by Project, everything that can start your Tasks from outside -- Tasker's own web server (the HTTP Request event), Intents, Commands, shares, text messages and plugin messages -- with the Tasks each one starts. For each it says whether anything checks who sent it (the event only accepts some senders, an If in the Task looks at what was sent, or nothing does), and puts the open ones that can run a shell or root command, send a message or place a call first.
+
 ### Changed
 
 ### Removed

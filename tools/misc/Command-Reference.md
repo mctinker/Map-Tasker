@@ -4,7 +4,7 @@ MapTasker displays your Android Tasker configuration based on your uploaded Task
 
 Once the XML file is loaded, you can optionally edit your Projects, Profiles, Tasks, and Scenes.
 
-This page describes each of the **97** commands, options and tabs in MapTasker's Help screen, in the same order, with more detail on each and the caveats that go with it.
+This page describes each of the **98** commands, options and tabs in MapTasker's Help screen, in the same order, with more detail on each and the caveats that go with it.
 
 _Generated from the MapTasker 16.0.2 source by `build_command_wiki.py`._ _Do not edit this page by hand -- rerun that program instead._
 
@@ -52,6 +52,7 @@ _Generated from the MapTasker 16.0.2 source by `build_command_wiki.py`._ _Do not
 * [Health Check](#cmd-health-check)
 * [Hide Task Details under Twisty](#cmd-hide-task-details-under-twisty)
 * [Import With Dependencies](#cmd-import-with-dependencies)
+* [Inbound Inventory](#cmd-inbound-inventory)
 * [Indentation](#cmd-indentation)
 * [Just Display Everything](#cmd-just-display-everything)
 * [Language](#cmd-language)
@@ -1354,6 +1355,25 @@ One report of everything the loaded configuration reaches outside the phone with
 
 * It opens with a count of each kind and the actions worth a look -- a command run as root, a request over plain http to somewhere that is not your own network, an address built from a variable, an action carrying a key or password -- then every host contacted and how many places use it, then the full list by Project and Task.
 * Keys and passwords found in an address or command are replaced by a placeholder in the report, so it is safer to share than the backup, but a secret with no recognizable shape is not found.
+
+<a id="cmd-inbound-inventory"></a>
+### Inbound Inventory
+
+**Type:** Command  
+**Where:** Right Drawer
+
+The mirror of the Outbound Inventory: One report of everything that can start the loaded configuration's Tasks from outside, Project by Project.
+
+* It lists every Profile that waits for a web request to Tasker's own server (the HTTP Request event), an Intent, a Command, something shared to Tasker, a text message, a remote action, or a message from a plugin such as AutoApps, Join or AutoShare, and says who can send each one and which Tasks it starts, including the Tasks those perform.
+* For each it says whether anything checks who sent it: FILTERED when the event itself only accepts some senders, such as a Received Text from one number or a Received Share from one app; CHECKED when an If in the Task looks at something the sender supplied, such as a header, a body or a command's parameter; or OPEN when neither does, so whoever can send it runs it.
+* It opens with a count of each kind and the triggers worth a look -- an open web server, which says whether it answers the Wi-Fi network or any network, and any open trigger whose Task runs a shell or root command, sends a message or places a call -- then the full list by Project and Profile.
+* Click any line to see it in the Map view.
+* A broadcast that only the Android system sends is listed and not counted, and a Profile that is turned off is listed and not counted.
+* The report also says whether Tasker's Allow External Access setting is on, since that lets any app run your Tasks by name.
+* CHECKED does not mean the check is a good one: read it.
+* Nothing is contacted and nothing on your phone is changed.
+
+**Hover text:** List everything that can start your Tasks from outside, Project by Project: Tasker's own web server (the HTTP Request event), Intents, Commands, shares, text messages and plugin messages. Each one says who can send it, which Tasks it starts, and whether anything checks who the sender is: the event only accepts some senders, an If in the Task looks at what was sent, or nothing does. The ones with nothing in the way that start a shell or root command, send a message or place a call come first. Results are displayed here and saved to a text file in the Output Folder.
 
 <a id="cmd-taskernet-description"></a>
 ### TaskerNet Description

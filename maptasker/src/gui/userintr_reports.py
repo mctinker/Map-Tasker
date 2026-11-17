@@ -1,4 +1,4 @@
-"""Report event handlers: the Health Check, Variable Cross-Reference, Task Flow, Outbound Inventory, Compare and Changes Since reports.
+"""Report event handlers: the Health Check, Variable Cross-Reference, Task Flow, Outbound Inventory, Inbound Inventory, Compare and Changes Since reports.
 
 Split out of userintr.py the same way the other userintr_* modules were.  ReportEventHandlers is a
 group of MapTaskerEventHandlers (gui.event_handlers.reports) that holds every name the report
@@ -29,6 +29,7 @@ from maptasker.src.analysis.diffload import (
     write_comparison_report,
 )
 from maptasker.src.analysis.healthck import ERROR, WARNING, run_health_check, write_health_check_report
+from maptasker.src.analysis.inbound import run_inbound_inventory, write_inbound_report
 from maptasker.src.analysis.outbound import run_outbound_inventory, write_outbound_report
 from maptasker.src.analysis.taskflow import run_task_flow_check, write_task_flow_report
 from maptasker.src.analysis.xmldiff import compare
@@ -388,6 +389,52 @@ class ReportEventHandlers(HandlerGroup):
         else:
             ui.notify(
                 translate_string("Click an action to see it in the Map view."),
+                type="info",
+                position="bottom",
+            )
+
+    def inbound_event(self) -> None:
+        """Read every Profile for what can start a Task from outside, then display the inventory and save it.
+
+        No panel first, for outbound_event's reason: the question is always the same -- what can reach in and
+        start something here, and does anything check who sent it -- and the answer is short enough to read whole.
+        """
+        gui = self.gui
+        if not self.state.tasker_root_elements["all_profiles"] and not self.state.tasker_root_elements["all_tasks"]:
+            gui.display_message_box(
+                translate_string("No XML file has been loaded.  Get an XML file first."),
+                "Red",
+            )
+            return
+
+        rows, counts = run_inbound_inventory(state=self.state)
+        file_name = write_inbound_report(rows, self.state)
+
+        if file_name:
+            gui.display_message_box(f"{translate_string('Inbound Inventory saved as')} {file_name}", "Green")
+        else:
+            gui.display_message_box(translate_string("Inbound Inventory report could not be saved."), "Red")
+
+        # The same rows, shown as HTML: see health_check_event for the escaping and the clickable lines.
+        self.gui.textview = NiceGuiTextView(
+            gui,
+            title="Misc View",
+            the_data=mapjump.html_report(rows),
+        )
+
+        if not counts["total"]:
+            ui.notify(
+                translate_string("Inbound Inventory found nothing that can start a Task from outside."), type="positive"
+            )
+        elif counts["flagged"]:
+            ui.notify(
+                translate_string("Some triggers are worth a look.  Click one to see it in the Map view."),
+                type="warning",
+                position="bottom",
+            )
+        else:
+            ui.notify(
+                translate_string("Click a trigger to see it in the Map view."),
                 type="info",
                 position="bottom",
             )
