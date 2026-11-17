@@ -286,6 +286,8 @@ def test_the_version_is_shown_and_the_run_ends(state: RunState, monkeypatch: pyt
     said: list[str] = []
     monkeypatch.setattr(console, "say", said.append)
     monkeypatch.setattr(runcli, "clip_figure", lambda *_: said.append("figure"))
+    # A terminal that can draw the banner: the animation is only for one (see test_version_display for the rest).
+    monkeypatch.setattr(runcli.sys, "stdout", type("Tty", (), {"encoding": "utf-8", "isatty": lambda self: True})())
 
     with pytest.raises(MapTaskerError) as raised:
         runcli.process_extended_arguments(_args(v=True), state=state)
@@ -558,6 +560,27 @@ def test_the_diagram_flag_is_kept_across_the_re_initialization(state: RunState, 
     runcli.process_cli(state)
 
     assert state.program_arguments.doing_diagram is True
+
+
+def test_a_view_flag_saved_in_the_settings_does_not_stop_the_command_line_being_read(
+    state: RunState, cli: SimpleNamespace, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """'maptasker -v' said nothing at all once the settings had been saved while a Map view was up."""
+
+    def restore(state: RunState) -> None:
+        state.program_arguments.guiview = True
+        state.program_arguments.doing_diagram = True
+        cli.restored += 1
+
+    monkeypatch.setattr(runcli, "restore_arguments", restore)
+    cli.parsed = _args(v=True)
+    state.program_arguments.guiview = False
+
+    runcli.process_cli(state)
+
+    assert (cli.gui, cli.arguments, cli.validated, cli.restored) == (0, 1, 1, 1)
+    assert state.program_arguments.guiview is False
+    assert state.program_arguments.doing_diagram is False
 
 
 def test_a_view_limit_on_the_command_line_is_remembered_before_the_settings_replace_the_arguments(

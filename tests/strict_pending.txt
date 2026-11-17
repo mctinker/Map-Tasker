@@ -204,6 +204,7 @@ tests/test_userintr_reports_handlers.py
 tests/test_userintr_settings.py
 tests/test_userintr_views.py
 tests/test_version_check.py
+tests/test_version_display.py
 tests/test_xmldata_encoding.py
 tests/test_xmldiff.py
 tools/device_check.py

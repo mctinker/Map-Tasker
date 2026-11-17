@@ -15,6 +15,8 @@ All notable changes to this project will be documented in this file!
 
 ### Fixed
 
+- Fixed: `maptasker -v` (and every other command-line option) did nothing at all if your settings had last been saved while a Map or Diagram view was on screen, which left a flag set that made MapTasker think a window was waiting for it. It now prints the version, and also leaves out the banner where the console cannot display it, such as a Windows console in a legacy code page, and when the output is piped.
+
 
 ### Known Issues
 
