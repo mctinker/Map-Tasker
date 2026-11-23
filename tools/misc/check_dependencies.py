@@ -1,6 +1,11 @@
 #! /usr/bin/env python3
-"""Check andf Update Dependencies for the Project."""
+"""Check and Update Dependencies for the Project.
 
+python tools/misc/check_dependencies.py                 check, write the output files and update pyproject.toml
+python tools/misc/check_dependencies.py --list-only     only check and list the dependencies with a newer release
+"""
+
+import argparse
 import re
 import tomllib
 from pathlib import Path
@@ -147,8 +152,17 @@ def needs_update(
     return False
 
 
-def check_dependency_updates(dependencies: list, output_file: str, req_file: str) -> None:
+def check_dependency_updates(
+    dependencies: list, output_file: str, req_file: str, *, list_only: bool = False
+) -> list[str]:
+    """
+    Compare each dependency with PyPI's latest release, and return the names of those with a newer one.
+
+    With list_only, that is all it does: the updates are listed and nothing is written -- not the
+    output file, not requirements.txt, and not pyproject.toml.
+    """
     updated_dependencies = []
+    outdated: list[str] = []
     changes: dict[str, str] = {}  # dependency as declared -> its new version, for pyproject.toml
 
     for dep in dependencies:
@@ -179,6 +193,7 @@ def check_dependency_updates(dependencies: list, output_file: str, req_file: str
                     f"Update available for {package_name}: "
                     f"Current version {full_constraint}, latest {latest_version_str}",
                 )
+                outdated.append(package_name)
 
                 if full_constraint and "," in full_constraint:
                     # Multi-range dependency – preserve format
@@ -194,6 +209,14 @@ def check_dependency_updates(dependencies: list, output_file: str, req_file: str
         except Exception as e:
             print(f"Error checking {package_name}: {e}")
             updated_dependencies.append(dep)
+
+    if list_only:
+        print(
+            f"\n{len(outdated)} dependenc{'y has' if len(outdated) == 1 else 'ies have'} a newer release."
+            if outdated
+            else "\nEvery dependency is up to date."
+        )
+        return outdated
 
     #
     # WRITE PYTHON FILE (updated_dependencies.py)
@@ -220,6 +243,7 @@ def check_dependency_updates(dependencies: list, output_file: str, req_file: str
     # UPDATE pyproject.toml, the one place the dependencies are declared
     #
     update_pyproject(changes)
+    return outdated
 
 
 # === The dependency list ===
@@ -243,6 +267,20 @@ def read_dependencies() -> list[str]:
     return sorted(d for d in stripped if not own_name.match(d))
 
 
+def main(argv: list[str] | None = None) -> None:
+    """Check the dependencies, and either list the updates (--list-only) or also apply them."""
+    parser = argparse.ArgumentParser(description="Check the project's dependencies against PyPI.")
+    parser.add_argument(
+        "--list-only",
+        action="store_true",
+        help="only check for and list the dependencies with a newer release; write no files and change nothing",
+    )
+    args = parser.parse_args(argv)
+    # Run & create output files, and apply the updates to pyproject.toml (unless --list-only)
+    check_dependency_updates(
+        read_dependencies(), "updated_dependencies.py", "requirements.txt", list_only=args.list_only
+    )
+
+
 if __name__ == "__main__":
-    # Run & create output files, and apply the updates to pyproject.toml
-    check_dependency_updates(read_dependencies(), "updated_dependencies.py", "requirements.txt")
+    main()
