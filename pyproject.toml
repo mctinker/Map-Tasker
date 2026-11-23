@@ -642,6 +642,7 @@ strict = [
     "maptasker/src/core/tndesc.py",
     "maptasker/src/core/translator.py",
     "maptasker/src/core/valcodes.py",
+    "maptasker/src/core/versiondisplay.py",
     "maptasker/src/core/xmldata.py",
     "maptasker/src/device/__init__.py",
     "maptasker/src/device/devicecheck.py",

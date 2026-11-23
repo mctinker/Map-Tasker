@@ -11,7 +11,7 @@ from __future__ import annotations
 import io
 
 import pytest
-from maptasker.src import runcli
+from maptasker.src.core import versiondisplay
 from maptasker.src.core.mtexcept import MapTaskerError
 from maptasker.src.core.sysconst import MY_VERSION
 
@@ -34,14 +34,14 @@ class Terminal(io.TextIOWrapper):
 def animated(monkeypatch: pytest.MonkeyPatch) -> list[str]:
     """The animation replaced by a note that it ran."""
     ran: list[str] = []
-    monkeypatch.setattr(runcli, "clip_figure", lambda figure, colored: ran.append(figure))
+    monkeypatch.setattr(versiondisplay, "clip_figure", lambda figure, colored: ran.append(figure))
     return ran
 
 
 def ask(monkeypatch: pytest.MonkeyPatch, terminal: Terminal) -> str:
-    monkeypatch.setattr(runcli.sys, "stdout", terminal)
+    monkeypatch.setattr(versiondisplay.sys, "stdout", terminal)
     with pytest.raises(MapTaskerError) as ended:
-        runcli.display_version()
+        versiondisplay.display_version()
     assert ended.value.exit_code == 0
     return terminal.said()
 
@@ -80,9 +80,9 @@ def test_an_encoding_python_does_not_know_is_treated_as_one_that_cannot_draw(mon
     class Odd:
         encoding = "not-a-real-codec"
 
-    monkeypatch.setattr(runcli.sys, "stdout", Odd())
+    monkeypatch.setattr(versiondisplay.sys, "stdout", Odd())
 
-    assert runcli._stream_can_show_the_banner() is False
+    assert versiondisplay.stream_can_show_the_banner() is False
 
 
 class _Kernel32:
@@ -105,15 +105,15 @@ class _Kernel32:
 
 
 def _windows_with(monkeypatch: pytest.MonkeyPatch, kernel: _Kernel32) -> None:
-    monkeypatch.setattr(runcli.sys, "platform", "win32")
-    monkeypatch.setattr(runcli.ctypes, "windll", type("W", (), {"kernel32": kernel}), raising=False)
+    monkeypatch.setattr(versiondisplay.sys, "platform", "win32")
+    monkeypatch.setattr(versiondisplay.ctypes, "windll", type("W", (), {"kernel32": kernel}), raising=False)
 
 
 def test_colour_handling_is_switched_on_for_a_windows_console(monkeypatch: pytest.MonkeyPatch) -> None:
     kernel = _Kernel32(console=True)
     _windows_with(monkeypatch, kernel)
 
-    runcli._enable_ansi_on_windows()
+    versiondisplay.enable_ansi_on_windows()
 
     assert kernel.set_to == 3 | 0x0004
 
@@ -122,7 +122,7 @@ def test_a_windows_pipe_is_left_alone(monkeypatch: pytest.MonkeyPatch) -> None:
     kernel = _Kernel32(console=False)
     _windows_with(monkeypatch, kernel)
 
-    runcli._enable_ansi_on_windows()
+    versiondisplay.enable_ansi_on_windows()
 
     assert kernel.set_to is None
 
@@ -130,8 +130,8 @@ def test_a_windows_pipe_is_left_alone(monkeypatch: pytest.MonkeyPatch) -> None:
 def test_nothing_is_done_off_windows(monkeypatch: pytest.MonkeyPatch) -> None:
     kernel = _Kernel32(console=True)
     _windows_with(monkeypatch, kernel)
-    monkeypatch.setattr(runcli.sys, "platform", "darwin")
+    monkeypatch.setattr(versiondisplay.sys, "platform", "darwin")
 
-    runcli._enable_ansi_on_windows()
+    versiondisplay.enable_ansi_on_windows()
 
     assert kernel.set_to is None

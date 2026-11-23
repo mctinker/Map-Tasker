@@ -21,7 +21,7 @@ from typing import Any
 
 import pytest
 from maptasker.src import runcli
-from maptasker.src.core import console
+from maptasker.src.core import console, versiondisplay
 from maptasker.src.core.config import DEFAULT_DISPLAY_DETAIL_LEVEL
 from maptasker.src.core.initparg import initialize_runtime_arguments
 from maptasker.src.core.mtexcept import MapTaskerError
@@ -285,15 +285,17 @@ def test_everything_is_applied_before_the_single_names_and_the_detail_it_sets_st
 def test_the_version_is_shown_and_the_run_ends(state: RunState, monkeypatch: pytest.MonkeyPatch) -> None:
     said: list[str] = []
     monkeypatch.setattr(console, "say", said.append)
-    monkeypatch.setattr(runcli, "clip_figure", lambda *_: said.append("figure"))
+    monkeypatch.setattr(versiondisplay, "clip_figure", lambda *_: said.append("figure"))
     # A terminal that can draw the banner: the animation is only for one (see test_version_display for the rest).
-    monkeypatch.setattr(runcli.sys, "stdout", type("Tty", (), {"encoding": "utf-8", "isatty": lambda self: True})())
+    monkeypatch.setattr(
+        versiondisplay.sys, "stdout", type("Tty", (), {"encoding": "utf-8", "isatty": lambda self: True})()
+    )
 
     with pytest.raises(MapTaskerError) as raised:
         runcli.process_extended_arguments(_args(v=True), state=state)
 
     assert raised.value.exit_code == 0
-    assert any(runcli.MY_VERSION in line and runcli.MY_LICENSE in line for line in said)
+    assert any(versiondisplay.MY_VERSION in line and versiondisplay.MY_LICENSE in line for line in said)
     assert "figure" in said
 
 

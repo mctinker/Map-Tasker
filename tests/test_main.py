@@ -15,11 +15,14 @@ from __future__ import annotations
 
 import importlib
 import os
+import subprocess
 import sys
 from collections.abc import Iterator
 
 import pytest
 from maptasker import main as entry_point
+from maptasker.src import mapit
+from maptasker.src.core.mtexcept import MapTaskerError
 
 
 @pytest.fixture(autouse=True)
@@ -58,6 +61,51 @@ def test_the_entry_point_adds_nothing_to_the_front_of_the_import_path() -> None:
 
 def test_main_returns_the_exit_code(monkeypatch: pytest.MonkeyPatch) -> None:
     """main() hands back what mapit_all returns -- what the console script exits with."""
-    monkeypatch.setattr(entry_point, "mapit_all", lambda: 7)
+    monkeypatch.setattr(mapit, "mapit_all", lambda: 7)
+    monkeypatch.setattr(sys, "argv", ["maptasker"])
 
     assert entry_point.main() == 7
+
+
+def test_the_version_alone_is_said_without_starting_the_program(monkeypatch: pytest.MonkeyPatch) -> None:
+    said: list[str] = []
+    monkeypatch.setattr(entry_point, "display_version", lambda: said.append("version"))
+    monkeypatch.setattr(mapit, "mapit_all", lambda: pytest.fail("the whole program was started to say the version"))
+    monkeypatch.setattr(sys, "argv", ["maptasker", "-v"])
+
+    assert entry_point.main() == 0
+    assert said == ["version"]
+
+
+def test_the_version_ending_with_a_failure_code_hands_that_code_back(monkeypatch: pytest.MonkeyPatch) -> None:
+    def refuse() -> None:
+        raise MapTaskerError(exit_code=3)
+
+    monkeypatch.setattr(entry_point, "display_version", refuse)
+    monkeypatch.setattr(sys, "argv", ["maptasker", "-v"])
+
+    assert entry_point.main() == 3
+
+
+@pytest.mark.parametrize("argv", [["maptasker", "-v", "-d"], ["maptasker", "-d"], ["maptasker", "-v", "-v"]])
+def test_anything_besides_the_version_takes_the_full_route(monkeypatch: pytest.MonkeyPatch, argv: list[str]) -> None:
+    monkeypatch.setattr(entry_point, "display_version", lambda: pytest.fail("the short route was taken"))
+    monkeypatch.setattr(mapit, "mapit_all", lambda: 5)
+    monkeypatch.setattr(sys, "argv", argv)
+
+    assert entry_point.main() == 5
+
+
+def test_saying_the_version_leaves_the_program_unimported() -> None:
+    """The point of the short route, checked where it counts: in a fresh interpreter, which imports what it imports."""
+    code = (
+        "import sys; sys.argv = ['maptasker', '-v']\n"
+        "from maptasker.main import main\n"
+        "main()\n"
+        "heavy = [m for m in ('nicegui', 'fastapi', 'maptasker.src.mapit', 'maptasker.src.runcli') if m in sys.modules]\n"
+        "print('LOADED', heavy)\n"
+    )
+    result = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, check=False)
+
+    assert result.returncode == 0, result.stderr
+    assert "LOADED []" in result.stdout
