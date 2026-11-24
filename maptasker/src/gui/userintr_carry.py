@@ -123,7 +123,9 @@ async def _choose_file_to_import_from(gui: MyGui) -> str:
     Deliberately NOT remember_local_xml_directory: that is where the file being worked ON comes from, and a
     backup picked to import from -- an archive, a download -- should not move it.
     """
-    result = await LocalFilePicker(local_xml_start_directory(gui), upper_limit="~", multiple=False)
+    result = cast(
+        "list[str] | str | None", await LocalFilePicker(local_xml_start_directory(gui), upper_limit="~", multiple=False)
+    )
     if not result:
         ui.notify(translate_string("Import cancelled."), type="warning")
         return ""

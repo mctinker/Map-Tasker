@@ -303,7 +303,9 @@ class LoadingEventHandlers(HandlerGroup):
         # The ceiling stays at home no matter where we start: LocalFilePicker's default
         # upper_limit is whatever directory it opens in, which would leave the user unable
         # to navigate up out of a remembered subdirectory.
-        result = await LocalFilePicker(local_xml_start_directory(gui), upper_limit="~", multiple=False)
+        result = cast(
+            "list[str] | None", await LocalFilePicker(local_xml_start_directory(gui), upper_limit="~", multiple=False)
+        )
 
         # 3. Check if the user selected a file or canceled the dialog
         if result:

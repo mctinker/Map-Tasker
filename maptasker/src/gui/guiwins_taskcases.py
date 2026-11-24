@@ -23,7 +23,7 @@
 #
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from nicegui import ui
 
@@ -310,7 +310,7 @@ class _Tests:
             with ui.row().classes("w-full justify-end mt-4 gap-2"):
                 ui.button(translate_string("Delete"), on_click=lambda: confirm.submit(True)).props("color=red")
                 ui.button(translate_string("Cancel"), on_click=lambda: confirm.submit(False)).props("outline")
-        answer = await confirm
+        answer = cast("bool | None", await confirm)
         confirm.delete()
         if not answer:
             return

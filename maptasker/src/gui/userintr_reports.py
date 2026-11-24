@@ -92,7 +92,7 @@ async def _choose_comparison_file(gui: MyGui) -> str:
                     "outline",
                 ).classes("w-full")
 
-        choice = await dialog
+        choice = cast("str | None", await dialog)
         if choice != "pick":
             # Covers both the original and Cancel (""), and a dialog dismissed by clicking
             # away, which resolves to None rather than to any of the three buttons.
@@ -101,7 +101,9 @@ async def _choose_comparison_file(gui: MyGui) -> str:
     # The ceiling stays at home no matter where we start, for the same reason getxml_event
     # gives: LocalFilePicker's default upper_limit is whatever directory it opens in,
     # which would leave the user unable to navigate up out of a remembered subdirectory.
-    result = await LocalFilePicker(local_xml_start_directory(gui), upper_limit="~", multiple=False)
+    result = cast(
+        "list[str] | None", await LocalFilePicker(local_xml_start_directory(gui), upper_limit="~", multiple=False)
+    )
     if not result:
         return ""
     # Deliberately NOT remember_local_xml_directory: that directory is where the file the

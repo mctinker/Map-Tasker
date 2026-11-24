@@ -210,7 +210,7 @@ class AIEventHandlers(HandlerGroup):
                 )
 
         # 2. Open the dialog and execution halts here until dialog.submit() is triggered
-        name_entered = await dialog
+        name_entered = cast("str | None", await dialog)
 
         # 3. Handle the resulting inputs identically to your original logic
         # Canceled? (User clicked Cancel or closed the modal backdrop)
