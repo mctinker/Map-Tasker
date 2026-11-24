@@ -38,10 +38,10 @@ dependencies = [
     # aiutils imports it directly.  NiceGUI happens to bring it in, but that is not a promise.
     'httpx>=0.28.1',
     'keyring>=25.7.0',
-    'nicegui>=4.0.0',
-    'packaging>=26.3',
+    'nicegui>=4.1.0',
+    'packaging>=26.4',
     'pillow>=13.0.0',
-    "platformdirs>=4.14.5",
+    "platformdirs>=4.14.8",
     'requests>=2.34.2',
     'tomli_w>=1.2.0',
     # Windows has no system time-zone database, so zoneinfo (maputils' time-zone lookup) finds no
@@ -54,10 +54,10 @@ dependencies = [
 # them itself: `pip install "maptasker[ai]"` (or `uv add "maptasker[ai]"`) is how they arrive,
 # and maputil3.AI_EXTRA_INSTALL_COMMAND is what the program tells the user to run.
 ai = [
-    'anthropic>=2.9.0',
-    'google-genai>=3.3.0',
+    'anthropic>=2.13.0',
+    'google-genai>=3.6.1',
     'ollama>=0.6.3',
-    'openai>=3.51.0',
+    'openai>=3.58.0',
 ]
 
 [project.urls]
@@ -121,7 +121,7 @@ test = [
     "pytest-asyncio>=1.5.0",
     "pytest-cov>=7.1.0",
     "pytest-xdist>=3.8",
-    "hypothesis>=6.170.15",
+    "hypothesis>=6.170.17",
 ]
 # 'black' was removed: [tool.ruff.format] is the formatter for this project, and
 # running both against the same files makes them fight over the same lines.
@@ -129,15 +129,15 @@ dev = [
     # The test group, once, rather than a second copy of it that can drift.
     {include-group = "test"},
     "deep-translator>=1.11.4",
-    "import-linter>=2.16",
-    "matchify>=0.3.0",
+    "import-linter>=2.17",
+    "matchify>=0.3.1",
     # Declared so the lock tracks a current pip; pip-autoremove only pulls it in unpinned.
     "pip>=26.3",
     "pip-autoremove>=0.10.0",
     "pyright[nodejs]>=1.1.414",
     "pytest>=9.2.0",
     "rich>=15.0.0",
-    "ruff>=0.17.5",
+    "ruff>=0.17.6",
     "vulture>=2.16",
 ]
 
