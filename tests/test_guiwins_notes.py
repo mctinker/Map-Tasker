@@ -506,6 +506,20 @@ async def test_editing_a_note_opens_the_dialog_with_it_filled_in() -> None:
 
 
 @pytest.mark.asyncio
+async def test_editing_a_note_on_an_object_missing_from_the_open_file_still_opens_the_dialog() -> None:
+    """The note outlives the file it was made for: its object is offered in the Name field though the file lacks it."""
+    async with _open() as user:
+        await user.should_see("Notes & Tags")
+        _tick("Gone Since")
+        _press(user, _window().buttons["edit"])
+        await user.should_see("Separate tags with spaces or commas.")
+        names = [element for element in user.find(kind=ui.select).elements if element.label == "Name"]
+
+        assert names
+        assert names[-1].value == "Gone Since"
+
+
+@pytest.mark.asyncio
 async def test_a_tag_button_in_the_dialog_adds_that_tag_once() -> None:
     assert guiwins_notes.NotesWindow._with_tag("a b", "c") == "a b c"
     assert guiwins_notes.NotesWindow._with_tag("a, #b", "b") == "a b"

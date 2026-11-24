@@ -78,6 +78,21 @@ async def test_a_choice_defaults_to_its_first_option_when_the_element_holds_none
 
 
 @pytest.mark.asyncio
+async def test_a_choice_this_build_does_not_list_is_kept_and_offered_as_itself() -> None:
+    """A newer Tasker's value must not stop the panel opening, nor be swapped for the first choice."""
+    spec = _spec("choice")
+    made: list[object] = []
+
+    def page() -> None:
+        made.append(guiwins_props._build_property_widget(spec, "A Choice From The Future"))
+
+    async with open_page(page):
+        assert made[0].value == "A Choice From The Future"  # type: ignore[attr-defined]
+        assert "A Choice From The Future" in made[0].options  # type: ignore[attr-defined]
+        assert list(spec.choices)[0] in made[0].options  # type: ignore[attr-defined]
+
+
+@pytest.mark.asyncio
 async def test_a_duration_shows_the_cooldown_in_words() -> None:
     try:
         spec = _spec("duration")

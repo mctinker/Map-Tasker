@@ -20,6 +20,8 @@ All notable changes to this project will be documented in this file!
 
 ### Fixed
 
+- Fixed: The Scene designer and the properties panel no longer fail to open when a setting holds a value they have no choice for, such as a Run Task that names a Task missing from the open file or a value from a newer Tasker. The value is kept and shown as it is.
+- Fixed: Editing a note whose object is not in the open file (for example after switching to a different backup) no longer fails with an "Invalid value" error; the Name field now offers that note's own object.
 - Fixed: "Update to Latest Version" on Windows no longer fails with "being used by another process". MapTasker now closes first, installs the new version from a helper, and reopens by itself, showing a message if the install fails.
 - Fixed: `maptasker -v` (and every other command-line option) did nothing at all if your settings had last been saved while a Map or Diagram view was on screen, which left a flag set that made MapTasker think a window was waiting for it. It now prints the version, and also leaves out the banner where the console cannot display it, such as a Windows console in a legacy code page, and when the output is piped.
 

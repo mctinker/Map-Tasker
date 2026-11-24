@@ -322,7 +322,9 @@ class NotesWindow:
             )
             name = (
                 ui.select(
-                    sorted(objnotes.known_names(kind.value, self.state)),
+                    # The note's own object is always offered, even when the open file has no object by that name:
+                    # a note outlives the file it was made for, and a select will not open on a value it does not list.
+                    sorted(objnotes.known_names(kind.value, self.state) | ({existing.name} if existing else set())),
                     value=existing.name if existing else None,
                     label=translate_string("Name"),
                     with_input=True,

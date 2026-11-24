@@ -1020,6 +1020,11 @@ class _V2Designer:
             # RunTask names a Task in the loaded backup, so offer the real list rather than
             # a free field -- with_input still allows a name that isn't loaded yet.
             task_names = sorted(self.state.tasker_root_elements.get("all_tasks_by_name", {}))
+            # The name the Scene already holds is always on the list: a select will not open on a value it does not
+            # offer, and a Task the open file lacks (renamed, or a Scene brought from another backup) is no reason
+            # for the whole editor to fail -- nor to swap in a name the user never chose.
+            if value != "" and str(value) not in task_names:
+                task_names.append(str(value))
             ui.select(
                 task_names,
                 value=str(value) if value != "" else None,
@@ -1028,8 +1033,12 @@ class _V2Designer:
                 on_change=lambda e, k=prop.key, d=target: sceneedit_v2props.v2_set_prop(d, k, str(e.value or "")),
             ).props("dense").classes("w-full")
         elif prop.kind == "choice":
+            # Likewise a stored value outside the choices (a newer Tasker's, or a hand-edited Scene) is kept and shown.
+            choices = list(prop.choices)
+            if value != "" and str(value) not in choices:
+                choices.append(str(value))
             ui.select(
-                list(prop.choices),
+                choices,
                 value=str(value) if value != "" else None,
                 label=translate_string(prop.label),
                 with_input=True,

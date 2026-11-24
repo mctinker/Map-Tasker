@@ -30,8 +30,14 @@ def _build_property_widget(spec: objprops.PropField, value: str) -> object:
     if spec.kind == "checkbox":
         widget = ui.checkbox(translate_string(spec.label), value=value == "true")
     elif spec.kind == "choice":
+        # A value this build does not list (a newer Tasker's) is offered as itself rather than refused: a select will
+        # not open on a value it does not have, and replacing it with the first choice would change a setting
+        # the user never touched.
+        choices = list(spec.choices)
+        if value and value not in choices:
+            choices.append(value)
         widget = ui.select(
-            list(spec.choices),
+            choices,
             value=value or spec.choices[0],
             label=translate_string(spec.label),
         ).classes("w-full")

@@ -811,6 +811,45 @@ async def test_a_runtask_action_offers_the_loaded_tasks_by_name() -> None:
         assert "Fetcher" in action.values()
 
 
+@pytest.mark.asyncio
+async def test_a_runtask_action_naming_a_task_the_file_lacks_still_opens_and_keeps_the_name() -> None:
+    """A Scene brought from another backup can name a Task this one has not got; the field shows it, not an error."""
+    async with _open() as user:
+        await _select(user, CLOSE_BUTTON)
+        _fire_click(_menu_entry(user, "RunTask"))
+        picker = max(
+            (e for e in all_elements(user) if isinstance(e, ui.select) and "Fetcher" in e.options),
+            key=lambda e: e.id,
+        )
+        picker.value = "Fetcher"
+        action = required(_node(CLOSE_BUTTON))["eventHandlers"]["handlers"][0]["actions"][-1]
+        key = next(k for k, v in action.items() if v == "Fetcher")
+        action[key] = "Not In This Backup"
+
+        other = next(path for path in _paths() if path != CLOSE_BUTTON)
+        await _select(user, other)
+        await _select(user, CLOSE_BUTTON)
+
+        shown = [e for e in all_elements(user) if isinstance(e, ui.select) and e.value == "Not In This Backup"]
+        assert shown, "the Task the Scene names is not in the open file, and the field has to show it anyway"
+        assert action[key] == "Not In This Backup"
+
+
+@pytest.mark.asyncio
+async def test_a_fixed_choice_holding_a_value_outside_its_choices_still_opens_and_keeps_it() -> None:
+    """A Scene written by a newer Tasker can hold a value this build has no choice for; it is shown, not refused."""
+    async with _open() as user:
+        node = required(_node(CLOSE_BUTTON))
+        node["showWhenMode"] = "Collapsed"
+        other = next(path for path in _paths() if path != CLOSE_BUTTON)
+        await _select(user, other)
+        await _select(user, CLOSE_BUTTON)
+
+        shown = [e for e in all_elements(user) if isinstance(e, ui.select) and e.value == "Collapsed"]
+        assert shown, "the value is not one of the choices, and the field has to show it anyway"
+        assert node["showWhenMode"] == "Collapsed"
+
+
 # ##################################################################################
 # The pickers
 # ##################################################################################
