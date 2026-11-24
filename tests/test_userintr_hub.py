@@ -569,6 +569,9 @@ def test_clear_unhighlights_every_open_view(seen: SimpleNamespace, monkeypatch: 
 @pytest.fixture
 def upgrade(seen: SimpleNamespace, monkeypatch: pytest.MonkeyPatch) -> SimpleNamespace:
     record = SimpleNamespace(result=(True, ""), changelog=[], reloaded=[])
+    # The in-process route, whatever machine the tests run on: Windows has its own (see the tests for it below), which
+    # starts a helper and ends the process -- not something a test on a Windows runner may be allowed to do for real.
+    monkeypatch.setattr(userintr.sys, "platform", "linux")
     patch_hub(monkeypatch, "update_maptasker", lambda: record.result)
     patch_hub(monkeypatch, "create_changelog", lambda: record.changelog.append(True))
     patch_hub(monkeypatch, "reload_gui", lambda gui: record.reloaded.append(gui))
