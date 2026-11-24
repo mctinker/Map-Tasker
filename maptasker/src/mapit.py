@@ -43,6 +43,7 @@ from maptasker.src.core.error import close_logfile, record_error
 from maptasker.src.core.maputil2 import log_startup_values
 from maptasker.src.core.mtexcept import MapTaskerError
 from maptasker.src.core.primitem import PrimeItems, PrimeItemsReset, RunState
+from maptasker.src.core.reportflags import wants_report
 from maptasker.src.core.sysconst import (
     debug_file,
     logger,
@@ -373,7 +374,7 @@ def mapit_all(state: RunState | None = None) -> int:
 
     # A report asked for on the command line (-healthcheck, -compare ...) runs with no window
     # and no GUI start-up, and ends with its own exit code.
-    if clireports.wants_report(sys.argv[1:]):
+    if wants_report(sys.argv[1:]):
         return clireports.run(sys.argv[1:], state=state)
 
     try:

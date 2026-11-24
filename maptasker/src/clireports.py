@@ -100,7 +100,6 @@ EXIT_NO_HISTORY = 11  # Changes Since, or -trend, had nothing earlier to compare
 
 # The flags that make a run a command-line report, in the single-dash style the rest of the
 # command line uses.  Each is also accepted with two dashes.
-REPORT_FLAGS = ("healthcheck", "compare", "changes_since", "trend", "export", "text", "watch")
 
 # Health Check: which findings make the run "find something" (EXIT_FOUND).
 FAIL_ON_ERROR = "error"
@@ -150,20 +149,6 @@ class _Parser(argparse.ArgumentParser):
         if message:
             sys.stderr.write(message)
         raise MapTaskerError(exit_code=status)
-
-
-def wants_report(argv: list[str]) -> bool:
-    """Whether the command line asks for one of these reports rather than for the GUI.
-
-    Args:
-        argv (list[str]): the command line, without the program's own name.
-
-    Returns:
-        bool: True if any argument is one of the REPORT_FLAGS (with one or two dashes, and
-            with or without an "=value").
-    """
-    flags = {f"-{name}" for name in REPORT_FLAGS} | {f"--{name}" for name in REPORT_FLAGS}
-    return any(argument.split("=", 1)[0] in flags for argument in argv)
 
 
 def _add_text_options(add_option: Callable[..., object], add_command: Callable[..., object]) -> None:

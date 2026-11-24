@@ -20,6 +20,7 @@
 import sys
 
 from maptasker.src.core.mtexcept import MapTaskerError
+from maptasker.src.core.reportflags import wants_report
 from maptasker.src.core.versiondisplay import display_version
 
 # What asking for the version is, and the only thing that gets the short way (see main()).
@@ -37,6 +38,9 @@ def main() -> int:
     program is imported: importing it brings in the web framework, the Tasker analysis and
     every window, which is about half a second for a reply that is two lines long.  Anything
     else on the command line -- '-v -d' included -- takes the full route, as it always did.
+
+    A report (-healthcheck, -compare ...) is run without importing the program either: it has
+    no window, so it has no use for the web framework the program imports at start-up.
     """
     if sys.argv[1:] == VERSION_ONLY:
         try:
@@ -45,8 +49,14 @@ def main() -> int:
             return error.exit_code
         return 0
 
-    # Imported here, and only here, because that is the point: nothing above this line may
-    # need the program.
+    # A report has no window, and the program's own import brings in the web framework the window is built on
+    # (a third of a second): so a report is run from the reports' module, and only the rest imports the program.
+    # Nothing above this point may need either.
+    if wants_report(sys.argv[1:]):
+        from maptasker.src.clireports import run  # noqa: PLC0415
+
+        return run(sys.argv[1:])
+
     from maptasker.src.mapit import mapit_all  # noqa: PLC0415
 
     return mapit_all()

@@ -630,6 +630,7 @@ strict = [
     "maptasker/src/core/primitem.py",
     "maptasker/src/core/property.py",
     "maptasker/src/core/resstore.py",
+    "maptasker/src/core/reportflags.py",
     "maptasker/src/core/runcfg.py",
     "maptasker/src/core/scenelayout.py",
     "maptasker/src/core/servicec.py",

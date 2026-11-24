@@ -21,7 +21,7 @@ from collections.abc import Iterator
 
 import pytest
 from maptasker import main as entry_point
-from maptasker.src import mapit
+from maptasker.src import clireports, mapit
 from maptasker.src.core.mtexcept import MapTaskerError
 
 
@@ -104,6 +104,39 @@ def test_saying_the_version_leaves_the_program_unimported() -> None:
         "main()\n"
         "heavy = [m for m in ('nicegui', 'fastapi', 'maptasker.src.mapit', 'maptasker.src.runcli') if m in sys.modules]\n"
         "print('LOADED', heavy)\n"
+    )
+    result = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, check=False)
+
+    assert result.returncode == 0, result.stderr
+    assert "LOADED []" in result.stdout
+
+
+def test_a_report_is_run_without_starting_the_program(monkeypatch: pytest.MonkeyPatch) -> None:
+    ran: list[list[str]] = []
+
+    def fake_run(argv: list[str]) -> int:
+        ran.append(argv)
+        return 10
+
+    monkeypatch.setattr(clireports, "run", fake_run)
+    monkeypatch.setattr(mapit, "mapit_all", lambda: pytest.fail("the whole program was started for a report"))
+    monkeypatch.setattr(sys, "argv", ["maptasker", "-healthcheck", "-file", "backup.xml"])
+
+    assert entry_point.main() == 10
+    assert ran == [["-healthcheck", "-file", "backup.xml"]]
+
+
+def test_asking_for_a_reports_help_leaves_the_window_framework_unimported() -> None:
+    """In a fresh interpreter, which imports only what the report needs: no web framework, no windows."""
+    code = (
+        "import sys; sys.argv = ['maptasker', '-healthcheck', '-h']\n"
+        "from maptasker.main import main\n"
+        "try:\n"
+        "    main()\n"
+        "except SystemExit:\n"
+        "    pass\n"
+        "loaded = [m for m in ('nicegui', 'fastapi', 'maptasker.src.mapit', 'maptasker.src.rungui') if m in sys.modules]\n"
+        "print('LOADED', loaded)\n"
     )
     result = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, check=False)
 

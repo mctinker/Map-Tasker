@@ -22,7 +22,7 @@ from typing import Any
 
 import pytest
 from maptasker.src import clireports
-from maptasker.src.core import timeline
+from maptasker.src.core import reportflags, timeline
 from maptasker.src.core.primitem import PrimeItems, PrimeItemsReset
 from maptasker.src.core.sysconst import ARGUMENTS_FILE, ERROR_FILE
 
@@ -75,7 +75,7 @@ def _run(*argv: str) -> int:
     ],
 )
 def test_these_command_lines_ask_for_a_report(argv: list[str]) -> None:
-    assert clireports.wants_report(argv)
+    assert reportflags.wants_report(argv)
 
 
 @pytest.mark.parametrize(
@@ -83,7 +83,7 @@ def test_these_command_lines_ask_for_a_report(argv: list[str]) -> None:
     [[], ["-g"], ["-file", "backup.xml"], ["-detail", "3"], ["-debug"], ["-v"], ["-healthchecks"], ["healthcheck"]],
 )
 def test_these_command_lines_are_left_to_the_window(argv: list[str]) -> None:
-    assert not clireports.wants_report(argv)
+    assert not reportflags.wants_report(argv)
 
 
 # ##################################################################################
@@ -543,8 +543,8 @@ def _trend_configs() -> tuple[str, str]:
 
 
 def test_trend_is_a_report_flag() -> None:
-    assert clireports.wants_report(["-trend"])
-    assert clireports.wants_report(["--trend", "-file", "backup.xml"])
+    assert reportflags.wants_report(["-trend"])
+    assert reportflags.wants_report(["--trend", "-file", "backup.xml"])
 
 
 def test_a_newest_backup_that_is_messier_exits_10_and_prints_the_report(

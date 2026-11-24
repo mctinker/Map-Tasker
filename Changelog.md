@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file!
 
 ### Changed
 
+- Changed: Command-line reports (`-healthcheck`, `-compare`, `-trend` and the others) start about a quarter of a second sooner, because they no longer load the parts of MapTasker that only the window needs. The reports themselves are unchanged.
 - Changed: `maptasker -v` now answers in a fraction of a second instead of about half a second, because it no longer loads the whole program just to print the version. Running it with any other option behaves as before.
 - Changed: The right-hand panel's buttons are regrouped by the question each answers -- Structure & Style, Exposure & Cost, Tasker & Phone, Simulate & Test, and Compare & History -- and opening one section folds the others. Clear now sits under the Display Views buttons, and Import With Dependencies with the Get XML buttons.
 

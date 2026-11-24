@@ -190,7 +190,7 @@ def test_a_debug_flag_logs_the_startup_values(
 # ##################################################################################
 def test_a_report_request_runs_without_starting_the_window(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(sys, "argv", ["maptasker", "-healthcheck"])
-    monkeypatch.setattr(mapit.clireports, "wants_report", lambda _args: True)
+    monkeypatch.setattr(mapit, "wants_report", lambda _args: True)
     monkeypatch.setattr(mapit.clireports, "run", lambda args, state: 7)
     monkeypatch.setattr(mapit, "initialize_everything", lambda **_kw: pytest.fail("the window must not start"))
     assert mapit.mapit_all() == 7
